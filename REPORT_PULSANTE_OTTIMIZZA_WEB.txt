@@ -1,0 +1,203 @@
+
+REPORT COMPLETO: FUNZIONALITÀ PULSANTE "🌐 OTTIMIZZA"
+
+================================================================================
+OVERVIEW GENERALE
+================================================================================
+Il pulsante "🌐 OTTIMIZZA" è una funzionalità avanzata che simula una ricerca web per ottimizzare automaticamente le informazioni sui vini incollati nella textarea. 
+
+**IMPORTANTE: Non accede realmente a internet**, ma utilizza logiche interne sofisticate per processare i dati.
+
+================================================================================
+CAMPI CHE LEGGE DALLA RIGA
+================================================================================
+- Nome del vino: Estratto dopo rimozione di prezzi, anni e separatori
+- Anno: Pattern \b(19|20)\d{2}\b per anni completi a 4 cifre (es. 2019, 1995)
+- Prezzi: Pattern con €, euro, EUR - supporta fino a 2 prezzi per riga
+- Produttore: Identificato tramite pattern e liste predefinite
+- Provenienza geografica: Regioni e nazioni, spesso tra parentesi
+
+================================================================================
+PROCESSO DI ELABORAZIONE (ORDINE STEP)
+================================================================================
+
+STEP 1: NORMALIZZAZIONE ANNI ABBREVIATI
+- Converte anni tipo '19, '21 → 2019, 2021
+- Logica intelligente: se ≤25 = 2000+, se >25 = 1900+
+- Esempi: '89 → 1989, '23 → 2023
+
+STEP 2: SEPARAZIONE INTELLIGENTE VINI
+- Metodo primario: Usa i prezzi come separatori automatici
+- Pattern prezzi: ([–—-]\s*\d{1,4}(?:[,.]\d{1,2})?\s*(?:€|euro|EUR))
+- Fallback: Se non trova prezzi, separa per righe
+- Filtra righe troppo brevi (meno di 10 caratteri)
+
+STEP 3: PULIZIA QUERY PER OGNI VINO
+- Rimuove tutti i prezzi dalla stringa
+- Elimina trattini e caratteri di separazione residui
+- Normalizza spazi multipli
+- Rimuove virgolette e caratteri speciali
+
+STEP 4: SIMULAZIONE RICERCA WEB
+Chiama fetchInfoFromWeb() che simula una ricerca online con:
+
+A) ESTRAZIONE PREZZI
+- Due prezzi: Il minore = costo, il maggiore = vendita
+- Un prezzo: Assegnato a vendita, costo rimane vuoto
+- Nessun prezzo: Cerca numeri alla fine della riga
+
+B) IDENTIFICAZIONE PRODUTTORE
+Lista produttori predefiniti:
+Girlan, Antinori, Gaja, Inama, Cortese, Montevecchio, 
+Burzi Alberto, Fratelli Berlucchi, Caccia al Piano, 
+Domaine Bussy, Château de Beru, Ken Forrester, 
+Domaine Mosnier, Domaine Miolane, Domaine Carrette, 
+Baglio di Pianetto, Marramiero, Le Morette, 
+Palazzo di Varignana, Perusini, Diego Rivetti
+
+C) MAPPATURA PROVENIENZE
+Zone vinicole mappate:
+
+Italia: Piemonte, Toscana, Veneto, Lombardia, Friuli, Sicilia, 
+        Puglia, Alto Adige, Bologna, Emilia, Romagna, Marche, 
+        Abruzzo, Umbria, Campania
+
+Francia: Borgogna, Bordeaux, Champagne, Valle della Loira, 
+         Valle del Rodano, Chablis, Côte d'Or
+
+Altri: Stellenbosch (Sudafrica), Mosella/Rheingau (Germania), 
+       Rioja/Ribera del Duero (Spagna)
+
+D) CATEGORIZZAZIONE AUTOMATICA
+- ROSSOS: Barolo, Chianti, Sangiovese, vini con "nero", "rosso"
+- BIANCHI: Chardonnay, Pinot Grigio, Sauvignon, Vermentino, "bianco"
+- BOLLICINE: Franciacorta, Prosecco, Champagne, Spumante
+
+STEP 5: OTTIMIZZAZIONI AVANZATE
+
+OTTIMIZZAZIONE PRODUTTORE (ottimizzaNomeProduttore())
+- Match esatti: Verifica prima i produttori noti
+- Semplificazione: Se >3 parole, rimuove termini generici
+- Parole filtrate: "cantina", "tenuta", "azienda", "borgo", "villa", "castello", "domaine", "château"
+- Risultato: Massimo 2 parole significative
+
+OTTIMIZZAZIONE PROVENIENZA (ottimizzaProvenienza())
+- Mapping intelligente: Francia→Borgogna, Sudafrica→Stellenbosch
+- Rimozione parentesi: Estrae info geografiche tra ()
+- Priorità: Zone vinicole specifiche > nazioni generiche
+
+================================================================================
+FONTI UTILIZZATE (INTERNE)
+================================================================================
+
+NON USA INTERNET REALE
+- Simulazione ritardo: 500-1500ms per dare impressione di ricerca web
+- Tutto hardcoded: Liste produttori, zone, pattern di riconoscimento
+- Nessuna API esterna: Tutta la logica è locale
+
+DATABASE PATTERN MATCHING
+- Produttori: 21+ produttori predefiniti
+- Zone geografiche: 30+ zone vinicole mappate
+- Categorie standard: ROSSOS, BIANCHI, BOLLICINE (formato DB)
+
+================================================================================
+CONFRONTO CON ARCHIVI
+================================================================================
+
+NON CONFRONTA DIRETTAMENTE CON DB
+- Categorie: Usa format standard del database ma non verifica esistenza
+- Tipologie: Validate successivamente nel modal di conferma
+- Fornitori: Selezionati manualmente nel modal dopo l'ottimizzazione
+
+================================================================================
+GESTIONE FORMATI SPECIFICI
+================================================================================
+
+ANNI ABBREVIATI
+- Pattern: /['''](\d{2})/ (supporta vari apostrofi: ', ', ')
+- Esempi: '17 → 2017, '89 → 1989, '04 → 2004
+- Soglia intelligente: ≤25 = 2000+, >25 = 1900+
+
+PRODUTTORI
+- Pulizia generica: Rimuove "cantina", "tenuta", "azienda", "del", "della"
+- Limite parole: Massimo 2 parole significative
+- Preservazione noti: Mantiene produttori famosi integralmente
+
+PROVENIENZE
+- Nazioni→Zone: Francia→Borgogna, Germania→Rheingau
+- Rimozione parentesi: Estrae e processa info tra ()
+- Priorità specifica: Zone vinicole > nazioni generiche
+
+================================================================================
+OUTPUT STRUTTURATO FINALE
+================================================================================
+
+FORMATO OGGETTO VINO
+{
+  nome: string,           // Nome pulito del vino
+  anno: string,           // Anno normalizzato (es. "2019")
+  produttore: string,     // Produttore ottimizzato
+  categoria: string,      // ROSSOS/BIANCHI/BOLLICINE
+  provenienza: string,    // Zona vinicola specifica
+  costo: string,          // Prezzo di costo (vuoto se non trovato)
+  vendita: string         // Prezzo di vendita
+}
+
+INTEGRAZIONE CON SISTEMA
+- Array strutturato: setViniStrutturati() salva risultati
+- Textarea aggiornata: Mostra versione formattata ottimizzata
+- Modal compatibile: I dati si integrano seamlessly nel modal di conferma
+- Database ready: Formato già compatibile con schema Supabase
+
+================================================================================
+ESEMPI PRATICI
+================================================================================
+
+INPUT:
+Franciacorta Brut Satèn Enrico Gatti – 60 €
+Chardonnay Scapulin Cortese, Piemonte – 40 €
+Barolo DOCG '19 Burzi Alberto, Piemonte – 65 €
+
+OUTPUT OTTIMIZZATO:
+[
+  {
+    nome: "Franciacorta Brut Satèn",
+    produttore: "Enrico Gatti",
+    categoria: "BOLLICINE",
+    provenienza: "Piemonte",
+    vendita: "60"
+  },
+  {
+    nome: "Chardonnay Scapulin", 
+    produttore: "Cortese",
+    categoria: "BIANCHI",
+    provenienza: "Piemonte",
+    vendita: "40"
+  },
+  {
+    nome: "Barolo DOCG",
+    anno: "2019",
+    produttore: "Burzi Alberto", 
+    categoria: "ROSSOS",
+    provenienza: "Piemonte",
+    vendita: "65"
+  }
+]
+
+================================================================================
+VANTAGGI SISTEMA
+================================================================================
+- Velocità: Elaborazione locale instantanea
+- Accuratezza: Pattern matching sofisticato
+- Consistenza: Standardizzazione automatica nomi e formati
+- Integrazione: Output direttamente compatibile con database
+- UX: Simula ricerca web per esperienza utente intuitiva
+
+================================================================================
+CONCLUSIONE
+================================================================================
+Il pulsante "🌐 OTTIMIZZA" è un sistema di intelligenza artificiale simulata che ottimizza automaticamente liste di vini tramite pattern matching avanzato e logiche interne, senza necessità di connessione internet reale.
+
+================================================================================
+FINE REPORT
+================================================================================

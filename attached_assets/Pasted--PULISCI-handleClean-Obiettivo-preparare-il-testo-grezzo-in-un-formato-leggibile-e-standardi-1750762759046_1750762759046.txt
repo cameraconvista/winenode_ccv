@@ -1,0 +1,53 @@
+🧹 PULISCI (handleClean())
+
+Obiettivo: preparare il testo grezzo in un formato leggibile e standardizzato, senza interpretarlo, per permettere all’ottimizzazione di lavorare bene.
+
+Cosa fa:
+1. Tutto in MAIUSCOLO
+2. Rimuove caratteri inutili: parentesi, slash, trattini, punti, ecc. (mantiene € e virgolette)
+3. Riconosce ed evidenzia blocchi principali:
+   - Nome vino
+   - Prezzo
+   - Anno (se presente nel testo)
+   - Tipologia (ROSSO, BIANCO, ecc.)
+   - Provenienza (regione o stato)
+4. Divide correttamente le righe (ogni vino su una riga)
+5. Sistema spazi: rimuove doppi spazi e spazi finali
+6. Format finale per ogni riga:
+   NOME VINO – € PREZZO – [ALTRE INFO SE PRESENTI]
+
+
+✨ OTTIMIZZA (handleOptimizeStep())
+
+Obiettivo: arricchire ogni riga del testo già pulito compilando automaticamente i campi del modale ConfermaVino.
+
+Cosa fa:
+
+Per ogni riga del testo:
+1. Mantiene tutto ciò che è già presente nel testo (prezzo, anno, produttore ecc.)
+2. NON modifica mai:
+   - Prezzo
+   - Anno (lo legge solo dal testo)
+   - Nome completo se già presente
+3. Aggiunge SOLO se mancante:
+   - Produttore → solo se non già presente
+   - Provenienza → se non già scritta
+   - Tipologia (Categoria) → dedotta da parole chiave
+   - Costo stimato → opzionale se mancante
+4. Valida i dati aggiunti:
+   - Il produttore non può essere “ROSSO”, “CDSC” ecc.
+   - La categoria deve essere una tra quelle mappate con Supabase
+5. Non unisce righe, non riscrive tutto: ogni riga in input produce una riga migliorata e riconoscibile
+
+
+✅ Risultato atteso nel Modale ConfermaVino:
+
+| Campo         | Fonte                                                 |
+|---------------|--------------------------------------------------------|
+| Nome Vino     | Da input + pulizia                                     |
+| Anno          | Solo se presente nel testo (non cercato online)        |
+| Categoria     | Deducibile da parole chiave (ROSSO → ROSSI, ecc.)      |
+| Costo         | Calcolato solo se non presente                         |
+| Prezzo        | Preso sempre dal testo                                 |
+| Produttore    | Aggiunto solo se non già presente                      |
+| Provenienza   | Inserita solo se assente                              

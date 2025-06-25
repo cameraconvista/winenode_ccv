@@ -1,0 +1,81 @@
+modules = ["nodejs-20", "web"]
+run = "npm run dev"
+[deployment]
+staticFiles = "dist"
+run = ["sh", "-c", "npm run dev"]
+
+[[deployment.rewrites]]
+from = "/*"
+to = "/index.html"
+run = ["npm", "run", "start"]
+
+[workflows]
+runButton = "Development"
+
+[[workflows.workflow]]
+name = "Install Dependencies"
+author = 42586508
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm install"
+
+[[workflows.workflow]]
+name = "Dev Server"
+author = 42586508
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+
+[[workflows.workflow]]
+name = "Preview Server"
+author = 42586508
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run build && npm run preview"
+
+[[workflows.workflow]]
+name = "Development"
+author = 42586508
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pkill -f \"vite\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+
+[[ports]]
+localPort = 3000
+externalPort = 3000
+
+[[ports]]
+localPort = 4173
+externalPort = 3001
+
+[[ports]]
+localPort = 4174
+externalPort = 3002
+
+[[ports]]
+localPort = 4175
+externalPort = 3003
+
+[[ports]]
+localPort = 5000
+externalPort = 5000
+
+[[ports]]
+localPort = 5173
+externalPort = 80
+
+[nix]
+packages = ["rsync", "lsof", "vlang"]
+channel = "stable-24_05"

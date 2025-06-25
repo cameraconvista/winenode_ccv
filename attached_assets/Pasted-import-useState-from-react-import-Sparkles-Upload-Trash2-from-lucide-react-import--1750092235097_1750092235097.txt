@@ -1,0 +1,144 @@
+import { useState } from "react";
+import { Sparkles, Upload, Trash2 } from "lucide-react";
+import { useUser } from "@supabase/auth-helpers-react";
+import { supabase } from "../lib/supabase";
+import { toast } from "sonner";
+
+export default function ManualWineInsertPage() {
+  const user = useUser();
+  const [categoria, setCategoria] = useState("Bianco");
+  const [fornitore, setFornitore] = useState("");
+  const [testo, setTesto] = useState("");
+  const [righeRiconosciute, setRigheRiconosciute] = useState(0);
+
+  function ottimizzaTesto() {
+    let clean = testo;
+
+    clean = clean
+      .replace(/[\u200B-\u200D\uFEFF\u00A0\u2028\u2029]/g, " ")
+      .replace(/€|–|•|·|”|“|’|‘/g, "")
+      .replace(/\s+/g, " ")
+      .replace(/(\d{2,3})\s?(euro|€)?/gi, "")
+      .replace(/(?<=\d{2,3})[ ]{1,}(?=[A-Z])/g, "\n")
+      .trim();
+
+    const righe = clean
+      .split("\n")
+      .map((r) => r.trim())
+      .filter((r) => r.length > 5);
+
+    setTesto(righe.join("\n"));
+    setRigheRiconosciute(righe.length);
+  }
+
+  async function salvaVini(sostituisci: boolean) {
+    if (!user) return toast.error("Devi essere loggato per salvare.");
+    const lista = testo.split("\n").map((r) => r.trim()).filter(Boolean);
+
+    if (lista.length === 0) return toast.warning("Nessun vino da salvare.");
+
+    if (sostituisci) {
+      const { error } = await supabase
+        .from("vini")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("categoria", categoria);
+      if (error) {
+        console.error(error);
+        return toast.error("Errore nella sostituzione.");
+      }
+    }
+
+    const daSalvare = lista.map((nome) => ({
+      nome,
+      user_id: user.id,
+      categoria,
+      fornitore: fornitore || null,
+    }));
+
+    const { error } = await supabase.from("vini").insert(daSalvare);
+
+    if (error) {
+      console.error(error);
+      toast.error("Errore nel salvataggio.");
+    } else {
+      toast.success("Vini salvati con successo!");
+      setTesto("");
+      setRigheRiconosciute(0);
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-[#1a0d0d] text-white p-4">
+      <h1 className="text-2xl font-bold text-center mb-4 tracking-wide">
+        🍷 INSERIMENTO MANUALE VINI
+      </h1>
+
+      <div className="max-w-xl mx-auto space-y-4 bg-[#2d1a1a] p-4 rounded-xl shadow-md border border-[#422020]">
+        <div className="text-sm text-neutral-400">
+          Aggiungi i tuoi vini incollandoli sotto (uno per riga)
+        </div>
+
+        <div className="flex gap-2">
+          <select
+            className="flex-1 p-2 rounded bg-[#3a1d1d] text-white"
+            value={categoria}
+            onChange={(e) => setCategoria(e.target.value)}
+          >
+            <option>Bianco</option>
+            <option>Rosso</option>
+            <option>Bollicine</option>
+            <option>Rosato</option>
+          </select>
+
+          <input
+            type="text"
+            placeholder="Fornitore (opzionale)"
+            className="flex-1 p-2 rounded bg-[#3a1d1d] text-white"
+            value={fornitore}
+            onChange={(e) => setFornitore(e.target.value)}
+          />
+        </div>
+
+        <div className="relative">
+          <textarea
+            id="elenco-vini"
+            rows={10}
+            placeholder="Es: Soave Classico DOC Inama, Veneto"
+            className="w-full p-3 text-sm rounded bg-[#2e0f0f] text-white border border-[#4a2a2a]"
+            value={testo}
+            onChange={(e) => setTesto(e.target.value)}
+          />
+          <button
+            onClick={ottimizzaTesto}
+            className="absolute top-2 right-2 bg-yellow-500 hover:bg-yellow-600 text-white p-2 rounded-full"
+            title="Ottimizza testo"
+          >
+            <Sparkles className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div id="count-righe" className="text-green-400 text-sm">
+          Righe riconosciute: {righeRiconosciute}
+        </div>
+
+        <div className="flex gap-2 pt-2">
+          <button
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded flex items-center justify-center gap-2"
+            onClick={() => salvaVini(false)}
+          >
+            <Upload className="w-4 h-4" />
+            Aggiungi a lista esistente
+          </button>
+          <button
+            className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded flex items-center justify-center gap-2"
+            onClick={() => salvaVini(true)}
+          >
+            <Trash2 className="w-4 h-4" />
+            Sostituisci lista esistente
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

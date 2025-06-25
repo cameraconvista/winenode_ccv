@@ -1,0 +1,313 @@
+
+# 📋 REPORT COMPLETO: STRUTTURA WINENODE PER SINCRONIZZAZIONE BIDIREZIONALE
+
+Analizziamo la struttura attuale dell'app WINENODE per progettare la sincronizzazione bidirezionale tra Supabase e Google Sheets per **TIPOLOGIE** (categorie) e **FORNITORI**.
+
+## 🔹 1. COMPONENTI REACT COINVOLTI
+
+### **Gestione CATEGORIE (Tipologie)**
+
+**File principali:**
+- `src/pages/ManualWineInsertPage.tsx` - Gestisce selezione categorie per inserimento vini
+- `src/lib/importFromGoogleSheet.ts` - Crea categorie automaticamente durante import
+
+**Codice rilevante per categorie:**
+```typescript
+// ManualWineInsertPage.tsx - Selezione categoria
+const [categoria, setCategoria] = useState("");
+
+// importFromGoogleSheet.ts - Creazione automatica categorie
+const SUPPORTED_TABS = [
+  { name: 'ROSSI', type: 'rosso' },
+  { name: 'BIANCHI', type: 'bianco' },
+  { name: 'BOLLICINE', type: 'bollicine' },
+  { name: 'ROSATI', type: 'rosato' }
+]
+
+async function createCategory(userId: string, categoryName: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('categorie')
+    .insert({
+      user_id: userId,
+      nome: categoryName,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    })
+  return !error
+}
+```
+
+### **Gestione FORNITORI**
+
+**File principali:**
+- `src/pages/FornitoriPage.tsx` - Pagina principale gestione fornitori
+- `src/components/AddSupplierModal.tsx` - Modal aggiunta fornitore
+- `src/components/EditSupplierModal.tsx` - Modal modifica fornitore
+
+**Codice rilevante per fornitori:**
+```typescript
+// FornitoriPage.tsx - Visualizzazione e gestione
+const { suppliers, isLoading, error, refreshSuppliers } = useSuppliers();
+
+// Gestione modifica fornitore
+const handleEditSupplier = (supplier: Supplier) => {
+  setSelectedSupplier(supplier);
+  setShowEditSupplierModal(true);
+};
+```
+
+## 🔹 2. HOOK E SERVIZI SUPABASE
+
+### **Hook useSuppliers**
+**File:** `src/hooks/useSuppliers.ts`
+
+```typescript
+export interface Supplier {
+  id: string;
+  nome: string;
+  email: string;
+  telefono: string;
+  created_at: string;
+}
+
+// Gestione user_id per protezione multiutente
+const fetchSuppliers = async () => {
+  const userId = authManager.getUserId();
+  const { data, error } = await supabase!
+    .from('fornitori')
+    .select('*')
+    .eq('user_id', userId) // ✅ Protezione multiutente attiva
+    .order('created_at', { ascending: false });
+}
+```
+
+### **Gestione Categorie**
+**File:** `src/lib/importFromGoogleSheet.ts`
+
+```typescript
+// Verifica esistenza categoria per utente
+async function categoryExists(userId: string, categoryName: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('categorie')
+    .select('id')
+    .eq('user_id', userId) // ✅ Protezione multiutente
+    .eq('nome', categoryName)
+    .single()
+  return !error && !!data
+}
+```
+
+## 🔹 3. IMPORTAZIONE DA GOOGLE SHEETS
+
+### **File principale:** `src/lib/importFromGoogleSheet.ts`
+
+**Gestione TIPOLOGIE:**
+```typescript
+// Tabs supportati mappati a tipi di vino
+const SUPPORTED_TABS = [
+  { name: 'ROSSI', type: 'rosso' },
+  { name: 'BIANCHI', type: 'bianco' },
+  { name: 'BOLLICINE', type: 'bollicine' },
+  { name: 'ROSATI', type: 'rosato' }
+]
+
+// Creazione automatica categorie dai tab
+async function processTabData(spreadsheetId: string, tab: { name: string, type: string }, userId: string) {
+  const categoryExistsAlready = await categoryExists(userId, tab.name)
+  if (!categoryExistsAlready) {
+    const categoryCreatedSuccess = await createCategory(userId, tab.name)
+    if (categoryCreatedSuccess) {
+      categoryCreated = true
+    }
+  }
+}
+```
+
+**Gestione FORNITORI:**
+```typescript
+// Salvataggio vini con fornitore di default
+async function saveWine(userId: string, name: string, type: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('giacenze')
+    .insert({
+      name: name.trim(),
+      type: type.toLowerCase().trim(),
+      supplier: '-', // ❌ CRITICITÀ: Fornitore fisso, non sincronizzato
+      // ... altri campi
+    })
+}
+```
+
+### **File alternativo:** `src/lib/googleSheets.ts`
+Implementazione più semplice, meno strutturata dell'import.
+
+## 🔹 4. COLONNE DI SINCRONIZZAZIONE
+
+### **Tabella FORNITORI** (da `supabase-fornitori.sql`)
+```sql
+CREATE TABLE fornitori (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  nome TEXT NOT NULL,
+  email TEXT NOT NULL,
+  telefono TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  -- ❌ MANCA: updated_at, google_sheet_id, sync_status
+);
+```
+
+### **Tabella CATEGORIE** (dedotta dal codice)
+```typescript
+// Struttura dedotta da importFromGoogleSheet.ts
+{
+  user_id: userId,
+  nome: categoryName,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString() // ✅ Presente
+}
+```
+
+## 🚨 CRITICITÀ IDENTIFICATE
+
+### **1. Fornitori non sincronizzati**
+- I vini salvati hanno `supplier: '-'` fisso
+- Non c'è relazione dinamica con la tabella `fornitori`
+
+### **2. Colonne di sincronizzazione mancanti**
+```sql
+-- COLONNE DA AGGIUNGERE:
+ALTER TABLE fornitori ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+ALTER TABLE fornitori ADD COLUMN google_sheet_row INTEGER;
+ALTER TABLE fornitori ADD COLUMN sync_status VARCHAR(20) DEFAULT 'pending';
+
+ALTER TABLE categorie ADD COLUMN google_sheet_tab VARCHAR(50);
+ALTER TABLE categorie ADD COLUMN sync_status VARCHAR(20) DEFAULT 'pending';
+```
+
+### **3. Import Google Sheets limitato**
+- Legge solo nomi vini, ignora fornitori
+- Non parsifica colonne FORNITORE dai fogli
+
+### **4. Gestione user_id**
+```typescript
+// ✅ BENE: Protezione multiutente attiva
+const userId = authManager.getUserId()
+// Tutte le query usano .eq('user_id', userId)
+```
+
+## 🎯 RACCOMANDAZIONI PER SINCRONIZZAZIONE BIDIREZIONALE
+
+### **1. Estendere schema database**
+- Aggiungere colonne `updated_at`, `google_sheet_row`, `sync_status`
+- Creare tabella di log sincronizzazione
+
+### **2. Modificare import Google Sheets**
+- Parsificare colonne FORNITORE dai fogli
+- Sincronizzare categorie con nomi tab
+- Implementare conflict resolution
+
+### **3. Creare servizio di export**
+- Scrivere dati Supabase verso Google Sheets
+- Gestire aggiornamenti bidirezionali
+- Implementare webhook per sync real-time
+
+## 📊 STRUTTURA FILE ATTUALE
+
+```
+src/
+├── components/
+│   ├── AddSupplierModal.tsx      # Modal aggiunta fornitore
+│   ├── EditSupplierModal.tsx     # Modal modifica fornitore
+│   └── ...
+├── hooks/
+│   ├── useSuppliers.ts           # Hook gestione fornitori
+│   └── useWines.ts               # Hook gestione vini
+├── lib/
+│   ├── importFromGoogleSheet.ts  # Import principale Google Sheets
+│   ├── googleSheets.ts           # Import alternativo
+│   └── supabase.ts               # Client Supabase
+├── pages/
+│   ├── FornitoriPage.tsx         # Pagina gestione fornitori
+│   ├── ManualWineInsertPage.tsx  # Inserimento vini con categorie
+│   └── GoogleSheetsPage.tsx      # Pagina import Google Sheets
+└── ...
+```
+
+## 📋 CONSOLE LOGS IDENTIFICATI
+
+**Errori ricorrenti durante import:**
+```
+Avvisi durante l'importazione: [
+  "Impossibile creare la categoria ROSSI",
+  "Riga 1 nel tab ROSSI: nome vino mancante",
+  "Impossibile creare la categoria BIANCHI",
+  "Riga 1 nel tab BIANCHI: nome vino mancante",
+  // ... per tutti i tab
+]
+```
+
+**Autenticazione funzionante:**
+```
+👤 Auth state changed: Logged in
+🔧 App startup - Supabase available: true
+```
+
+## 🔧 IMPLEMENTAZIONE SUGGERITA
+
+### **Fase 1: Estensione Database**
+```sql
+-- Aggiornare tabella fornitori
+ALTER TABLE fornitori ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+ALTER TABLE fornitori ADD COLUMN google_sheet_row INTEGER;
+ALTER TABLE fornitori ADD COLUMN sync_status VARCHAR(20) DEFAULT 'pending';
+
+-- Aggiornare tabella categorie
+ALTER TABLE categorie ADD COLUMN google_sheet_tab VARCHAR(50);
+ALTER TABLE categorie ADD COLUMN sync_status VARCHAR(20) DEFAULT 'pending';
+
+-- Creare tabella sync log
+CREATE TABLE sync_log (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  entity_type VARCHAR(20) NOT NULL, -- 'fornitori' | 'categorie'
+  entity_id UUID NOT NULL,
+  action VARCHAR(20) NOT NULL, -- 'create' | 'update' | 'delete'
+  source VARCHAR(20) NOT NULL, -- 'supabase' | 'google_sheets'
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+### **Fase 2: Servizio Sincronizzazione**
+```typescript
+// Nuovo file: src/lib/syncService.ts
+export class SyncService {
+  static async syncSuppliersToGoogleSheets(userId: string) {
+    // Implementare export fornitori
+  }
+  
+  static async syncCategoriesFromGoogleSheets(userId: string) {
+    // Implementare import categorie
+  }
+  
+  static async resolveConflicts(userId: string) {
+    // Implementare risoluzione conflitti
+  }
+}
+```
+
+### **Fase 3: Modifiche Import Esistente**
+```typescript
+// Modificare src/lib/importFromGoogleSheet.ts
+// Aggiungere parsing colonne FORNITORE
+// Implementare sync status tracking
+// Gestire updated_at timestamps
+```
+
+Il sistema attuale ha una buona base con protezione multiutente, ma necessita estensioni per la sincronizzazione bidirezionale completa. La struttura di autenticazione è solida e i componenti React sono ben organizzati per supportare le funzionalità richieste.
+
+---
+
+**REPORT GENERATO IL:** $(date)
+**VERSIONE APP:** WINENODE 1.0.0
+**TECNOLOGIE:** React 18 + TypeScript + Vite + Supabase + Google Sheets API
+**STATO:** Pronto per implementazione sincronizzazione bidirezionale

@@ -1,0 +1,352 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background: #0f172a;
+    color: #f8fafc;
+  }
+}
+
+.text-cream {
+  color: #f8fafc;
+}
+
+.bg-amber-900 {
+  background-color: #78350f;
+}
+
+.bg-amber-800 {
+  background-color: #92400e;
+}
+
+.bg-amber-600 {
+  background-color: #d97706;
+}
+
+.bg-amber-700 {
+  background-color: #b45309;
+}
+
+.tipologia-bianco {
+  color: #ffffff;
+  text-shadow: 0 0 1px #000, 0 0 1px #000;
+}
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4a4a4a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6a6a6a;
+}
+
+/* Stili per tipologie con barra colorata */
+.tipologia-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 4px;
+  height: 100%;
+}
+
+.tipologia-bar {
+  width: 4px;
+  height: 24px;
+  border-radius: 2px;
+  background-color: var(--colore-tipologia);
+  flex-shrink: 0;
+}
+
+.tipologia-nome {
+  color: #333;
+  font-weight: 600;
+}
+
+/* Stile per il pallino neutro */
+.color-swatch-neutro {
+  position: relative;
+}
+
+.color-swatch-neutro::after {
+  content: '';
+  position: absolute;
+  width: 80%;
+  height: 2px;
+  background-color: black;
+  top: 50%;
+  left: 10%;
+  transform: rotate(-45deg);
+  pointer-events: none;
+}
+
+/* Classe per ridurre il font size delle righe della tabella */
+.small-fonts-row td,
+.small-fonts-row th {
+  font-size: 10px;
+  line-height: 1.1;
+}
+
+/* Classe per l'allineamento della colonna Tipologia */
+.cell-tipologia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 4px;
+  font-weight: normal;
+}
+
+/* Stile per la barra verticale colorata */
+.barra-colore {
+  width: 4px;
+  height: 100%;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* SISTEMA DI ROTAZIONE FORZATA PER TABLET REALI */
+@media screen and (max-width: 1024px) and (min-width: 768px) and (orientation: portrait) and (pointer: coarse) {
+  /* Nascondi tutto il contenuto dell'app */
+  #root > * {
+    display: none !important;
+  }
+  
+  /* Mostra solo il messaggio di rotazione */
+  #root::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(to bottom right, #2d0505, #4d0707, #2d0505);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+  
+  #root::after {
+    content: '';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120px;
+    height: 120px;
+    background-image: url('/rotating.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: brightness(1.2) contrast(1.1);
+    z-index: 10000;
+    animation: rotateIcon 2s ease-in-out infinite;
+  }
+  
+  /* Aggiungi messaggio testuale */
+  body::before {
+    content: 'Ruota il dispositivo per utilizzare l\'app';
+    position: fixed;
+    top: 60%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #f8fafc;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-align: center;
+    z-index: 10001;
+    font-family: 'Inter', system-ui, sans-serif;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  }
+  
+  /* Animazione icona rotazione */
+  @keyframes rotateIcon {
+    0%, 100% { transform: translate(-50%, -50%) rotate(90deg) scale(1); }
+    50% { transform: translate(-50%, -50%) rotate(90deg) scale(1.1); }
+  }
+}
+
+/* Layout ottimizzato per tablet già in orizzontale */
+@media screen and (max-width: 1024px) and (min-width: 481px) and (orientation: landscape) {
+  body {
+    font-size: 14px;
+    min-height: 100vh;
+    overflow-x: auto;
+    background: linear-gradient(to bottom right, #2d0505, #4d0707, #2d0505) !important;
+  }
+  
+  /* Forza sfondo bordeaux scuro per tutti i contenitori principali */
+  #root {
+    background: linear-gradient(to bottom right, #2d0505, #4d0707, #2d0505) !important;
+  }
+  
+  /* Ottimizza tabelle per tablet orizzontale */
+  table {
+    font-size: 0.75rem;
+    width: 100%;
+  }
+  
+  /* Adatta spaziature */
+  .p-4 {
+    padding: 0.75rem;
+  }
+  
+  .p-3 {
+    padding: 0.5rem;
+  }
+  
+  /* Assicura che tutti i componenti principali mantengano il tema scuro */
+  .bg-gray-900, [style*="background"] {
+    background: linear-gradient(to bottom right, #2d0505, #4d0707, #2d0505) !important;
+  }
+}
+
+/* Ottimizzazioni specifiche per tablet in orizzontale */
+@media screen and (max-width: 1024px) and (min-width: 481px) and (orientation: landscape) {
+  /* Forza sfondo bordeaux per contenitori principali */
+  body, #root, main {
+    background: linear-gradient(to bottom right, #2d0505, #4d0707, #2d0505) !important;
+  }
+  
+  /* Blocca scroll orizzontale tabella */
+  .rounded-lg.shadow-2xl {
+    overflow-x: hidden !important;
+  }
+  
+  /* Assicura che la tabella si adatti perfettamente */
+  table.table-fixed {
+    width: 100% !important;
+    min-width: unset !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+  }
+  
+  /* Ottimizza celle per tablet */
+  table td, table th {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.8rem !important;
+    line-height: 1.2 !important;
+  }
+  
+  /* Riduce padding per header */
+  table th {
+    padding: 0.5rem 0.25rem !important;
+    font-size: 0.7rem !important;
+  }
+  
+  /* Altezza righe ottimizzata */
+  table tbody tr {
+    height: 36px !important;
+  }
+  
+  /* Solo scroll verticale per le righe */
+  .h-full.overflow-x-hidden {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+  
+  /* Ottimizza input e select nelle celle */
+  table input, table select {
+    font-size: 0.75rem !important;
+    padding: 0.25rem !important;
+    height: 32px !important;
+  }
+  
+  /* Riduce font size dei pulsanti azioni */
+  table button {
+    font-size: 0.7rem !important;
+    padding: 0.25rem !important;
+  }
+}
+
+/* Fallback per tablet reali in portrait */
+@media screen and (max-width: 1024px) and (min-width: 768px) and (orientation: portrait) and (pointer: coarse) {
+  /* Applica gli stessi stili del landscape */
+  .rounded-lg.shadow-2xl {
+    overflow-x: hidden !important;
+  }
+  
+  table.table-fixed {
+    width: 100% !important;
+    min-width: unset !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+  }
+  
+  table td, table th {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.75rem !important;
+  }
+  
+  .h-full.overflow-x-hidden {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+}
+
+/* Layout specifico per smartphone (mantiene comportamento normale) */
+@media screen and (max-width: 480px) {
+  body {
+    font-size: 12px;
+  }
+  
+  table {
+    font-size: 0.7rem;
+  }
+  
+  .text-sm {
+    font-size: 0.75rem;
+  }
+  
+  .text-xs {
+    font-size: 0.65rem;
+  }
+}
+
+/* Stili per placeholder dei select con colore grigio scuro */
+select option[value=""] {
+  color: #555555 !important;
+}
+
+/* Stili per select con placeholder */
+select:invalid {
+  color: #555555 !important;
+}
+
+select[value=""] {
+  color: #555555 !important;
+}
+
+/* Stili per placeholder degli input */
+input::placeholder {
+  color: #555555 !important;
+}
+
+textarea::placeholder {
+  color: #555555 !important;
+}

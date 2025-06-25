@@ -1,0 +1,17 @@
+
+{
+  "name": "WINENODE",
+  "short_name": "WINENODE",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#2b0000",
+  "theme_color": "#2b0000",
+  "icons": [
+    {
+      "src": "/iconwinenode.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

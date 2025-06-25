@@ -1,0 +1,170 @@
+
+# CORREZIONE COMPLETA FUNZIONE handleOptimizeStep() - ImportaPage.tsx
+
+## 🔍 PROBLEMA IDENTIFICATO
+
+La funzione `handleOptimizeStep()` attuale ha un grave difetto: **non rispetta la separazione delle righe** e tratta tutto il testo come un'unica riga molto lunga, causando:
+
+- ❌ Perdita della struttura originale del testo
+- ❌ Unificazione di vini diversi in una sola riga
+- ❌ Sovrascrittura di dati esistenti invece di arricchimento
+- ❌ Aggiunta cumulativa invece che per singolo vino
+
+## 🛠️ SOLUZIONE DETTAGLIATA
+
+### 1. CORREZIONE DEL PARSING DELLE RIGHE
+
+**PRIMA (PROBLEMA):**
+```javascript
+// Tratta tutto come una singola riga
+const lines = textAreaContent.split(/\r?\n+/).filter(line => line.trim());
+// Poi processa tutto insieme
+```
+
+**DOPO (SOLUZIONE):**
+```javascript
+// Dividi correttamente in righe individuali
+const lines = textAreaContent.split(/\r?\n+/).filter(line => line.trim().length > 10);
+const optimizedLines = [];
+
+// Processa OGNI riga separatamente
+for (let i = 0; i < lines.length; i++) {
+  const rigaOriginale = lines[i];
+  // ... processamento individuale
+}
+```
+
+### 2. CONTROLLI DI PRESERVAZIONE MIGLIORATI
+
+**Per ogni riga, verifica cosa è GIÀ presente:**
+
+```javascript
+// CONTROLLO PREZZO - Pattern più precisi
+const prezzoPresente = /€\s*\d+([,.]\d+)?|\d+([,.]\d+)?\s*€|\d+([,.]\d+)?\s*$/.test(rigaOriginale);
+
+// CONTROLLO ANNO - Mantieni se presente nel testo originale
+const annoMatch = rigaOriginale.match(/\b(19|20)(\d{2})\b|['''](\d{2})\b/);
+// NON modificare l'anno se già presente
+
+// CONTROLLO PRODUTTORE - Pattern più intelligenti
+const produttorePresente = /–\s*[A-Z][a-zA-Z\s]+\s*–/.test(rigaOriginale) || 
+                          /,\s*[A-Z][a-zA-Z\s]+/.test(rigaOriginale);
+
+// CONTROLLO PROVENIENZA - Lista completa regioni
+const provenienzaPresente = /(PIEMONTE|TOSCANA|VENETO|LOMBARDIA|...)/i.test(rigaOriginale);
+
+// CONTROLLO TIPOLOGIA - Vini e bollicine
+const tipologiaPresente = /(ROSSO|BIANCO|BOLLICINE|ROSATI|CHAMPAGNE|...)/i.test(rigaOriginale);
+```
+
+### 3. LOGICA DI ARRICCHIMENTO SELETTIVO
+
+**REGOLA FONDAMENTALE: Aggiungi SOLO se mancante**
+
+```javascript
+let rigaArricchita = rigaOriginale; // SEMPRE parte dall'originale
+
+// Aggiungi SOLO i campi mancanti
+if (!prezzoPresente && datiArricchiti?.costoStimato) {
+  rigaArricchita += ` – € ${datiArricchiti.costoStimato}`;
+}
+
+if (!produttorePresente && datiArricchiti?.produttore && datiArricchiti.produttore !== 'DA DEFINIRE') {
+  rigaArricchita += ` – ${datiArricchiti.produttore}`;
+}
+
+if (!provenienzaPresente && datiArricchiti?.provenienza) {
+  rigaArricchita += ` – ${datiArricchiti.provenienza}`;
+}
+
+if (!tipologiaPresente && datiArricchiti?.tipologia) {
+  rigaArricchita += ` – ${datiArricchiti.tipologia}`;
+}
+```
+
+### 4. PRESERVAZIONE STRUTTURA FINALE
+
+```javascript
+// STEP 5: AGGIORNAMENTO CONTENUTO - Mantiene stesso numero di righe
+const testoOttimizzato = optimizedLines.join('\n');
+setTextAreaContent(testoOttimizzato);
+
+console.log(`🎉 Ottimizzazione completata:`);
+console.log(`📝 Righe originali: ${lines.length}`);
+console.log(`📝 Righe ottimizzate: ${optimizedLines.length}`);
+// DEVE ESSERE: lines.length === optimizedLines.length
+```
+
+## 🎯 RISULTATO ATTESO
+
+**ESEMPIO PRATICO:**
+
+**PRIMA (input):**
+```
+Barolo 2019 – 45€
+Chianti Classico
+Prosecco Valdobbiadene
+```
+
+**DOPO (arricchito ma preservato):**
+```
+Barolo 2019 – 45€ – Marchesi di Barolo – Piemonte – ROSSO
+Chianti Classico – € 25.00 – Castello di Verrazzano – Toscana – ROSSO  
+Prosecco Valdobbiadene – € 18.00 – Villa Sandi – Veneto – BOLLICINE ITALIANE
+```
+
+**CARATTERISTICHE GARANTITE:**
+- ✅ Stesso numero di righe (3 → 3)
+- ✅ Prezzi originali preservati (45€ rimane 45€)
+- ✅ Nomi originali preservati
+- ✅ Solo dati mancanti aggiunti
+- ✅ Struttura riconoscibile
+
+## 📋 CHECKLIST CONTROLLI DI SICUREZZA
+
+1. **Controllo Lunghezza Riga:**
+   ```javascript
+   if (rigaArricchita.length > rigaOriginale.length * 3) {
+     console.log("⚠️ Riga diventata troppo lunga, uso solo originale");
+     rigaArricchita = rigaOriginale;
+   }
+   ```
+
+2. **Controllo Numero Righe:**
+   ```javascript
+   // IN: n righe → OUT: n righe (nessuna unificazione)
+   ```
+
+3. **Controllo Preservazione Dati:**
+   ```javascript
+   // Anno presente? → Mantieni invariato
+   // Prezzo presente? → Mantieni invariato
+   // Nome completo? → Mantieni invariato
+   ```
+
+## 🚀 IMPLEMENTAZIONE FINALE
+
+La funzione corretta dovrà:
+
+1. **Dividere correttamente** il testo in righe individuali
+2. **Analizzare ogni riga** separatamente per identificare campi esistenti
+3. **Arricchire selettivamente** solo i campi mancanti
+4. **Preservare la struttura** originale (stesso numero di righe)
+5. **Aggiornare l'input** con le righe arricchite ma riconoscibili
+
+## 📊 CONTROLLI DI QUALITÀ
+
+**Prima di ogni modifica, verificare:**
+- Il testo di input ha N righe?
+- Il testo di output ha N righe?
+- I prezzi originali sono preservati?
+- I nomi originali sono preservati?
+- Solo i campi mancanti sono stati aggiunti?
+
+**Se una di queste condizioni non è rispettata, la funzione deve essere corretta.**
+
+---
+
+**STATO ATTUALE:** ❌ Non funziona correttamente
+**STATO RICHIESTO:** ✅ Arricchimento intelligente senza sovrascrittura
+**PRIORITÀ:** 🔥 ALTA - Funzione critica per importazione AI
