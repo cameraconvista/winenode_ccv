@@ -1210,43 +1210,20 @@ export default function ArchiviPage() {
                     </td>
                     {/* Tipologia */}
                   <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['tipologia'] }}>
-                    {(() => {
-                      const tipo = getTypeData(row.tipologia);
-                      return (
-                        <div className="cell-tipologia" style={{ backgroundColor: tipo?.colore || '#eee' }}>
-                          <div 
-                            className="barra-colore"
-                            style={{ 
-                              backgroundColor: getTipologiaColore(row.tipologia) 
-                            }}
-                          />
-                          <select
-                            value={row.tipologia}
-                            onChange={(e) => handleCellChange(index, 'tipologia', e.target.value)}
-                            className="w-full h-full px-2 py-2 bg-transparent border-none outline-none focus:bg-white focus:shadow-inner text-center select-none"
-                            style={{ 
-                              backgroundColor: 'transparent',
-                              userSelect: 'none', 
-                              ...getFontSizeStyle(),
-                              color: '#333',
-                              fontWeight: 'normal'
-                            }}
-                            disabled={loading}
-                          >
-                            <option value="">{loading ? 'Caricamento...' : '....'}</option>
-                            {tipologie.map(tip => (
-                              <option 
-                                key={tip.nome} 
-                                value={tip.nome}
-                                style={{ color: '#333' }}
-                              >
-                                {tipo?.nome || tip.nome}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      );
-                    })()}
+                    <select
+                      value={row.tipologia}
+                      onChange={(e) => handleCellChange(index, 'tipologia', e.target.value)}
+                      className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
+                      style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
+                      disabled={loading}
+                    >
+                      <option value="">{loading ? 'Caricamento...' : '....'}</option>
+                      {tipologie.map(tip => (
+                        <option key={tip.nome} value={tip.nome}>
+                          {tip.nome}
+                        </option>
+                      ))}
+                    </select>
                   </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['nomeVino'] }}>
                       <input
