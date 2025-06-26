@@ -1292,21 +1292,15 @@ export default function ArchiviPage() {
                     </td>
                     {/* Tipologia */}
                   <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['tipologia'] }}>
-                    <select
-                      value={row.tipologia}
-                      onChange={(e) => handleCellChange(index, 'tipologia', e.target.value)}
-                      className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
-                      style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
-                      disabled={loading}
-                    >
-                      <option value="">{loading ? 'Caricamento...' : '....'}</option>
-                      {tipologie && tipologie.length > 0 ? tipologie.map(tip => (
-                        <option key={tip.id || tip.nome} value={tip.nome}>
-                          {tip.nome}
-                        </option>
-                      )) : null}
-                    </select>
-                  </td>
+                      <input
+                        type="text"
+                        value={row.tipologia}
+                        onChange={(e) => handleCellChange(index, 'tipologia', e.target.value)}
+                        className="w-full h-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
+                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
+                        placeholder="Tipologia..."
+                      />
+                    </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['nomeVino'] }}>
                       <input
                         type="text"
@@ -1350,8 +1344,7 @@ export default function ArchiviPage() {
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
                     </td>
-                    <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['fornitore'] }}>
-                      <select
+                    <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['fornitore'] }}><select
                         value={row.fornitore}
                         onChange={(e) => handleCellChange(index, 'fornitore', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
