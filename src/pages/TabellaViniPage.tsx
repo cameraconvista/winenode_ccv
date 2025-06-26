@@ -87,7 +87,6 @@ export default function TabellaViniPage() {
     // Qui implementerai il salvataggio su Supabase
   }
 
-  const tipologie = ['', 'Bollicine', 'Bianchi', 'Rossi', 'Rosati']
   const fornitori = ['', 'Fornitore A', 'Fornitore B', 'Fornitore C', ...suppliers.map(s => s.nome)]
 
   return (
@@ -201,15 +200,13 @@ export default function TabellaViniPage() {
                 <tr key={row.id} className="hover:bg-amber-50 transition-colors">
                   {/* Tipologia */}
                   <td className="border border-gray-400 p-0" style={{ backgroundColor: '#f5f0e6' }}>
-                    <select
+                    <input
+                      type="text"
                       value={row.tipologia}
                       onChange={(e) => updateRow(row.id, 'tipologia', e.target.value)}
                       className="w-full h-full px-2 py-2 bg-transparent border-none outline-none text-gray-800 text-sm focus:bg-white focus:shadow-inner"
-                    >
-                      {tipologie.map(tip => (
-                        <option key={tip} value={tip}>{tip || 'Seleziona...'}</option>
-                      ))}
-                    </select>
+                      placeholder="Tipologia..."
+                    />
                   </td>
                   
                   {/* Nome Vino */}
