@@ -739,10 +739,13 @@ export default function ArchiviPage() {
         }
     };
 
-  // Funzione per ottenere il colore della tipologia
+  // Funzione per ottenere i dati della tipologia da types (useWines)
+  const getTypeData = (typeName: string) => types.find(t => t.nome === typeName);
+
+  // Funzione per ottenere il colore della tipologia (aggiornata per usare types)
   const getTipologiaColore = (tipologiaNome: string) => {
-    const selectedTipologia = tipologie.find(tip => tip.nome === tipologiaNome);
-    return selectedTipologia?.colore || '#cccccc';
+    const typeData = getTypeData(tipologiaNome);
+    return typeData?.colore || '#cccccc';
   };
 
     // Calcola lineHeight e altezza riga basate su fontSize
@@ -1200,38 +1203,43 @@ export default function ArchiviPage() {
                     </td>
                     {/* Tipologia */}
                   <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['tipologia'] }}>
-                    <div className="cell-tipologia">
-                      <div 
-                        className="barra-colore"
-                        style={{ 
-                          backgroundColor: getTipologiaColore(row.tipologia) 
-                        }}
-                      />
-                      <select
-                        value={row.tipologia}
-                        onChange={(e) => handleCellChange(index, 'tipologia', e.target.value)}
-                        className="w-full h-full px-2 py-2 bg-transparent border-none outline-none focus:bg-white focus:shadow-inner text-center select-none"
-                        style={{ 
-                          backgroundColor: 'transparent',
-                          userSelect: 'none', 
-                          ...getFontSizeStyle(),
-                          color: '#333',
-                          fontWeight: 'normal'
-                        }}
-                        disabled={loading}
-                      >
-                        <option value="">{loading ? 'Caricamento...' : '....'}</option>
-                        {tipologie.map(tip => (
-                          <option 
-                            key={tip.id} 
-                            value={tip.nome}
-                            style={{ color: '#333' }}
+                    {(() => {
+                      const tipo = getTypeData(row.tipologia);
+                      return (
+                        <div className="cell-tipologia">
+                          <div 
+                            className="barra-colore"
+                            style={{ 
+                              backgroundColor: tipo?.colore || '#cccccc'
+                            }}
+                          />
+                          <select
+                            value={row.tipologia}
+                            onChange={(e) => handleCellChange(index, 'tipologia', e.target.value)}
+                            className="w-full h-full px-2 py-2 bg-transparent border-none outline-none focus:bg-white focus:shadow-inner text-center select-none"
+                            style={{ 
+                              backgroundColor: tipo?.colore || '#eee',
+                              userSelect: 'none', 
+                              ...getFontSizeStyle(),
+                              color: '#333',
+                              fontWeight: 'normal'
+                            }}
+                            disabled={loading}
                           >
-                            {tip.nome}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                            <option value="">{loading ? 'Caricamento...' : '....'}</option>
+                            {types.map(tip => (
+                              <option 
+                                key={tip.nome} 
+                                value={tip.nome}
+                                style={{ color: '#333' }}
+                              >
+                                {tip.nome}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      );
+                    })()}
                   </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['nomeVino'] }}>
                       <input
