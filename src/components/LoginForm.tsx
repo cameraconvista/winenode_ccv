@@ -40,7 +40,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         <div className="text-center mb-6">
           <div className="flex items-center justify-center mb-3">
             <img 
-              src="/logo1.png" 
+              src="/logo 1 CCV.png" 
               alt="Logo" 
               className="h-44 w-44 object-contain"
             />
