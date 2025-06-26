@@ -57,13 +57,68 @@ export default function ArchiviPage() {
 
   const fornitori = suppliers.map(s => s.nome);
 
-  // Debug semplificato per controllare caricamento dati
+  // Debug completo per identificare problemi
   useEffect(() => {
-    const userId = authManager.getUserId();
-    console.log('🔍 ArchiviPage: User ID:', userId);
-    console.log('📊 Tipologie caricate:', tipologie.length);
-    console.log('📦 Fornitori caricati:', suppliers.length);
-  }, [tipologie, suppliers]);
+    const debugAuth = async () => {
+      console.log('🔍 === DEBUG ARCHIVI COMPLETO ===');
+      
+      // 1. Verifica autenticazione
+      const userId = authManager.getUserId();
+      const isValid = await authManager.validateSession();
+      console.log('👤 User ID:', userId);
+      console.log('✅ Sessione valida:', isValid);
+      
+      // 2. Test query diretta tipologie
+      if (userId && supabase) {
+        try {
+          const { data: tipologieTest, error: tipError } = await supabase
+            .from('tipologie')
+            .select('*')
+            .eq('user_id', userId);
+          
+          console.log('📊 Query diretta tipologie:');
+          console.log('  - Risultati:', tipologieTest?.length || 0);
+          console.log('  - Errore:', tipError?.message || 'Nessuno');
+          console.log('  - Dati:', tipologieTest);
+        } catch (err) {
+          console.error('❌ Errore query tipologie:', err);
+        }
+        
+        // 3. Test query diretta fornitori
+        try {
+          const { data: fornitoriTest, error: fornError } = await supabase
+            .from('fornitori')
+            .select('*')
+            .eq('user_id', userId);
+          
+          console.log('📦 Query diretta fornitori:');
+          console.log('  - Risultati:', fornitoriTest?.length || 0);
+          console.log('  - Errore:', fornError?.message || 'Nessuno');
+          console.log('  - Dati:', fornitoriTest);
+        } catch (err) {
+          console.error('❌ Errore query fornitori:', err);
+        }
+      }
+      
+      // 4. Stato hooks
+      console.log('📊 Hook tipologie:', {
+        count: tipologie.length,
+        loading: loading,
+        data: tipologie
+      });
+      
+      console.log('📦 Hook fornitori:', {
+        count: suppliers.length,
+        loading: isLoading,
+        error: error,
+        data: suppliers
+      });
+      
+      console.log('🔍 === FINE DEBUG ARCHIVI ===');
+    };
+    
+    debugAuth();
+  }, [tipologie, suppliers, loading, isLoading, error]);
 
   // Stati per i modali di gestione archivi
   const [showTipologieModal, setShowTipologieModal] = useState(false);

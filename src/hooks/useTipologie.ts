@@ -32,6 +32,8 @@ export function useTipologie() {
         return;
       }
 
+      console.log('🔍 Caricamento tipologie per user:', userId);
+
       // Prima prova a caricare con la colonna colore
       let { data, error } = await supabase
         .from('tipologie')
@@ -53,16 +55,16 @@ export function useTipologie() {
 
         // Aggiungi colore di default
         if (data) {
-          data = data.map(tip => ({ ...tip, colore: '#ffffff' }));
+          data = data.map(tip => ({ ...tip, colore: '#cccccc' }));
         }
       }
 
       if (error) {
-        console.error('Errore caricamento tipologie:', error.message);
-        console.error('Errore Supabase:', error);
+        console.error('❌ Errore caricamento tipologie:', error.message);
+        console.error('❌ Dettagli errore:', error);
         setTipologie([]);
       } else {
-        console.log('Tipologie ricevute:', data);
+        console.log('✅ Tipologie ricevute da Supabase:', data);
         if (data) {
           const tipologieData = data.map(tipologia => ({
             id: tipologia.id,
@@ -70,30 +72,28 @@ export function useTipologie() {
             colore: tipologia.colore || '#cccccc'
           }));
           setTipologie(tipologieData);
-          console.log('✅ Tipologie mappate:', tipologieData);
+          console.log('✅ Tipologie mappate:', tipologieData.length);
         }
-        console.log('✅ Tipologie caricate:', data?.length || 0);
       }
-      console.log("Ho finito!");
     } catch (error) {
-      console.error('Errore nel caricamento tipologie:', error);
+      console.error('❌ Errore nel caricamento tipologie:', error);
       setTipologie([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const addTipologia = async (nome: string, colore: string = '#ffffff'): Promise<boolean> => {
+  const addTipologia = async (nome: string, colore: string = '#cccccc'): Promise<boolean> => {
     try {
       // Ottieni l'utente autenticato tramite Supabase auth
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError) {
-        console.error("Errore nel recupero utente:", userError.message);
+        console.error("❌ Errore nel recupero utente:", userError.message);
         return false;
       }
 
       if (!userData.user) {
-        console.error('Utente non autenticato');
+        console.error('❌ Utente non autenticato');
         return false;
       }
 
@@ -107,21 +107,21 @@ export function useTipologie() {
         .ilike('nome', nome.trim());
 
       if (checkError) {
-        console.error('Errore nel controllo duplicati:', checkError.message);
+        console.error('❌ Errore nel controllo duplicati:', checkError.message);
         return false;
       }
 
       if (existingData && existingData.length > 0) {
-        console.log('Tipologia già esistente su Supabase:', nome);
+        console.log('⚠️ Tipologia già esistente su Supabase:', nome);
         return false;
       }
 
-      // Prova prima con la colonna colore
+      // FIX: Usa "nome" invece di "name"
       let { data, error } = await supabase
         .from('tipologie')
         .insert({
           user_id: userId,
-          name: nome.trim().toUpperCase(),
+          nome: nome.trim().toUpperCase(),
           colore: colore
         })
         .select()
@@ -143,13 +143,13 @@ export function useTipologie() {
 
         // Aggiungi colore di default al risultato
         if (data) {
-          data = { ...data, colore: '#ffffff' };
+          data = { ...data, colore: '#cccccc' };
         }
       }
 
       if (error) {
-        console.error('Errore nell\'aggiunta della tipologia:', error.message);
-        console.error('Error details:', error);
+        console.error('❌ Errore inserimento tipologia:', error.message);
+        console.error('❌ Dettagli errore:', error);
         return false;
       }
 
@@ -157,10 +157,9 @@ export function useTipologie() {
 
       // Ricarica le tipologie
       await fetchTipologie();
-      console.log("Ho finito!");
       return true;
     } catch (error) {
-      console.error('Errore nell\'aggiunta della tipologia:', error);
+      console.error('❌ Errore nell\'aggiunta della tipologia:', error);
       return false;
     }
   };
@@ -173,16 +172,15 @@ export function useTipologie() {
         .eq('id', id);
 
       if (error) {
-        console.error('Errore nella rimozione della tipologia:', error.message);
+        console.error('❌ Errore nella rimozione della tipologia:', error.message);
         return false;
       }
 
       // Ricarica le tipologie
       await fetchTipologie();
-      console.log("Ho finito!");
       return true;
     } catch (error) {
-      console.error('Errore nella rimozione della tipologia:', error);
+      console.error('❌ Errore nella rimozione della tipologia:', error);
       return false;
     }
   };
@@ -207,7 +205,7 @@ export function useTipologie() {
         .limit(1);
 
       if (checkError) {
-        console.error('Errore nel controllo duplicati:', checkError.message);
+        console.error('❌ Errore nel controllo duplicati:', checkError.message);
         return false;
       }
 
@@ -216,7 +214,7 @@ export function useTipologie() {
       }
 
       const updateData: any = {
-        name: nuovoNome.trim()
+        nome: nuovoNome.trim() // FIX: Usa "nome" invece di "name"
       };
 
       if (nuovoColore !== undefined) {
@@ -239,16 +237,15 @@ export function useTipologie() {
       }
 
       if (error) {
-        console.error('Errore nell\'aggiornamento della tipologia:', error.message);
+        console.error('❌ Errore aggiornamento tipologia:', error.message);
         return false;
       }
 
       // Ricarica le tipologie
       await fetchTipologie();
-      console.log("Ho finito!");
       return true;
     } catch (error) {
-      console.error('Errore nell\'aggiornamento della tipologia:', error);
+      console.error('❌ Errore nell\'aggiornamento della tipologia:', error);
       return false;
     }
   };
@@ -266,193 +263,3 @@ export function useTipologie() {
     refreshTipologie: fetchTipologie 
   };
 }
-import { useState, useEffect } from 'react';
-import { supabase, authManager, isSupabaseAvailable } from '../lib/supabase';
-
-export interface Tipologia {
-  id: string;
-  nome: string;
-  colore: string;
-  created_at: string;
-}
-
-export const useTipologie = () => {
-  const [tipologie, setTipologie] = useState<Tipologia[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchTipologie = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const isValid = await authManager.validateSession();
-      if (!isValid) {
-        console.log('⚠️ Sessione non valida, tipologie vuote');
-        setTipologie([]);
-        setLoading(false);
-        return;
-      }
-
-      const userId = authManager.getUserId();
-      if (!userId) {
-        console.log('⚠️ TIPOLOGIE: Utente non autenticato');
-        setTipologie([]);
-        setLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase!
-        .from('tipologie')
-        .select('id, nome, colore, created_at')
-        .eq('user_id', userId)
-        .order('nome');
-
-      if (error) {
-        console.error('Errore caricamento tipologie:', error.message);
-        setError(error.message);
-        setTipologie([]);
-      } else {
-        setTipologie(data || []);
-        console.log('✅ Tipologie caricate:', data?.length || 0);
-      }
-    } catch (error) {
-      console.error('Errore nel caricamento tipologie:', error);
-      setError(error instanceof Error ? error.message : 'Errore sconosciuto');
-      setTipologie([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTipologie();
-  }, []);
-
-  const addTipologia = async (nome: string, colore: string): Promise<boolean> => {
-    try {
-      if (!isSupabaseAvailable) {
-        console.error('Supabase non disponibile');
-        return false;
-      }
-
-      const userId = authManager.getUserId();
-      if (!userId) {
-        console.error('User ID non disponibile');
-        return false;
-      }
-
-      const { data: existingData, error: checkError } = await supabase!
-        .from('tipologie')
-        .select('id, nome')
-        .eq('user_id', userId)
-        .eq('nome', nome.trim().toUpperCase())
-        .limit(1);
-
-      if (checkError) {
-        console.error('Errore controllo duplicati tipologie:', checkError);
-        return false;
-      }
-
-      if (existingData && existingData.length > 0) {
-        console.error('❌ Tipologia già esistente:', nome);
-        return false;
-      }
-
-      const { data, error } = await supabase!
-        .from('tipologie')
-        .insert({
-          user_id: userId,
-          nome: nome.trim().toUpperCase(),
-          colore: colore
-        })
-        .select('id, nome, colore, created_at')
-        .single();
-
-      if (error) {
-        console.error('❌ Errore inserimento tipologia:', error);
-        return false;
-      }
-
-      console.log('✅ Tipologia aggiunta:', data);
-      await fetchTipologie();
-      return true;
-
-    } catch (error) {
-      console.error('❌ Errore in addTipologia:', error);
-      return false;
-    }
-  };
-
-  const updateTipologia = async (id: string, nuovoNome: string, nuovoColore: string): Promise<boolean> => {
-    try {
-      const userId = authManager.getUserId();
-      if (!userId) {
-        console.error('User ID non disponibile');
-        return false;
-      }
-
-      const { data, error } = await supabase!
-        .from('tipologie')
-        .update({
-          nome: nuovoNome.trim().toUpperCase(),
-          colore: nuovoColore,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', id)
-        .eq('user_id', userId)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Errore aggiornamento tipologia:', error);
-        return false;
-      }
-
-      console.log('✅ Tipologia aggiornata:', data);
-      await fetchTipologie();
-      return true;
-    } catch (error) {
-      console.error('Errore in updateTipologia:', error);
-      return false;
-    }
-  };
-
-  const removeTipologia = async (id: string): Promise<boolean> => {
-    try {
-      const userId = authManager.getUserId();
-      if (!userId) {
-        console.error('User ID non disponibile');
-        return false;
-      }
-
-      const { error } = await supabase!
-        .from('tipologie')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', userId);
-
-      if (error) {
-        console.error('Errore eliminazione tipologia:', error);
-        return false;
-      }
-
-      console.log('✅ Tipologia eliminata');
-      await fetchTipologie();
-      return true;
-    } catch (error) {
-      console.error('Errore in removeTipologia:', error);
-      return false;
-    }
-  };
-
-  return {
-    tipologie,
-    loading,
-    error,
-    addTipologia,
-    updateTipologia,
-    removeTipologia,
-    refreshTipologie: fetchTipologie
-  };
-};
