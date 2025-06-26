@@ -80,6 +80,62 @@ export default function ArchiviPage() {
       console.log('- authManager.isAuthenticated():', authManager.isAuthenticated());
       console.log('- authManager.getUserId():', authManager.getUserId());
       
+      // 🎯 DIAGNOSI USER ID MISMATCH
+      console.log('\n🎯 DIAGNOSI USER ID MISMATCH:');
+      
+      const currentUserId = authManager.getUserId();
+      console.log('- IL TUO USER ID CORRENTE:', currentUserId);
+      
+      // Controlla chi ha i dati nelle tabelle
+      try {
+        const { data: allTipologie } = await supabase
+          .from('tipologie')
+          .select('user_id, nome')
+          .limit(10);
+          
+        const { data: allFornitori } = await supabase
+          .from('fornitori')
+          .select('user_id, nome')
+          .limit(10);
+          
+        if (allTipologie && allTipologie.length > 0) {
+          const uniqueUserIds = [...new Set(allTipologie.map(t => t.user_id))];
+          console.log('- USER IDs CHE HANNO TIPOLOGIE:', uniqueUserIds);
+          
+          uniqueUserIds.forEach(userId => {
+            const count = allTipologie.filter(t => t.user_id === userId).length;
+            const isYou = userId === currentUserId ? '👈 SEI TU' : '❌ NON SEI TU';
+            console.log(`  * ${userId}: ${count} tipologie ${isYou}`);
+          });
+        }
+        
+        if (allFornitori && allFornitori.length > 0) {
+          const uniqueUserIds = [...new Set(allFornitori.map(f => f.user_id))];
+          console.log('- USER IDs CHE HANNO FORNITORI:', uniqueUserIds);
+          
+          uniqueUserIds.forEach(userId => {
+            const count = allFornitori.filter(f => f.user_id === userId).length;
+            const isYou = userId === currentUserId ? '👈 SEI TU' : '❌ NON SEI TU';
+            console.log(`  * ${userId}: ${count} fornitori ${isYou}`);
+          });
+        }
+        
+        // Suggerimento di risoluzione
+        console.log('\n💡 SOLUZIONI SUGGERITE:');
+        if (allTipologie?.some(t => t.user_id !== currentUserId) || allFornitori?.some(f => f.user_id !== currentUserId)) {
+          console.log('❗ PROBLEMA CONFERMATO: I dati appartengono a un altro utente');
+          console.log('📋 OPZIONI:');
+          console.log('   1. Crea nuove tipologie/fornitori per il tuo user ID');
+          console.log('   2. Verifica se hai cambiato account/sessione');
+          console.log('   3. Controlla se i dati erano di un account precedente');
+        } else {
+          console.log('✅ Nessun problema di User ID rilevato');
+        }
+        
+      } catch (err) {
+        console.error('❌ Errore durante la diagnosi User ID:', err);
+      }
+      
       try {
         const isValid = await authManager.validateSession();
         console.log('- authManager.validateSession():', isValid);
