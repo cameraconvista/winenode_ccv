@@ -1575,11 +1575,12 @@ row.vendita || ''}
                       key={colorOption.color}
                       type="button"
                       onClick={() => setSelectedColor(colorOption.color)}
-                      className={`w-5 h-5 rounded-full border-2 transition-all duration-200 hover:scale-110 mx-1 ${
-                        selectedColor === colorOption.color 
-                          ? 'border-white shadow-lg ring-2 ring-white ring-opacity-50' 
-                          : 'border-gray-400 hover:border-gray-200'
-                      }`}
+                      className={
+                        'w-5 h-5 rounded-full border-2 transition-all ' +
+                        (selectedColor === colorOption.color
+                          ? 'border-white shadow-lg ring-2 ring-white'
+                          : 'border-gray-400 hover:border-gray-200')
+                      }
                       style={{ 
                         backgroundColor: colorOption.color,
                         boxShadow: selectedColor === colorOption.color ? '0 0 10px rgba(255,255,255,0.3)' : 'none'
