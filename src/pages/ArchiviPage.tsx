@@ -70,6 +70,24 @@ export default function ArchiviPage() {
   console.log('- Fornitori mappati per dropdown:', fornitori);
   console.log('- Fonte fornitori:', suppliers.length > 0 ? 'SUPABASE' : 'VUOTO');
 
+  // Debug: query diretta Supabase fornitori
+  useEffect(() => {
+    const fetchSuppliersDebug = async () => {
+      console.log('User ID:', authManager.getUserId());
+      const { data, error } = await supabase
+        .from('fornitori')
+        .select('*')
+        .eq('user_id', authManager.getUserId());
+
+      if (error) {
+        console.error('Errore caricamento fornitori:', error);
+      } else {
+        console.log('Fornitori dal DB:', data);
+      }
+    };
+    fetchSuppliersDebug();
+  }, []);
+
   // Stati per i modali di gestione archivi
   const [showTipologieModal, setShowTipologieModal] = useState(false);
   const [showAddSupplierModal, setShowAddSupplierModal] = useState(false);
