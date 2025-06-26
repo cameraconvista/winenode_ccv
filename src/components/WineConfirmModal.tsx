@@ -55,11 +55,11 @@ export default function WineConfirmModal({
 
       setFormData({
         nomeVino: '', // Campo vuoto, pronto per inserimento manuale
-        anno: currentWine.anno || '',
-        produttore: currentWine.produttore || '',
-        provenienza: currentWine.provenienza || '',
-        costo: currentWine.costo ? currentWine.costo.toString() : '',
-        vendita: currentWine.vendita ? currentWine.vendita.toString() : '',
+        anno: '', // Campo vuoto, pronto per inserimento manuale
+        produttore: '', // Campo vuoto, pronto per inserimento manuale
+        provenienza: '', // Campo vuoto, pronto per inserimento manuale
+        costo: '', // Campo vuoto, pronto per inserimento manuale
+        vendita: '', // Campo vuoto, pronto per inserimento manuale
         categoria: categoriaIniziale,
         fornitore: ''
       });
