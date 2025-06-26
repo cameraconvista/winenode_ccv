@@ -116,7 +116,6 @@ export function useTipologie() {
         return false;
       }
 
-      // FIX: Usa "nome" invece di "name"
       let { data, error } = await supabase
         .from('tipologie')
         .insert({
@@ -214,7 +213,7 @@ export function useTipologie() {
       }
 
       const updateData: any = {
-        nome: nuovoNome.trim() // FIX: Usa "nome" invece di "name"
+        nome: nuovoNome.trim()
       };
 
       if (nuovoColore !== undefined) {
