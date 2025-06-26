@@ -23,7 +23,7 @@ interface WineRow {
 
 export default function ArchiviPage() {
   const navigate = useNavigate();
-  const { wines: existingWines, refreshWines } = useWines();
+  const { wines: existingWines, types, refreshWines } = useWines();
   const { suppliers, isLoading, error, refreshSuppliers, addSupplier: addSupplierHook } = useSuppliers();
   const { tipologie, loading, addTipologia: addTipologiaToDb, removeTipologia: removeTipologiaFromDb, updateTipologia: updateTipologiaInDb } = useTipologie();
 
