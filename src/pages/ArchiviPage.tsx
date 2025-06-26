@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useWines } from '../hooks/useWines';
 import { useTipologie } from '../hooks/useTipologie';
-import { useAnno } from '../hooks/useAnno';
+
 import { supabase, authManager } from '../lib/supabase';
 import ImportaVini from "../components/ImportaVini";
 
@@ -34,7 +34,7 @@ export default function ArchiviPage() {
   const navigate = useNavigate();
   const { wines: existingWines, types, refreshWines } = useWines();
   const { tipologie, loading, addTipologia: addTipologiaToDb, removeTipologia: removeTipologiaFromDb, updateTipologia: updateTipologiaInDb } = useTipologie();
-  const { anni, loading: loadingAnni } = useAnno();
+  
 
   // Initialize 100 empty rows
   const [wineRows, setWineRows] = useState<WineRow[]>(() => 
@@ -91,20 +91,7 @@ export default function ArchiviPage() {
           console.error('❌ Errore query tipologie:', err);
         }
 
-        // 3. Test query diretta anni
-        try {
-          const { data: anniTest, error: anniError } = await supabase
-            .from('anni')
-            .select('*')
-            .eq('user_id', userId);
-
-          console.log('📅 Query diretta anni:');
-          console.log('  - Risultati:', anniTest?.length || 0);
-          console.log('  - Errore:', anniError?.message || 'Nessuno');
-          console.log('  - Dati:', anniTest);
-        } catch (err) {
-          console.error('❌ Errore query anni:', err);
-        }
+        
       }
 
       // 4. Stato hooks
@@ -114,17 +101,13 @@ export default function ArchiviPage() {
         data: tipologie
       });
 
-      console.log('📅 Hook anni:', {
-        count: anni.length,
-        loading: loadingAnni,
-        data: anni
-      });
+      
 
       console.log('🔍 === FINE DEBUG ARCHIVI ===');
     };
 
     debugAuth();
-  }, [tipologie, anni, loading, loadingAnni]);
+  }, [tipologie, loading]);
 
   // Stati per i modali di gestione archivi
   const [showTipologieModal, setShowTipologieModal] = useState(false);
@@ -978,7 +961,7 @@ export default function ArchiviPage() {
                     ),
                     tipologie: tipologie,
                     fornitori: suppliers,
-                    anni: anni
+                    
                   };
 
                   const dataStr = JSON.stringify(backupData, null, 2);
@@ -1264,20 +1247,13 @@ export default function ArchiviPage() {
                       />
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['anno'] }}>
-                      <select
+                      <input
+                        type="text"
                         value={row.anno}
                         onChange={(e) => handleCellChange(index, 'anno', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
-                        disabled={loadingAnni}
-                      >
-                        <option value="">{loadingAnni ? 'Caricando...' : '....'}</option>
-                        {anni && anni.length > 0 ? anni.map(annoObj => (
-                          <option key={annoObj.anno} value={annoObj.anno}>
-                            {annoObj.anno}
-                          </option>
-                        )) : null}
-                      </select>
+                      />
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['produttore'] }}>
                       <input
