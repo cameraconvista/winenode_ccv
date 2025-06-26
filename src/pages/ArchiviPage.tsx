@@ -1367,7 +1367,7 @@ export default function ArchiviPage() {
                       </select>
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['costo'] }}>
-<replit_final_file>                      <input
+                      <input
                         type="number"
                         value={row.costo}
                         onChange={(e) => handleCellChange(index, 'costo', e.target.value)}
