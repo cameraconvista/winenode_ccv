@@ -376,7 +376,11 @@ export default function ImportaPage() {
               </svg>
             </button>
 
-            <img src="/logo2.png" alt="WINENODE" className="h-24 w-auto object-contain" />
+            <img
+              src="/logo 2 CCV.png"
+              alt="WINENODE"
+              className="h-24 w-auto object-contain"
+            />
 
             <button
               onClick={() => navigate("/")}

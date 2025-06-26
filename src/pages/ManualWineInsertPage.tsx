@@ -24,13 +24,13 @@ export default function ManualWineInsertPage() {
   const user = useUser();
   const { suppliers, isLoading: loadingSuppliers, refreshSuppliers } = useSuppliers();
   const { refreshWines } = useWines();
-  
+
   // Stati per i dropdown - ora con valori persistenti
   const [categoria, setCategoria] = useState("");
   const [fornitore, setFornitore] = useState("");
   const [sogliaMinima, setSogliaMinima] = useState("2");
   const [giacenza, setGiacenza] = useState("0");
-  
+
   // Stato per tracciare le selezioni dell'utente
   const [selectedTipologia, setSelectedTipologia] = useState("");
   const [selectedFornitore, setSelectedFornitore] = useState("");
@@ -286,11 +286,11 @@ export default function ManualWineInsertPage() {
                 <path d="M19 12H5M12 19l-7-7 7-7"/>
               </svg>
             </button>
-            <img
-              src="/logo2.png"
-              alt="WINENODE"
-              className="h-32 w-auto object-contain"
-            />
+            <img 
+                src="/logo 2 CCV.png" 
+                alt="WINENODE" 
+                className="h-32 w-auto object-contain" 
+              />
             <button
               onClick={() => navigate("/")}
               className="p-2 text-white hover:text-cream hover:bg-gray-800 rounded-lg transition-colors"

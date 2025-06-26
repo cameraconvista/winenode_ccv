@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   ArrowLeft,
@@ -120,7 +119,7 @@ export default function PreferenzePage() {
               </svg>
             </button>
             <img
-              src="/logo2.png"
+              src="/logo 2 CCV.png"
               alt="WINENODE"
               className="h-32 w-auto object-contain"
             />

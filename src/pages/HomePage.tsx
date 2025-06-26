@@ -194,7 +194,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between h-20 sm:h-24">
             <div className="flex items-center justify-between w-full">
               <img 
-                src="/logo2.png" 
+                src="/logo 2 CCV.png" 
                 alt="WINENODE" 
                 className="h-32 w-auto object-contain" 
               />

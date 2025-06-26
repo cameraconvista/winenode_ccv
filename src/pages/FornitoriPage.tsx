@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   ArrowLeft,
@@ -103,10 +102,10 @@ export default function FornitoriPage() {
                 <path d="M19 12H5M12 19l-7-7 7-7"/>
               </svg>
             </button>
-            <img
-              src="/logo2.png"
-              alt="WINENODE"
-              className="h-32 w-auto object-contain"
+            <img 
+              src="/logo 2 CCV.png" 
+              alt="WINENODE" 
+              className="h-32 w-auto object-contain" 
             />
             <button
               onClick={() => navigate('/')}
@@ -263,12 +262,12 @@ export default function FornitoriPage() {
                 Conferma Reset Fornitori
               </h3>
             </div>
-            
+
             <p className="text-gray-300 mb-6">
               Sei sicuro di voler eliminare <strong>tutti i fornitori</strong>? 
               Questa operazione non può essere annullata.
             </p>
-            
+
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowResetConfirm(false)}

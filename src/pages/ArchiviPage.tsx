@@ -795,7 +795,7 @@ export default function ArchiviPage() {
             </button>
 
             <img
-              src="/logo2.png"
+              src="/logo 2 CCV.png"
               alt="WINENODE"
               className="h-24 w-auto object-contain"
             />
