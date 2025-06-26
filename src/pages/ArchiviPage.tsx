@@ -8,6 +8,12 @@ import { supabase, authManager } from '../lib/supabase';
 import ImportaVini from "../components/ImportaVini";
 import AddSupplierModal from "../components/AddSupplierModal";
 
+interface Tipologia {
+  id: string;
+  nome: string;
+  colore?: string;
+}
+
 interface WineRow {
   id: string;
   tipologia: string;
@@ -127,7 +133,7 @@ export default function ArchiviPage() {
   const [showAddSupplierModal, setShowAddSupplierModal] = useState(false);
   const [newItemName, setNewItemName] = useState('');
 
-  // Stati per il modal produttori
+  // Stati per il modal tipologie
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Tipologia[]>([]);
   const [editingProducer, setEditingProducer] = useState<string | null>(null);
@@ -974,7 +980,6 @@ export default function ArchiviPage() {
                       row.nomeVino.trim() || row.produttore.trim() || row.tipologia
                     ),
                     tipologie: tipologie,
-                    produttori: produttori,
                     fornitori: suppliers
                   };
 
@@ -1293,7 +1298,7 @@ export default function ArchiviPage() {
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                         disabled={loadingAnni}
                       >
-                        <option value="">{loadingAnni ? 'Caricando...' : '...."'}</option>
+                        <option value="">{loadingAnni ? 'Caricando...' : '....'}</option>
                         {anni.map(annoObj => (
                           <option key={annoObj.anno} value={annoObj.anno}>
                             {annoObj.anno}
