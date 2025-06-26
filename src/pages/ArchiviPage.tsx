@@ -29,7 +29,7 @@ export default function ArchiviPage() {
 
   // Debug: verifica contenuto tipologie
   console.log('Tipologie attualmente caricate:', tipologie);
-  
+
 
   // Initialize 100 empty rows
   const [wineRows, setWineRows] = useState<WineRow[]>(() => 
@@ -370,7 +370,7 @@ export default function ArchiviPage() {
     }
   };
 
-  
+
 
   // Handle row selection
   const handleRowClick = (index: number, event: React.MouseEvent) => {
@@ -742,10 +742,17 @@ export default function ArchiviPage() {
   // Funzione per ottenere i dati della tipologia da types (useWines)
   const getTypeData = (typeName: string) => types.find(t => t.nome === typeName);
 
-  // Funzione per ottenere il colore della tipologia (aggiornata per usare types)
+  // Funzione per ottenere il colore della tipologia
   const getTipologiaColore = (tipologiaNome: string) => {
+    // Prima prova con types dall'hook useWines
     const typeData = getTypeData(tipologiaNome);
-    return typeData?.colore || '#cccccc';
+    if (typeData?.colore) {
+      return typeData.colore;
+    }
+
+    // Fallback su tipologie dall'hook useTipologie
+    const selectedTipologia = tipologie.find(tip => tip.nome === tipologiaNome);
+    return selectedTipologia?.colore || '#cccccc';
   };
 
     // Calcola lineHeight e altezza riga basate su fontSize
@@ -1206,11 +1213,11 @@ export default function ArchiviPage() {
                     {(() => {
                       const tipo = getTypeData(row.tipologia);
                       return (
-                        <div className="cell-tipologia">
+                        <div className="cell-tipologia" style={{ backgroundColor: tipo?.colore || '#eee' }}>
                           <div 
                             className="barra-colore"
                             style={{ 
-                              backgroundColor: tipo?.colore || '#cccccc'
+                              backgroundColor: getTipologiaColore(row.tipologia) 
                             }}
                           />
                           <select
@@ -1218,7 +1225,7 @@ export default function ArchiviPage() {
                             onChange={(e) => handleCellChange(index, 'tipologia', e.target.value)}
                             className="w-full h-full px-2 py-2 bg-transparent border-none outline-none focus:bg-white focus:shadow-inner text-center select-none"
                             style={{ 
-                              backgroundColor: tipo?.colore || '#eee',
+                              backgroundColor: 'transparent',
                               userSelect: 'none', 
                               ...getFontSizeStyle(),
                               color: '#333',
@@ -1227,13 +1234,13 @@ export default function ArchiviPage() {
                             disabled={loading}
                           >
                             <option value="">{loading ? 'Caricamento...' : '....'}</option>
-                            {types.map(tip => (
+                            {tipologie.map(tip => (
                               <option 
                                 key={tip.nome} 
                                 value={tip.nome}
                                 style={{ color: '#333' }}
                               >
-                                {tip.nome}
+                                {tipo?.nome || tip.nome}
                               </option>
                             ))}
                           </select>
@@ -1312,7 +1319,8 @@ export default function ArchiviPage() {
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['vendita'] }}>
                       <input
                         type="text"
-                        value={row.vendita || ''}
+                        value={```text
+row.vendita || ''}
                         onChange={(e) => handleCellChange(index, 'vendita', e.target.value)}
                         className="w-full px-1 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
@@ -1738,7 +1746,7 @@ export default function ArchiviPage() {
         </div>
       )}
 
-      
+
 
       {/* Modal AddSupplierModal */}
       <AddSupplierModal
