@@ -46,25 +46,7 @@ export default function WineConfirmModal({
     fornitore: ''
   });
 
-  useEffect(() => {
-    if (currentWine) {
-      let categoriaIniziale = '';
-      if (applicaATutti && categoriaApplicaATutti) {
-        categoriaIniziale = categoriaApplicaATutti;
-      }
-
-      setFormData({
-        nomeVino: '', // Campo vuoto, pronto per inserimento manuale
-        anno: '', // Campo vuoto, pronto per inserimento manuale
-        produttore: '', // Campo vuoto, pronto per inserimento manuale
-        provenienza: '', // Campo vuoto, pronto per inserimento manuale
-        costo: '', // Campo vuoto, pronto per inserimento manuale
-        vendita: '', // Campo vuoto, pronto per inserimento manuale
-        categoria: '', // Campo vuoto, pronto per inserimento manuale
-        fornitore: '' // Campo vuoto, pronto per inserimento manuale
-      });
-    }
-  }, [currentWine, currentWineIndex, categoriaApplicaATutti, applicaATutti]);
+  // useEffect rimosso - campi pronti per inserimento manuale
 
   const isFormValid = formData.nomeVino.trim() && 
                      formData.produttore.trim() && 
