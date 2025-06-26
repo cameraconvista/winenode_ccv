@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useTipologie } from '../hooks/useTipologie';
-import FornitoreSelector from './FornitoreSelector';
-import { useSuppliers } from '../hooks/useSuppliers';
 
 interface WineConfirmModalProps {
   showModal: boolean;
@@ -119,7 +117,6 @@ export default function WineConfirmModal({
   };
 
   const { tipologie: hookTipologie, loading: loadingTipologie } = useTipologie();
-  const { suppliers, isLoading: loadingSuppliers } = useSuppliers();
 
   // Use hook data as fallback if prop tipologie is empty
   const activeTipologie = (tipologie && tipologie.length > 0) ? tipologie : hookTipologie;
@@ -130,10 +127,6 @@ export default function WineConfirmModal({
   console.log('- Hook tipologie:', hookTipologie);
   console.log('- Active tipologie:', activeTipologie);
   console.log('- Loading tipologie:', loadingTipologie);
-
-  console.log('🍷 WineConfirmModal - Debug Fornitori:');
-  console.log('- Suppliers from hook:', suppliers);
-  console.log('- Loading suppliers:', loadingSuppliers);
 
   if (!showModal || !currentWine) return null;
 
@@ -302,11 +295,13 @@ export default function WineConfirmModal({
           {/* Fornitore */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">Fornitore *</label>
-            <FornitoreSelector
+            <input
+              type="text"
               value={formData.fornitore}
-              onChange={(value) => setFormData({...formData, fornitore: value})}
-              required={true}
-              placeholder="Seleziona un fornitore"
+              onChange={(e) => setFormData({...formData, fornitore: e.target.value.toUpperCase()})}
+              className="w-full p-3 bg-black/30 border border-amber-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 uppercase"
+              placeholder="INSERISCI IL NOME DEL FORNITORE"
+              required
             />
           </div>
         </div>
