@@ -250,6 +250,47 @@ export function useTipologie() {
   };
 
   useEffect(() => {
+    const fetchTipologie = async () => {
+      if (!authManager.isAuthenticated() || !supabase) {
+        console.log('🔍 useTipologie: Non autenticato o Supabase non disponibile');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const userId = authManager.getUserId();
+
+        if (!userId) {
+          console.warn('🔍 useTipologie: User ID non disponibile');
+          setTipologie([]);
+          setLoading(false);
+          return;
+        }
+
+        console.log('🔍 useTipologie: Caricamento tipologie per user:', userId);
+
+        const { data, error } = await supabase
+          .from('tipologie')
+          .select('*')
+          .eq('user_id', userId)
+          .order('nome');
+
+        if (error) {
+          console.error('❌ useTipologie: Errore query:', error);
+          setTipologie([]);
+        } else {
+          console.log('✅ useTipologie: Caricate', data?.length || 0, 'tipologie:', data);
+          setTipologie(data || []);
+        }
+      } catch (err) {
+        console.error('❌ useTipologie: Errore generale:', err);
+        setTipologie([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchTipologie();
   }, []);
 

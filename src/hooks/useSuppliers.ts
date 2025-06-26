@@ -61,6 +61,50 @@ export const useSuppliers = () => {
   };
 
   useEffect(() => {
+    const fetchSuppliers = async () => {
+      if (!authManager.isAuthenticated() || !supabase) {
+        console.log('🔍 useSuppliers: Non autenticato o Supabase non disponibile');
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const userId = authManager.getUserId();
+        if (!userId) {
+          console.warn('🔍 useSuppliers: User ID non disponibile');
+          setSuppliers([]);
+          setIsLoading(false);
+          return;
+        }
+
+        console.log('🔍 useSuppliers: Caricamento fornitori per user:', userId);
+
+        const { data, error } = await supabase
+          .from('fornitori')
+          .select('*')
+          .eq('user_id', userId)
+          .order('nome');
+
+        if (error) {
+          console.error('❌ useSuppliers: Errore query:', error);
+          setError(error.message);
+          setSuppliers([]);
+        } else {
+          console.log('✅ useSuppliers: Caricati', data?.length || 0, 'fornitori:', data);
+          setSuppliers(data || []);
+        }
+      } catch (err) {
+        console.error('❌ useSuppliers: Errore generale:', err);
+        setError(err instanceof Error ? err.message : 'Errore sconosciuto');
+        setSuppliers([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchSuppliers();
   }, []);
 

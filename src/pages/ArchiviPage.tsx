@@ -14,6 +14,10 @@ interface Tipologia {
   colore?: string;
 }
 
+interface Anno {
+  anno: number;
+}
+
 interface WineRow {
   id: string;
   tipologia: string;
@@ -106,9 +110,24 @@ export default function ArchiviPage() {
         } catch (err) {
           console.error('❌ Errore query fornitori:', err);
         }
+
+        // 4. Test query diretta anni
+        try {
+          const { data: anniTest, error: anniError } = await supabase
+            .from('anni')
+            .select('*')
+            .eq('user_id', userId);
+
+          console.log('📅 Query diretta anni:');
+          console.log('  - Risultati:', anniTest?.length || 0);
+          console.log('  - Errore:', anniError?.message || 'Nessuno');
+          console.log('  - Dati:', anniTest);
+        } catch (err) {
+          console.error('❌ Errore query anni:', err);
+        }
       }
 
-      // 4. Stato hooks
+      // 5. Stato hooks
       console.log('📊 Hook tipologie:', {
         count: tipologie.length,
         loading: loading,
@@ -122,11 +141,17 @@ export default function ArchiviPage() {
         data: suppliers
       });
 
+      console.log('📅 Hook anni:', {
+        count: anni.length,
+        loading: loadingAnni,
+        data: anni
+      });
+
       console.log('🔍 === FINE DEBUG ARCHIVI ===');
     };
 
     debugAuth();
-  }, [tipologie, suppliers, loading, isLoading, error]);
+  }, [tipologie, suppliers, anni, loading, isLoading, loadingAnni, error]);
 
   // Stati per i modali di gestione archivi
   const [showTipologieModal, setShowTipologieModal] = useState(false);
@@ -980,7 +1005,8 @@ export default function ArchiviPage() {
                       row.nomeVino.trim() || row.produttore.trim() || row.tipologia
                     ),
                     tipologie: tipologie,
-                    fornitori: suppliers
+                    fornitori: suppliers,
+                    anni: anni
                   };
 
                   const dataStr = JSON.stringify(backupData, null, 2);
@@ -1274,11 +1300,11 @@ export default function ArchiviPage() {
                       disabled={loading}
                     >
                       <option value="">{loading ? 'Caricamento...' : '....'}</option>
-                      {tipologie.map(tip => (
-                        <option key={tip.nome} value={tip.nome}>
+                      {tipologie && tipologie.length > 0 ? tipologie.map(tip => (
+                        <option key={tip.id || tip.nome} value={tip.nome}>
                           {tip.nome}
                         </option>
-                      ))}
+                      )) : null}
                     </select>
                   </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['nomeVino'] }}>
@@ -1299,11 +1325,11 @@ export default function ArchiviPage() {
                         disabled={loadingAnni}
                       >
                         <option value="">{loadingAnni ? 'Caricando...' : '....'}</option>
-                        {anni.map(annoObj => (
+                        {anni && anni.length > 0 ? anni.map(annoObj => (
                           <option key={annoObj.anno} value={annoObj.anno}>
                             {annoObj.anno}
                           </option>
-                        ))}
+                        )) : null}
                       </select>
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['produttore'] }}>
@@ -1330,13 +1356,14 @@ export default function ArchiviPage() {
                         onChange={(e) => handleCellChange(index, 'fornitore', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
+                        disabled={isLoading}
                       >
-                        <option value="">....</option>
-                        {fornitori.map(fornitore => (
-                          <option key={fornitore} value={fornitore}>
+                        <option value="">{isLoading ? 'Caricando...' : '....'}</option>
+                        {fornitori && fornitori.length > 0 ? fornitori.map((fornitore, idx) => (
+                          <option key={`fornitore-${idx}`} value={fornitore}>
                             {fornitore}
                           </option>
-                        ))}
+                        )) : null}
                       </select>
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['costo'] }}>
