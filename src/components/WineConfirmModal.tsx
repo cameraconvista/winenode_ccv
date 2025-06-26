@@ -54,7 +54,7 @@ export default function WineConfirmModal({
       }
 
       setFormData({
-        nomeVino: currentWine.nomeVino || '',
+        nomeVino: '', // Campo vuoto, pronto per inserimento manuale
         anno: currentWine.anno || '',
         produttore: currentWine.produttore || '',
         provenienza: currentWine.provenienza || '',
