@@ -19,7 +19,6 @@ export const useSuppliers = () => {
       setIsLoading(true);
       setError(null);
 
-      // Valida sessione prima di procedere
       const isValid = await authManager.validateSession();
       if (!isValid) {
         console.log('⚠️ Sessione non valida, fornitori vuoti');
@@ -29,6 +28,8 @@ export const useSuppliers = () => {
       }
 
       const userId = authManager.getUserId();
+      console.log('User ID:', userId); // <-- Qui
+
       if (!userId) {
         console.log('⚠️ SUPPLIERS: Utente non autenticato');
         setSuppliers([]);
@@ -83,7 +84,6 @@ export const useSuppliers = () => {
 
       console.log('🔄 Tentativo inserimento fornitore:', { nome, email, telefono });
 
-      // Controllo duplicati direttamente su Supabase (più affidabile)
       const { data: existingData, error: checkError } = await supabase!
         .from('fornitori')
         .select('id, nome')
@@ -101,7 +101,6 @@ export const useSuppliers = () => {
         return false;
       }
 
-      // Inserimento fornitore
       const { data, error } = await supabase!
         .from('fornitori')
         .insert({
@@ -116,7 +115,6 @@ export const useSuppliers = () => {
       if (error) {
         console.error('❌ Errore inserimento fornitore:', error);
 
-        // Gestione errori specifici
         if (error.code === '23505') {
           console.error('Errore: Fornitore duplicato');
         } else if (error.code === '42501') {
@@ -127,7 +125,6 @@ export const useSuppliers = () => {
 
       console.log('✅ Fornitore aggiunto con successo:', data);
 
-      // Ricarica i fornitori per aggiornare la lista
       await fetchSuppliers();
       return true;
 
@@ -139,17 +136,14 @@ export const useSuppliers = () => {
 
   const updateSupplier = async (id: string, nuovoNome: string, nuovaEmail: string, nuovoTelefono: string): Promise<boolean> => {
     try {
-      // Prima ricarica i dati da Supabase
       await fetchSuppliers();
 
-      // Verifica se il nuovo nome esiste già (escludendo quello corrente)
       const exists = suppliers.some(s => s.id !== id && s.nome.toLowerCase() === nuovoNome.toLowerCase());
       if (exists) {
         console.error('Nome fornitore già esistente:', nuovoNome);
         return false;
       }
 
-      // Controllo aggiuntivo direttamente su Supabase con user_id
       const userId = authManager.getUserId();
       if (!userId) {
         console.error('User ID non disponibile');
