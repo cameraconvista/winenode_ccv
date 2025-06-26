@@ -58,23 +58,16 @@ export default function WineConfirmModal({
   const handleSaveAndNext = () => {
     if (!isFormValid) return;
 
-    if (applicaATutti && formData.categoria) {
-      setCategoriaApplicaATutti(formData.categoria);
-    }
-
-    const capitalizeFirstLetter = (str: string) => {
-      if (!str) return str;
-      return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-    };
+    // Logica automatica rimossa - pronto per futura riconfigurazione
 
     const vinoConfermato = {
       ...formData,
-      nomeVino: formData.nomeVino.trim().toUpperCase(),
-      anno: formData.anno.trim().toUpperCase(),
-      categoria: formData.categoria.trim().toUpperCase(),
-      produttore: capitalizeFirstLetter(formData.produttore.trim()),
-      provenienza: capitalizeFirstLetter(formData.provenienza.trim()),
-      fornitore: formData.fornitore.trim().toUpperCase(),
+      nomeVino: formData.nomeVino.trim(),
+      anno: formData.anno.trim(),
+      categoria: formData.categoria.trim(),
+      produttore: formData.produttore.trim(),
+      provenienza: formData.provenienza.trim(),
+      fornitore: formData.fornitore.trim(),
       costo: parseFloat(formData.costo) || 0,
       vendita: parseFloat(formData.vendita) || 0
     };
