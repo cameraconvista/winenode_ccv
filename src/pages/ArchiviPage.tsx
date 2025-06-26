@@ -1319,8 +1319,7 @@ export default function ArchiviPage() {
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['vendita'] }}>
                       <input
                         type="text"
-                        value={```text
-row.vendita || ''}
+                        value={row.vendita || ''}
                         onChange={(e) => handleCellChange(index, 'vendita', e.target.value)}
                         className="w-full px-1 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
@@ -1682,11 +1681,12 @@ row.vendita || ''}
                                 key={colorOption.color}
                                 type="button"
                                 onClick={() => setSelectedColor(colorOption.color)}
-                                className={`w-5 h-5 rounded-full border-2 transition-all duration-200 hover:scale-110 mx-1 ${
-                                  selectedColor === colorOption.color 
-                                    ? 'border-white shadow-lg ring-2 ring-white ring-opacity-50' 
-                                    : 'border-gray-400 hover:border-gray-200'
-                                }`}
+                                className={
+                                  'w-5 h-5 rounded-full border-2 transition-all ' +
+                                  (selectedColor === colorOption.color
+                                    ? 'border-white shadow-lg ring-2 ring-white'
+                                    : 'border-gray-400 hover:border-gray-200')
+                                }
                                 style={{ 
                                   backgroundColor: colorOption.color,
                                   boxShadow: selectedColor === colorOption.color ? '0 0 10px rgba(255,255,255,0.3)' : 'none'
