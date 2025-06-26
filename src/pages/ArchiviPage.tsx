@@ -1108,15 +1108,6 @@ export default function ArchiviPage() {
                   </th>
                   <th className="px-3 py-3 text-center align-middle font-bold text-white border border-amber-900 border-r-2 border-r-amber-900 uppercase bg-[#3b1d1d] backdrop-blur-sm relative group" style={{ width: columnWidths['tipologia'] }}>
                     <span>Tipologia</span>
-                    <button
-                      onClick={() => setShowTipologieModal(true)}
-                      className="absolute top-1/2 right-6 w-4 h-4 flex items-center justify-center text-yellow-600 hover:text-white hover:bg-amber-600/30 rounded transition-all duration-200 hover:scale-110 transform -translate-y-1/2"
-                      title="Gestisci tipologie"
-                    >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
-                      </svg>
-                    </button>
                     {/* Handle di resize */}
                     <div
                       className="absolute top-0 right-0 w-2 h-full cursor-col-resize group-hover:bg-amber-600/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
