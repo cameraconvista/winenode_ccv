@@ -2,11 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useWines } from '../hooks/useWines';
 import { useSuppliers } from '../hooks/useSuppliers';
-import { useTipologie } from '../hooks/useTipologie';
-import { useAnni } from '../hooks/useAnni';
+import { useTipologie, Tipologia } from '../hooks/useTipologie';
 import { supabase, authManager } from '../lib/supabase';
 import ImportaVini from "../components/ImportaVini";
 import AddSupplierModal from "../components/AddSupplierModal";
+import { useAnni } from '../hooks/useAnni';
 
 interface WineRow {
   id: string;
@@ -27,7 +27,7 @@ export default function ArchiviPage() {
   const { wines: existingWines, types, refreshWines } = useWines();
   const { suppliers, isLoading, error, refreshSuppliers, addSupplier: addSupplierHook } = useSuppliers();
   const { tipologie, loading, addTipologia: addTipologiaToDb, removeTipologia: removeTipologiaFromDb, updateTipologia: updateTipologiaInDb } = useTipologie();
-  const { anni, loading: loadingAnni } = useAnni();
+  const { anni, loading: anniLoading } = useAnni();
 
   // Initialize 100 empty rows
   const [wineRows, setWineRows] = useState<WineRow[]>(() => 
@@ -116,11 +116,12 @@ export default function ArchiviPage() {
         data: suppliers
       });
 
+      console.log('📅 Hook anni:', { count: anni.length, loading: anniLoading, data: anni });
       console.log('🔍 === FINE DEBUG ARCHIVI ===');
     };
 
     debugAuth();
-  }, [tipologie, suppliers, loading, isLoading, error]);
+  }, [tipologie, suppliers, loading, isLoading, error, anni, anniLoading]);
 
   // Stati per i modali di gestione archivi
   const [showTipologieModal, setShowTipologieModal] = useState(false);
@@ -859,7 +860,8 @@ export default function ArchiviPage() {
                 className="p-2 text-white hover:text-cream hover:bg-gray-800 rounded-lg transition-colors"
                 title="Vai alla home"
               >
-                <svg className="h-6 w-6" fill="nonestroke="currentColor" viewBox="0 0 24 24">
+                ```python
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
               </button>
@@ -1329,8 +1331,8 @@ export default function ArchiviPage() {
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       >
-                        <option value="">....</option>```text
-{fornitori.map(fornitore => (
+                        <option value="">....</option>
+                        {fornitori.map(fornitore => (
                           <option key={fornitore} value={fornitore}>{fornitore}</option>
                         ))}
                       </select>
@@ -1355,7 +1357,7 @@ export default function ArchiviPage() {
                         placeholder="0"
                       />
                     </td>
-                    <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['margine'] }}>
+                    <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['margine'] }}>
                       <input
                         type="text"
                         value={row.margine || ''}
@@ -1775,8 +1777,6 @@ export default function ArchiviPage() {
           </div>
         </div>
       )}
-
-
 
       {/* Modal AddSupplierModal */}
       <AddSupplierModal

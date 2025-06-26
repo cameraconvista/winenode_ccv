@@ -25,6 +25,7 @@ export function useAnni() {
 
       console.log('🔍 Caricamento anni dal database');
 
+      // Carica gli anni dalla tabella anno (non filtrata per user_id)
       const { data, error } = await supabase
         .from('anno')
         .select('anno')
@@ -32,12 +33,16 @@ export function useAnni() {
 
       if (error) {
         console.error('❌ Errore caricamento anni:', error.message);
+        console.error('❌ Dettagli errore:', error);
         setAnni([]);
       } else {
         console.log('✅ Anni ricevuti da Supabase:', data);
         if (data) {
-          setAnni(data);
-          console.log('✅ Anni mappati:', data.length);
+          const anniData = data.map(item => ({
+            anno: item.anno
+          }));
+          setAnni(anniData);
+          console.log('✅ Anni mappati:', anniData.length);
         }
       }
     } catch (error) {
