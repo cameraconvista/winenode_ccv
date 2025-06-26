@@ -435,8 +435,7 @@ export default function ManualWineInsertPage() {
               <option value="Rosso">Rosso</option>
               <option value="Bollicine">Bollicine</option>
               <option value="Rosato">Rosato</option>
-              <option value="Dolce">Dolce</option>llicine">Bollicine</option>
-              <option value="Rosato">Rosato</option>
+              <option value="Dolce">Dolce</option>
             </select>
 
             <button
