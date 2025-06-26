@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useWines } from '../hooks/useWines';
 import { useSuppliers } from '../hooks/useSuppliers';
-import { useTipologie, Tipologia } from '../hooks/useTipologie';
+import { useTipologie } from '../hooks/useTipologie';
+import { useAnni } from '../hooks/useAnni';
 import { supabase, authManager } from '../lib/supabase';
 import ImportaVini from "../components/ImportaVini";
 import AddSupplierModal from "../components/AddSupplierModal";
@@ -26,6 +27,7 @@ export default function ArchiviPage() {
   const { wines: existingWines, types, refreshWines } = useWines();
   const { suppliers, isLoading, error, refreshSuppliers, addSupplier: addSupplierHook } = useSuppliers();
   const { tipologie, loading, addTipologia: addTipologiaToDb, removeTipologia: removeTipologiaFromDb, updateTipologia: updateTipologiaInDb } = useTipologie();
+  const { anni, loading: loadingAnni } = useAnni();
 
   // Initialize 100 empty rows
   const [wineRows, setWineRows] = useState<WineRow[]>(() => 
@@ -61,13 +63,13 @@ export default function ArchiviPage() {
   useEffect(() => {
     const debugAuth = async () => {
       console.log('🔍 === DEBUG ARCHIVI COMPLETO ===');
-      
+
       // 1. Verifica autenticazione
       const userId = authManager.getUserId();
       const isValid = await authManager.validateSession();
       console.log('👤 User ID:', userId);
       console.log('✅ Sessione valida:', isValid);
-      
+
       // 2. Test query diretta tipologie
       if (userId && supabase) {
         try {
@@ -75,7 +77,7 @@ export default function ArchiviPage() {
             .from('tipologie')
             .select('*')
             .eq('user_id', userId);
-          
+
           console.log('📊 Query diretta tipologie:');
           console.log('  - Risultati:', tipologieTest?.length || 0);
           console.log('  - Errore:', tipError?.message || 'Nessuno');
@@ -83,14 +85,14 @@ export default function ArchiviPage() {
         } catch (err) {
           console.error('❌ Errore query tipologie:', err);
         }
-        
+
         // 3. Test query diretta fornitori
         try {
           const { data: fornitoriTest, error: fornError } = await supabase
             .from('fornitori')
             .select('*')
             .eq('user_id', userId);
-          
+
           console.log('📦 Query diretta fornitori:');
           console.log('  - Risultati:', fornitoriTest?.length || 0);
           console.log('  - Errore:', fornError?.message || 'Nessuno');
@@ -99,24 +101,24 @@ export default function ArchiviPage() {
           console.error('❌ Errore query fornitori:', err);
         }
       }
-      
+
       // 4. Stato hooks
       console.log('📊 Hook tipologie:', {
         count: tipologie.length,
         loading: loading,
         data: tipologie
       });
-      
+
       console.log('📦 Hook fornitori:', {
         count: suppliers.length,
         loading: isLoading,
         error: error,
         data: suppliers
       });
-      
+
       console.log('🔍 === FINE DEBUG ARCHIVI ===');
     };
-    
+
     debugAuth();
   }, [tipologie, suppliers, loading, isLoading, error]);
 
@@ -857,7 +859,7 @@ export default function ArchiviPage() {
                 className="p-2 text-white hover:text-cream hover:bg-gray-800 rounded-lg transition-colors"
                 title="Vai alla home"
               >
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-6 w-6" fill="nonestroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
               </button>
@@ -1327,8 +1329,8 @@ export default function ArchiviPage() {
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       >
-                        <option value="">....</option>
-                        {fornitori.map(fornitore => (
+                        <option value="">....</option>```text
+{fornitori.map(fornitore => (
                           <option key={fornitore} value={fornitore}>{fornitore}</option>
                         ))}
                       </select>
@@ -1353,7 +1355,7 @@ export default function ArchiviPage() {
                         placeholder="0"
                       />
                     </td>
-                    <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['margine'] }}>
+                    <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['margine'] }}>
                       <input
                         type="text"
                         value={row.margine || ''}
