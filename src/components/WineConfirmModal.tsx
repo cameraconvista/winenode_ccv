@@ -60,8 +60,8 @@ export default function WineConfirmModal({
         provenienza: '', // Campo vuoto, pronto per inserimento manuale
         costo: '', // Campo vuoto, pronto per inserimento manuale
         vendita: '', // Campo vuoto, pronto per inserimento manuale
-        categoria: categoriaIniziale,
-        fornitore: ''
+        categoria: '', // Campo vuoto, pronto per inserimento manuale
+        fornitore: '' // Campo vuoto, pronto per inserimento manuale
       });
     }
   }, [currentWine, currentWineIndex, categoriaApplicaATutti, applicaATutti]);
