@@ -70,22 +70,167 @@ export default function ArchiviPage() {
   console.log('- Fornitori mappati per dropdown:', fornitori);
   console.log('- Fonte fornitori:', suppliers.length > 0 ? 'SUPABASE' : 'VUOTO');
 
-  // Debug: query diretta Supabase fornitori
+  // 🔍 DEBUG COMPLETO: Autenticazione, Fornitori e Tipologie
   useEffect(() => {
-    const fetchSuppliersDebug = async () => {
-      console.log('User ID:', authManager.getUserId());
-      const { data, error } = await supabase
-        .from('fornitori')
-        .select('*')
-        .eq('user_id', authManager.getUserId());
-
-      if (error) {
-        console.error('Errore caricamento fornitori:', error);
-      } else {
-        console.log('Fornitori dal DB:', data);
+    const debugCompleto = async () => {
+      console.log('🔍===== DEBUG COMPLETO ARCHIVI =====');
+      
+      // 1️⃣ VERIFICA AUTENTICAZIONE
+      console.log('1️⃣ CONTROLLO AUTENTICAZIONE:');
+      console.log('- authManager.isAuthenticated():', authManager.isAuthenticated());
+      console.log('- authManager.getUserId():', authManager.getUserId());
+      
+      try {
+        const isValid = await authManager.validateSession();
+        console.log('- authManager.validateSession():', isValid);
+        
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        console.log('- Sessione Supabase:', sessionData.session ? 'ATTIVA' : 'NON ATTIVA');
+        console.log('- User da sessione:', sessionData.session?.user?.id || 'NESSUNO');
+        if (sessionError) console.error('- Errore sessione:', sessionError);
+      } catch (authErr) {
+        console.error('- Errore validazione auth:', authErr);
       }
+
+      const userId = authManager.getUserId();
+      if (!userId) {
+        console.error('❌ NESSUN USER ID - STOP DEBUG');
+        return;
+      }
+
+      console.log('\n2️⃣ CONTROLLO STRUTTURA DATABASE:');
+      
+      // 2️⃣ VERIFICA ESISTENZA TABELLE
+      try {
+        const { data: tabelle, error: tabelleError } = await supabase
+          .from('information_schema.tables')
+          .select('table_name')
+          .eq('table_schema', 'public')
+          .in('table_name', ['fornitori', 'tipologie', 'vini']);
+          
+        if (tabelleError) {
+          console.warn('- Impossibile verificare tabelle:', tabelleError.message);
+        } else {
+          const nomiTabelle = tabelle?.map(t => t.table_name) || [];
+          console.log('- Tabelle esistenti:', nomiTabelle);
+          console.log('- Fornitori presente:', nomiTabelle.includes('fornitori'));
+          console.log('- Tipologie presente:', nomiTabelle.includes('tipologie'));
+          console.log('- Vini presente:', nomiTabelle.includes('vini'));
+        }
+      } catch (schemaErr) {
+        console.warn('- Errore verifica schema:', schemaErr);
+      }
+
+      console.log('\n3️⃣ TEST QUERY DIRETTE:');
+      
+      // 3️⃣ QUERY DIRETTA FORNITORI CON DETTAGLI
+      console.log('--- TEST FORNITORI ---');
+      try {
+        const { data: fornitori, error: fornitoriError, count } = await supabase
+          .from('fornitori')
+          .select('*', { count: 'exact' });
+          
+        console.log('- Query fornitori SENZA filtro user_id:');
+        console.log('  * Risultati:', fornitori?.length || 0);
+        console.log('  * Count totale:', count);
+        console.log('  * Errore:', fornitoriError?.message || 'NESSUNO');
+        
+        if (fornitori && fornitori.length > 0) {
+          console.log('  * Primo fornitore:', fornitori[0]);
+          const userIds = [...new Set(fornitori.map(f => f.user_id))];
+          console.log('  * User IDs presenti:', userIds);
+          console.log('  * Il tuo User ID è presente:', userIds.includes(userId));
+        }
+      } catch (err) {
+        console.error('- Errore query fornitori globale:', err);
+      }
+
+      try {
+        const { data: fornitoriUser, error: fornitoriUserError } = await supabase
+          .from('fornitori')
+          .select('*')
+          .eq('user_id', userId);
+          
+        console.log('- Query fornitori CON filtro user_id:');
+        console.log('  * Risultati per il tuo utente:', fornitoriUser?.length || 0);
+        console.log('  * Errore:', fornitoriUserError?.message || 'NESSUNO');
+        if (fornitoriUser) console.log('  * Dati:', fornitoriUser);
+      } catch (err) {
+        console.error('- Errore query fornitori filtrata:', err);
+      }
+
+      // 4️⃣ QUERY DIRETTA TIPOLOGIE CON DETTAGLI
+      console.log('\n--- TEST TIPOLOGIE ---');
+      try {
+        const { data: tipologie, error: tipologieError, count } = await supabase
+          .from('tipologie')
+          .select('*', { count: 'exact' });
+          
+        console.log('- Query tipologie SENZA filtro user_id:');
+        console.log('  * Risultati:', tipologie?.length || 0);
+        console.log('  * Count totale:', count);
+        console.log('  * Errore:', tipologieError?.message || 'NESSUNO');
+        
+        if (tipologie && tipologie.length > 0) {
+          console.log('  * Prima tipologia:', tipologie[0]);
+          const userIds = [...new Set(tipologie.map(t => t.user_id))];
+          console.log('  * User IDs presenti:', userIds);
+          console.log('  * Il tuo User ID è presente:', userIds.includes(userId));
+        }
+      } catch (err) {
+        console.error('- Errore query tipologie globale:', err);
+      }
+
+      try {
+        const { data: tipologieUser, error: tipologieUserError } = await supabase
+          .from('tipologie')
+          .select('*')
+          .eq('user_id', userId);
+          
+        console.log('- Query tipologie CON filtro user_id:');
+        console.log('  * Risultati per il tuo utente:', tipologieUser?.length || 0);
+        console.log('  * Errore:', tipologieUserError?.message || 'NESSUNO');
+        if (tipologieUser) console.log('  * Dati:', tipologieUser);
+      } catch (err) {
+        console.error('- Errore query tipologie filtrata:', err);
+      }
+
+      // 5️⃣ VERIFICA COLONNE TABELLE
+      console.log('\n4️⃣ VERIFICA STRUTTURA COLONNE:');
+      try {
+        const { data: colonneFornitori } = await supabase
+          .from('information_schema.columns')
+          .select('column_name, data_type')
+          .eq('table_name', 'fornitori')
+          .eq('table_schema', 'public');
+          
+        console.log('- Colonne tabella fornitori:', colonneFornitori);
+      } catch (err) {
+        console.warn('- Impossibile verificare colonne fornitori:', err);
+      }
+
+      try {
+        const { data: colonneTipologie } = await supabase
+          .from('information_schema.columns')
+          .select('column_name, data_type')
+          .eq('table_name', 'tipologie')
+          .eq('table_schema', 'public');
+          
+        console.log('- Colonne tabella tipologie:', colonneTipologie);
+      } catch (err) {
+        console.warn('- Impossibile verificare colonne tipologie:', err);
+      }
+
+      // 6️⃣ TEST INSERIMENTO (solo log, non inserisce realmente)
+      console.log('\n5️⃣ SIMULAZIONE INSERIMENTO:');
+      console.log('- User ID che verrebbe usato per insert:', userId);
+      console.log('- Formato corretto user_id per Supabase UUID:', 
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId));
+
+      console.log('\n🏁===== FINE DEBUG COMPLETO =====\n');
     };
-    fetchSuppliersDebug();
+
+    debugCompleto();
   }, []);
 
   // Stati per i modali di gestione archivi
