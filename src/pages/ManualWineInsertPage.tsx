@@ -426,7 +426,6 @@ export default function ManualWineInsertPage() {
               onChange={(e) => {
                 const value = e.target.value;
                 setSelectedTipologia(value);
-                setCategoria(value);
                 console.log('🔄 Tipologia selezionata:', value);
               }}
             >

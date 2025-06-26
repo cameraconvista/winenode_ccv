@@ -91,6 +91,7 @@ export default function WineDetailsModal({ wine, open, onOpenChange, onUpdateWin
               onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
               className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-cream focus:border-blue-500 focus:outline-none"
             >
+              <option value="">Seleziona tipologia...</option>
               <option value="rosso">Rosso</option>
               <option value="bianco">Bianco</option>
               <option value="bollicine">Bollicine</option>

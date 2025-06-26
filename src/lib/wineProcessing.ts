@@ -10,21 +10,9 @@ export const normalizzaAnnata = (testo: string): string => {
   return testo;
 };
 
-// Mapping delle categorie per l'AI
+// Mapping delle categorie (disabilitato per configurazione manuale)
 export const categoriaMapping: Record<string, string> = {
-  'CHAMPAGNE': 'BOLLICINE FRANCESI',
-  'PROSECCO': 'BOLLICINE ITALIANE',
-  'SPUMANTE': 'BOLLICINE ITALIANE',
-  'FRANCIACORTA': 'BOLLICINE ITALIANE',
-  'ROSSO': 'ROSSI',
-  'BIANCO': 'BIANCHI',
-  'DOLCE': 'DOLCI',
-  'PASSITO': 'DOLCI',
-  'VERMOUTH': 'FORTIFICATI',
-  'MARSALA': 'FORTIFICATI',
-  'LIQUOROSO': 'FORTIFICATI',
-  'ROSATO': 'ROSATI',
-  'ROSÉ': 'ROSATI'
+  // Mapping disabilitato - configurazione manuale richiesta
 };
 
 // Parole chiave da non usare come produttore
@@ -105,13 +93,7 @@ export const simulaRicercaOnline = async (nomeBase: string, rigaOriginale: strin
 
   // Se non trova corrispondenza, genera dati generici
   if (!vinoTrovato) {
-    let tipologia = 'ROSSI';
-    for (const key in categoriaMapping) {
-      if (rigaOriginale.toUpperCase().includes(key)) {
-        tipologia = categoriaMapping[key];
-        break;
-      }
-    }
+    let tipologia = ''; // Tipologia vuota per configurazione manuale
 
     let provenienza = 'ITALIA';
     for (const regione of regioni) {
