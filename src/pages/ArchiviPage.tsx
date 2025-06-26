@@ -1286,22 +1286,20 @@ export default function ArchiviPage() {
                       />
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['anno'] }}>
-                      <input
-                        type="text"
+                      <select
                         value={row.anno}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          // Permetti solo numeri e massimo 4 caratteri
-                          if (value === '' || (/^\d{1,4}$/.test(value))) {
-                            handleCellChange(index, 'anno', value);
-                          }
-                        }}
+                        onChange={(e) => handleCellChange(index, 'anno', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
-                        maxLength={4}
-                        pattern="\d{4}"
-                        title="Inserisci un anno con 4 cifre (es: 2023)"
-                      />
+                        disabled={loadingAnni}
+                      >
+                        <option value="">{loadingAnni ? 'Caricando...' : '...."'}</option>
+                        {anni.map(annoObj => (
+                          <option key={annoObj.anno} value={annoObj.anno}>
+                            {annoObj.anno}
+                          </option>
+                        ))}
+                      </select>
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['produttore'] }}>
                       <input
