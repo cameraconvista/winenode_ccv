@@ -73,7 +73,7 @@ export default function SettingsPage() {
                 </svg>
               </button>
               <img
-                src="/logo2.png"
+                src="/logo 2 CCV.png"
                 alt="WINENODE"
                 className="h-32 w-auto object-contain"
               />
@@ -129,7 +129,7 @@ export default function SettingsPage() {
                 </svg>
               </button>
               <img
-                src="/logo2.png"
+                src="/logo 2 CCV.png"
                 alt="WINENODE"
                 className="h-32 w-auto object-contain"
               />
@@ -358,7 +358,7 @@ export default function SettingsPage() {
                   </svg>
                 </button>
               <img
-                src="/logo2.png"
+                src="/logo 2 CCV.png"
                 alt="WINENODE"
                 className="h-32 w-auto object-contain"
               />
