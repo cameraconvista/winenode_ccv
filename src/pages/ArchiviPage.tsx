@@ -1327,3 +1327,266 @@ export default function ArchiviPage() {
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       >
                         <option value="">....</option>
+                        {fornitori.map(fornitore => (
+                          <option key={fornitore} value={fornitore}>
+                            {fornitore}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['costo'] }}>
+<replit_final_file>                      <input
+                        type="number"
+                        value={row.costo}
+                        onChange={(e) => handleCellChange(index, 'costo', e.target.value)}
+                        className="w-full px-1 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center appearance-none select-none"
+                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
+                      />
+                    </td>
+                    <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['vendita'] }}>
+                      <input
+                        type="number"
+                        value={row.vendita}
+                        onChange={(e) => handleCellChange(index, 'vendita', e.target.value)}
+                        className="w-full px-1 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center appearance-none select-none"
+                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
+                      />
+                    </td>
+                    <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['margine'] }}>
+                      <div className="w-full px-2 py-2 text-center text-gray-600 font-medium select-none" style={{ fontSize: `${fontSize}px`, userSelect: 'none', height: '40px', lineHeight: 'normal' }}>
+                        {row.margine}
+                      </div>
+                    </td>
+                    <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['giacenza'] }}>
+                      <button
+                        onClick={() => handleInventoryClick(index)}
+                        className="w-full px-1 py-2 text-center text-gray-600 font-bold hover:bg-amber-200 transition-colors select-none"
+                        style={{ fontSize: `${fontSize}px`, userSelect: 'none', height: '40px', lineHeight: 'normal' }}
+                      >
+                        {row.giacenza}
+                      </button>
+                    </td>
+                    <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['azioni'] }}>
+                      <div className="flex items-center justify-center gap-2 h-full">
+                        <button
+                          onClick={() => handleDeleteRow(index)}
+                          className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-700 transition-colors select-none h-full flex items-center justify-center"
+                          style={{ userSelect: 'none', fontSize: `${fontSize * 0.8}px` }}
+                          title="Elimina riga"
+                        >
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )})}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Add Rows Panel */}
+        {showAddRowsPanel && (
+          <div className="mt-4 p-4 bg-gray-800 rounded-md shadow-md">
+            <h3 className="text-lg font-semibold text-white mb-2">Aggiungi Righe</h3>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => addRows(5)}
+                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-700 transition-colors"
+              >
+                Aggiungi 5 Righe
+              </button>
+              <button
+                onClick={() => addRows(10)}
+                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-700 transition-colors"
+              >
+                Aggiungi 10 Righe
+              </button>
+              <button
+                onClick={removeEmptyRows}
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Pulisci Righe Vuote
+              </button>
+              <button
+                onClick={() => setShowAddRowsPanel(false)}
+                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+              >
+                Annulla
+              </button>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* Footer Action Buttons */}
+      <footer className="border-t border-red-900/30 bg-black/30 backdrop-blur-sm flex-shrink-0">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={addNewRow}
+                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-700 transition-colors"
+              >
+                Aggiungi Riga
+              </button>
+              <button
+                onClick={() => setShowAddRowsPanel(true)}
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Gestisci Righe
+              </button>
+            </div>
+            <div className="text-white text-sm">
+              WINENODE v2.0 - 2024
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* Inventory Modal */}
+      {showInventoryModal && (
+        <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-white p-6 rounded-md shadow-lg">
+            <h2 className="text-lg font-semibold mb-4">Modifica Giacenza</h2>
+            <input
+              type="number"
+              value={tempInventory}
+              onChange={(e) => setTempInventory(Number(e.target.value))}
+              className="w-full px-3 py-2 border rounded-md mb-4"
+            />
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={handleInventoryCancel}
+                className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400 transition-colors"
+              >
+                Annulla
+              </button>
+              <button
+                onClick={() => handleInventoryUpdate(tempInventory)}
+                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+              >
+                Salva
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tipologie Modal */}
+      {showTipologieModal && (
+        <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-white p-6 rounded-md shadow-lg w-full max-w-md">
+            <h2 className="text-lg font-semibold mb-4">Gestisci Tipologie</h2>
+
+            {/* Add New Tipologia */}
+            <div className="mb-4">
+              <h3 className="text-md font-semibold mb-2">Aggiungi Nuova Tipologia</h3>
+              <div className="flex items-center gap-2 mb-2">
+                <input
+                  type="text"
+                  value={newItemName}
+                  onChange={(e) => setNewItemName(e.target.value)}
+                  placeholder="Nome tipologia"
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+                <select
+                  value={selectedColor}
+                  onChange={(e) => setSelectedColor(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md"
+                >
+                  {availableColors.map(c => (
+                    <option key={c.color} value={c.color}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                onClick={handleAddTipologia}
+                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors w-full"
+              >
+                Aggiungi
+              </button>
+            </div>
+
+            {/* Edit Existing Tipologia */}
+            <div className="mb-4">
+              <h3 className="text-md font-semibold mb-2">Modifica Tipologia Esistente</h3>
+              <div className="flex items-center gap-2 mb-2">
+                <input
+                  type="text"
+                  placeholder="Cerca tipologia..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    searchTipologie();
+                  }}
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+
+              {searchResults.length > 0 ? (
+                <ul>
+                  {searchResults.map((tipologia) => (
+                    <li key={tipologia.id} className="flex items-center justify-between py-2 border-b">
+                      <span>{tipologia.nome}</span>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          className="px-3 py-1 border rounded-md"
+                        />
+                        <select
+                          value={selectedColor}
+                          onChange={(e) => setSelectedColor(e.target.value)}
+                          className="w-full px-3 py-2 border rounded-md"
+                        >
+                          {availableColors.map(c => (
+                            <option key={c.color} value={c.color}>{c.name}</option>
+                          ))}
+                        </select>
+                        <button
+                          onClick={() => handleEditTipologia(tipologia, editValue)}
+                          className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                        >
+                          Salva
+                        </button>
+                        <button
+                          onClick={() => handleRemoveTipologia(tipologia)}
+                          className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+                        >
+                          Elimina
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>Nessuna tipologia trovata.</p>
+              )}
+            </div>
+
+            {/* Close Button */}
+            <button
+              onClick={() => setShowTipologieModal(false)}
+              className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400 transition-colors w-full"
+            >
+              Chiudi
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Add Supplier Modal */}
+      {showAddSupplierModal && (
+        <AddSupplierModal
+          onClose={() => setShowAddSupplierModal(false)}
+          refreshSuppliers={refreshSuppliers}
+          addSupplier={addSupplierHook}
+        />
+      )}
+    </div>
+  );
+}
