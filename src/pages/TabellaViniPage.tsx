@@ -1,11 +1,6 @@
-` tags.
-
-```
-<replit_final_file>
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Home, Save, Plus, Trash2 } from 'lucide-react'
-import { useSuppliers } from '../hooks/useSuppliers'
 
 interface WineRow {
   id: string
@@ -21,8 +16,7 @@ interface WineRow {
 
 export default function TabellaViniPage() {
   const navigate = useNavigate()
-  const { suppliers, isLoading: loadingSuppliers } = useSuppliers()
-  
+
   const [rows, setRows] = useState<WineRow[]>([])
 
   // Inizializza 30 righe vuote
@@ -45,7 +39,7 @@ export default function TabellaViniPage() {
     setRows(prev => prev.map(row => {
       if (row.id === id) {
         const updatedRow = { ...row, [field]: value }
-        
+
         // Calcola automaticamente il margine se costo e vendita sono presenti
         if (field === 'costo' || field === 'vendita') {
           const costo = parseFloat(field === 'costo' ? value : row.costo) || 0
@@ -53,7 +47,7 @@ export default function TabellaViniPage() {
           const margine = vendita - costo
           updatedRow.margine = margine > 0 ? margine.toFixed(2) : ''
         }
-        
+
         return updatedRow
       }
       return row
@@ -87,7 +81,7 @@ export default function TabellaViniPage() {
     // Qui implementerai il salvataggio su Supabase
   }
 
-  const fornitori = ['', 'Fornitore A', 'Fornitore B', 'Fornitore C', ...suppliers.map(s => s.nome)]
+  const fornitori = ['', 'Fornitore A', 'Fornitore B', 'Fornitore C']
 
   return (
     <div 
@@ -107,7 +101,7 @@ export default function TabellaViniPage() {
             >
               <ArrowLeft className="h-6 w-6" />
             </button>
-            
+
             <div className="flex items-center gap-4">
               <h1 className="text-xl font-bold text-cream">TABELLA VINI</h1>
               <img
@@ -141,7 +135,7 @@ export default function TabellaViniPage() {
               <Plus className="h-4 w-4" />
               Aggiungi Riga
             </button>
-            
+
             <button
               onClick={saveData}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
@@ -150,7 +144,7 @@ export default function TabellaViniPage() {
               Salva Tabella
             </button>
           </div>
-          
+
           <div className="text-sm text-cream">
             Righe totali: {rows.length}
           </div>
@@ -193,7 +187,7 @@ export default function TabellaViniPage() {
                 </th>
               </tr>
             </thead>
-            
+
             {/* Body */}
             <tbody>
               {rows.map((row) => (
@@ -208,7 +202,7 @@ export default function TabellaViniPage() {
                       placeholder="Tipologia..."
                     />
                   </td>
-                  
+
                   {/* Nome Vino */}
                   <td className="border border-gray-400 p-0" style={{ backgroundColor: '#f5f0e6' }}>
                     <input
@@ -219,7 +213,7 @@ export default function TabellaViniPage() {
                       placeholder="Nome del vino..."
                     />
                   </td>
-                  
+
                   {/* Produttore */}
                   <td className="border border-gray-400 p-0" style={{ backgroundColor: '#f5f0e6' }}>
                     <input
@@ -230,7 +224,7 @@ export default function TabellaViniPage() {
                       placeholder="Produttore..."
                     />
                   </td>
-                  
+
                   {/* Provenienza */}
                   <td className="border border-gray-400 p-0" style={{ backgroundColor: '#f5f0e6' }}>
                     <input
@@ -241,7 +235,7 @@ export default function TabellaViniPage() {
                       placeholder="Regione..."
                     />
                   </td>
-                  
+
                   {/* Costo */}
                   <td className="border border-gray-400 p-0" style={{ backgroundColor: '#f5f0e6' }}>
                     <input
@@ -253,7 +247,7 @@ export default function TabellaViniPage() {
                       placeholder="0.00"
                     />
                   </td>
-                  
+
                   {/* Vendita */}
                   <td className="border border-gray-400 p-0" style={{ backgroundColor: '#f5f0e6' }}>
                     <input
@@ -265,7 +259,7 @@ export default function TabellaViniPage() {
                       placeholder="0.00"
                     />
                   </td>
-                  
+
                   {/* Margine (calcolato automaticamente) */}
                   <td className="border border-gray-400 p-0" style={{ backgroundColor: row.margine ? '#e8f5e8' : '#f5f0e6' }}>
                     <input
@@ -276,7 +270,7 @@ export default function TabellaViniPage() {
                       placeholder="Auto"
                     />
                   </td>
-                  
+
                   {/* Fornitore */}
                   <td className="border border-gray-400 p-0" style={{ backgroundColor: '#f5f0e6' }}>
                     <select
@@ -289,7 +283,7 @@ export default function TabellaViniPage() {
                       ))}
                     </select>
                   </td>
-                  
+
                   {/* Azioni */}
                   <td className="border border-gray-400" style={{ backgroundColor: '#f5f0e6' }}>
                     <div className="flex justify-center">

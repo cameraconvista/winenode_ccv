@@ -1,12 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useWines } from '../hooks/useWines';
-import { useSuppliers } from '../hooks/useSuppliers';
 import { useTipologie } from '../hooks/useTipologie';
 import { useAnno } from '../hooks/useAnno';
 import { supabase, authManager } from '../lib/supabase';
 import ImportaVini from "../components/ImportaVini";
-import AddSupplierModal from "../components/AddSupplierModal";
 
 interface Tipologia {
   id: string;
@@ -35,7 +33,6 @@ interface WineRow {
 export default function ArchiviPage() {
   const navigate = useNavigate();
   const { wines: existingWines, types, refreshWines } = useWines();
-  const { suppliers, isLoading, error, refreshSuppliers, addSupplier: addSupplierHook } = useSuppliers();
   const { tipologie, loading, addTipologia: addTipologiaToDb, removeTipologia: removeTipologiaFromDb, updateTipologia: updateTipologiaInDb } = useTipologie();
   const { anni, loading: loadingAnni } = useAnno();
 
@@ -67,8 +64,6 @@ export default function ArchiviPage() {
   const [selectedRowForInventory, setSelectedRowForInventory] = useState<number | null>(null);
   const [tempInventory, setTempInventory] = useState<number>(0);
 
-  const fornitori = suppliers.map(s => s.nome);
-
   // Debug completo per identificare problemi
   useEffect(() => {
     const debugAuth = async () => {
@@ -96,22 +91,7 @@ export default function ArchiviPage() {
           console.error('❌ Errore query tipologie:', err);
         }
 
-        // 3. Test query diretta fornitori
-        try {
-          const { data: fornitoriTest, error: fornError } = await supabase
-            .from('fornitori')
-            .select('*')
-            .eq('user_id', userId);
-
-          console.log('📦 Query diretta fornitori:');
-          console.log('  - Risultati:', fornitoriTest?.length || 0);
-          console.log('  - Errore:', fornError?.message || 'Nessuno');
-          console.log('  - Dati:', fornitoriTest);
-        } catch (err) {
-          console.error('❌ Errore query fornitori:', err);
-        }
-
-        // 4. Test query diretta anni
+        // 3. Test query diretta anni
         try {
           const { data: anniTest, error: anniError } = await supabase
             .from('anni')
@@ -127,18 +107,11 @@ export default function ArchiviPage() {
         }
       }
 
-      // 5. Stato hooks
+      // 4. Stato hooks
       console.log('📊 Hook tipologie:', {
         count: tipologie.length,
         loading: loading,
         data: tipologie
-      });
-
-      console.log('📦 Hook fornitori:', {
-        count: suppliers.length,
-        loading: isLoading,
-        error: error,
-        data: suppliers
       });
 
       console.log('📅 Hook anni:', {
@@ -151,11 +124,10 @@ export default function ArchiviPage() {
     };
 
     debugAuth();
-  }, [tipologie, suppliers, anni, loading, isLoading, loadingAnni, error]);
+  }, [tipologie, anni, loading, loadingAnni]);
 
   // Stati per i modali di gestione archivi
   const [showTipologieModal, setShowTipologieModal] = useState(false);
-  const [showAddSupplierModal, setShowAddSupplierModal] = useState(false);
   const [newItemName, setNewItemName] = useState('');
 
   // Stati per il modal tipologie
@@ -1178,15 +1150,6 @@ export default function ArchiviPage() {
                   </th>
                   <th className="px-3 py-3 text-center align-middle font-bold text-white border border-amber-900 border-r-2 border-r-amber-900 uppercase bg-[#3b1d1d] backdrop-blur-sm relative group" style={{ width: columnWidths['fornitore'] }}>
                     <span>Fornitore</span>
-                    <button
-                      onClick={() => setShowAddSupplierModal(true)}
-                      className="absolute top-1/2 right-6 w-4 h-4 flex items-center justify-center text-yellow-600 hover:text-white hover:bg-amber-600/30 rounded transition-all duration-200 hover:scale-110 transform -translate-y-1/2"
-                      title="Aggiungi nuovo fornitore"
-                    >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
-                      </svg>
-                    </button>
                     {/* Handle di resize */}
                     <div
                       className="absolute top-0 right-0 w-2 h-full cursor-col-resize group-hover:bg-amber-600/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
@@ -1334,20 +1297,14 @@ export default function ArchiviPage() {
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
                     </td>
-                    <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['fornitore'] }}><select
+                    <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['fornitore'] }}>
+                      <input
+                        type="text"
                         value={row.fornitore}
                         onChange={(e) => handleCellChange(index, 'fornitore', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
-                        disabled={isLoading}
-                      >
-                        <option value="">{isLoading ? 'Caricando...' : '....'}</option>
-                        {fornitori && fornitori.length > 0 ? fornitori.map((fornitore, idx) => (
-                          <option key={`fornitore-${idx}`} value={fornitore}>
-                            {fornitore}
-                          </option>
-                        )) : null}
-                      </select>
+                      />
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['costo'] }}>
                       <input
@@ -1594,14 +1551,7 @@ export default function ArchiviPage() {
         </div>
       )}
 
-      {/* Add Supplier Modal */}
-      {showAddSupplierModal && (
-        <AddSupplierModal
-          onClose={() => setShowAddSupplierModal(false)}
-          refreshSuppliers={refreshSuppliers}
-          addSupplier={addSupplierHook}
-        />
-      )}
+      
     </div>
   );
 }

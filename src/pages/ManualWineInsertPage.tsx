@@ -3,9 +3,7 @@ import { Sparkles, Upload, RotateCcw, ArrowLeft, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { toast } from "sonner";
-import { useSuppliers } from "../hooks/useSuppliers";
 import { useWines } from "../hooks/useWines";
-import AddSupplierModal from "../components/AddSupplierModal";
 
 function useUser() {
   const [user, setUser] = useState(null);
@@ -22,7 +20,6 @@ function useUser() {
 export default function ManualWineInsertPage() {
   const navigate = useNavigate();
   const user = useUser();
-  const { suppliers, isLoading: loadingSuppliers, refreshSuppliers } = useSuppliers();
   const { refreshWines } = useWines();
 
   // Stati per i dropdown - ora con valori persistenti
@@ -33,12 +30,10 @@ export default function ManualWineInsertPage() {
 
   // Stato per tracciare le selezioni dell'utente
   const [selectedTipologia, setSelectedTipologia] = useState("");
-  const [selectedFornitore, setSelectedFornitore] = useState("");
   const [testo, setTesto] = useState("");
   const [righeRiconosciute, setRigheRiconosciute] = useState(0);
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [showAddSupplierModal, setShowAddSupplierModal] = useState(false);
   const [showErrorMessage, setShowErrorMessage] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -140,12 +135,6 @@ export default function ManualWineInsertPage() {
     }
   }
 
-  const handleSupplierAdded = () => {
-    // Ricarica la lista fornitori
-    refreshSuppliers();
-    // Chiudi il modal
-    setShowAddSupplierModal(false);
-  };
 
   function richiediConferma(sostituisci: boolean) {
     // 1. Controlla che sia stato selezionato un tipo di vino
@@ -235,7 +224,6 @@ export default function ManualWineInsertPage() {
         setTesto("");
         setRigheRiconosciute(0);
         setSelectedTipologia("");
-        setSelectedFornitore("");
         setCategoria("");
         setFornitore("");
 
@@ -457,7 +445,7 @@ export default function ManualWineInsertPage() {
 
         <div className="mb-4">
           <div className="text-sm text-gray-400 mb-2">
-            Seleziona FORNITORE (opzionale)
+            FORNITORE (opzionale)
           </div>
           <div 
             className="flex items-center gap-3 p-2 border border-[#4a2a2a]"
@@ -466,55 +454,18 @@ export default function ManualWineInsertPage() {
               backgroundColor: "rgba(50, 0, 0, 0.6)"
             }}
           >
-            <select
+            <input
+              type="text"
               className="flex-1 bg-transparent text-white border-none outline-none"
               style={{
                 padding: "8px 0",
                 fontSize: "16px",
-                appearance: "none",
-                backgroundImage: "url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 4 5\"><path fill=\"%23ffffff\" d=\"M2 0L0 2h4zm0 5L0 3h4z\"/></svg>')",
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "8px center",
-                backgroundSize: "12px",
-                paddingLeft: "30px"
+                paddingLeft: "8px"
               }}
-              value={selectedFornitore}
-              onChange={(e) => {
-                const value = e.target.value;
-                setSelectedFornitore(value);
-                setFornitore(value);
-                console.log('🔄 Fornitore selezionato:', value);
-              }}
-            >
-              <option value="" style={{ color: '#6b7280' }}>nessuno...</option>
-              {loadingSuppliers ? (
-                <option disabled style={{ color: '#9ca3af' }}>Caricamento fornitori...</option>
-              ) : suppliers.length === 0 ? (
-                <option disabled style={{ color: '#9ca3af' }}>Nessun fornitore trovato</option>
-              ) : (
-                suppliers.map((supplier) => (
-                  <option key={supplier.id} value={supplier.nome} style={{ color: 'white' }}>
-                    {supplier.nome}
-                  </option>
-                ))
-              )}
-            </select>
-
-            <button
-              onClick={() => setShowAddSupplierModal(true)}
-              className="flex items-center justify-center text-white hover:bg-red-700 transition-colors border border-[#2c1b1b]"
-              style={{
-                width: "36px",
-                height: "36px",
-                borderRadius: "8px",
-                backgroundColor: "rgba(80, 0, 0, 0.9)",
-                fontSize: "18px",
-                fontWeight: "bold"
-              }}
-              title="Aggiungi fornitore"
-            >
-              +
-            </button>
+              value={fornitore}
+              onChange={(e) => setFornitore(e.target.value)}
+              placeholder="Nome fornitore..."
+            />
           </div>
         </div>
 
@@ -644,13 +595,6 @@ export default function ManualWineInsertPage() {
           </div>
         </div>
       )}
-
-      {/* Modal Aggiungi Fornitore */}
-      <AddSupplierModal
-        isOpen={showAddSupplierModal}
-        onClose={() => setShowAddSupplierModal(false)}
-        onSupplierAdded={handleSupplierAdded}
-      />
 
       {/* Modal Conferma Salvataggio */}
       {showConfirmModal && (
