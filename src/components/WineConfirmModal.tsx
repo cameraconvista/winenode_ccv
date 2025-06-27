@@ -247,8 +247,8 @@ export default function WineConfirmModal({
             <input
               type="text"
               value={formData.produttore === 'INSERISCI IL NOME DEL PRODUTTORE' ? '' : formData.produttore}
-              onChange={(e) => setFormData({...formData, produttore: e.target.value.toUpperCase()})}
-              className="w-full p-3 bg-black/30 border border-amber-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 uppercase"
+              onChange={(e) => setFormData({...formData, produttore: e.target.value})}
+              className="w-full p-3 bg-black/30 border border-amber-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
               placeholder="INSERISCI IL NOME DEL PRODUTTORE"
               required
             />
@@ -260,8 +260,8 @@ export default function WineConfirmModal({
             <input
               type="text"
               value={formData.provenienza}
-              onChange={(e) => setFormData({...formData, provenienza: e.target.value.toUpperCase()})}
-              className="w-full p-3 bg-black/30 border border-amber-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 uppercase"
+              onChange={(e) => setFormData({...formData, provenienza: e.target.value})}
+              className="w-full p-3 bg-black/30 border border-amber-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
               placeholder="ES. PIEMONTE, TOSCANA..."
               required
             />
@@ -273,8 +273,8 @@ export default function WineConfirmModal({
             <input
               type="text"
               value={formData.fornitore}
-              onChange={(e) => setFormData({...formData, fornitore: e.target.value.toUpperCase()})}
-              className="w-full p-3 bg-black/30 border border-amber-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 uppercase"
+              onChange={(e) => setFormData({...formData, fornitore: e.target.value})}
+              className="w-full p-3 bg-black/30 border border-amber-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
               placeholder="INSERISCI IL NOME DEL FORNITORE"
               required
             />
