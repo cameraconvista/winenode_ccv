@@ -34,7 +34,7 @@ export default function ArchiviPage() {
   const navigate = useNavigate();
   const { wines: existingWines, types, refreshWines } = useWines();
   const { tipologie, loading, addTipologia: addTipologiaToDb, removeTipologia: removeTipologiaFromDb, updateTipologia: updateTipologiaInDb } = useTipologie();
-  
+
 
   // Initialize 100 empty rows
   const [wineRows, setWineRows] = useState<WineRow[]>(() => 
@@ -91,7 +91,7 @@ export default function ArchiviPage() {
           console.error('❌ Errore query tipologie:', err);
         }
 
-        
+
       }
 
       // 4. Stato hooks
@@ -101,7 +101,7 @@ export default function ArchiviPage() {
         data: tipologie
       });
 
-      
+
 
       console.log('🔍 === FINE DEBUG ARCHIVI ===');
     };
@@ -961,7 +961,7 @@ export default function ArchiviPage() {
                     ),
                     tipologie: tipologie,
                     fornitori: suppliers,
-                    
+
                   };
 
                   const dataStr = JSON.stringify(backupData, null, 2);
@@ -1330,10 +1330,26 @@ export default function ArchiviPage() {
                     </td>
                   </tr>
                 )})}
-              </tbody>
-            </table>
-          </div>
+</tbody>
+          </table>
+
+          {/* Pulsante Aggiungi sotto la tabella */}
+          <button
+            onClick={addNewRow}
+            className="w-full border border-amber-900 p-3 text-gray-600 font-medium hover:bg-amber-200 transition-colors"
+            style={{ 
+              backgroundColor: '#F5F0E6',
+              fontSize: `${fontSize}px`,
+              height: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            Aggiungi
+          </button>
         </div>
+      </div>
 
         {/* Add Rows Panel */}
         {showAddRowsPanel && (
@@ -1369,16 +1385,11 @@ export default function ArchiviPage() {
         )}
       </main>
 
-      {/* Footer Action Buttons */}
+      {/* Footer vuoto */}
       <footer className="border-t border-red-900/30 bg-black/30 backdrop-blur-sm flex-shrink-0">
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center h-16">
-            <button
-              onClick={addNewRow}
-              className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-700 transition-colors"
-            >
-              Aggiungi Righe
-            </button>
+            {/* Footer vuoto - pulsante spostato sotto la tabella */}
           </div>
         </div>
       </footer>
@@ -1516,7 +1527,7 @@ export default function ArchiviPage() {
         </div>
       )}
 
-      
+
     </div>
   );
 }
