@@ -11,8 +11,6 @@ export default function ImportaPage() {
 
   // Stati principali
   const [textAreaContent, setTextAreaContent] = useState('');
-  const [isProcessingAI, setIsProcessingAI] = useState(false);
-  const [aiStep, setAiStep] = useState<'idle' | 'cleaning' | 'optimizing' | 'completed'>('idle');
 
   
 
@@ -32,46 +30,13 @@ export default function ImportaPage() {
 
   
 
-  // Funzione principale di ottimizzazione
-  const handleOptimize = async () => {
-    if (!textAreaContent.trim()) {
-      alert('Inserisci del testo prima di procedere con l\'ottimizzazione');
-      return;
-    }
-
-    setIsProcessingAI(true);
-
-    try {
-      setAiStep('completed');
-
-      setTimeout(() => {
-        setAiStep('idle');
-        setIsProcessingAI(false);
-      }, 2000);
-
-    } catch (error) {
-      console.error('Errore durante l\'ottimizzazione:', error);
-      setAiStep('idle');
-      setIsProcessingAI(false);
-      alert('Errore durante l\'ottimizzazione');
-    }
+  // Funzioni vuote per pulsanti (solo layout visivo)
+  const handleOptimize = () => {
+    // Funzione vuota - pulsante solo visivo
   };
 
-  // Parsing ottimizzato per analisi lista
   const handleAnalyzeList = () => {
-    if (!textAreaContent.trim()) {
-      alert('❌ Inserisci del testo prima di analizzare la lista.');
-      return;
-    }
-
-    const lines = textAreaContent.split(/\r?\n+/).filter(line => line.trim().length > 10);
-
-    if (lines.length === 0) {
-      alert('❌ Nessuna riga valida trovata nel testo.');
-      return;
-    }
-
-    alert(`✅ Lista analizzata con successo!\n\nRighe riconosciute: ${lines.length}\n\nLa funzionalità di importazione avanzata sarà disponibile prossimamente.`);
+    // Funzione vuota - pulsante solo visivo  
   };
 
   
@@ -167,39 +132,12 @@ Barolo DOCG 2019 Burzi Alberto, Piemonte – 65 €`}
                 <div>
                   <button
                     onClick={handleOptimize}
-                    disabled={!textAreaContent.trim() || isProcessingAI}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 shadow-lg"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 shadow-lg"
                   >
-                    {aiStep === 'idle' && !isProcessingAI ? (
-                      <>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                        ✨ OTTIMIZZA
-                      </>
-                    ) : aiStep === 'cleaning' ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        🧹 Pulizia in corso...
-                      </>
-                    ) : aiStep === 'optimizing' ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        ✨ Ottimizzazione in corso...
-                      </>
-                    ) : aiStep === 'completed' ? (
-                      <>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        ✅ Completato
-                      </>
-                    ) : (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        🤖 Elaborazione...
-                      </>
-                    )}
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    ✨ OTTIMIZZA
                   </button>
                 </div>
 
@@ -207,8 +145,7 @@ Barolo DOCG 2019 Burzi Alberto, Piemonte – 65 €`}
                 <div>
                   <button
                     onClick={handleAnalyzeList}
-                    disabled={!textAreaContent.trim() || isProcessingAI}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 disabled:from-gray-600 disabled:to-gray-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 shadow-lg"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 shadow-lg"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
