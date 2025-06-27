@@ -1372,24 +1372,13 @@ export default function ArchiviPage() {
       {/* Footer Action Buttons */}
       <footer className="border-t border-red-900/30 bg-black/30 backdrop-blur-sm flex-shrink-0">
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={addNewRow}
-                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-700 transition-colors"
-              >
-                Aggiungi Riga
-              </button>
-              <button
-                onClick={() => setShowAddRowsPanel(true)}
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-700 transition-colors"
-              >
-                Gestisci Righe
-              </button>
-            </div>
-            <div className="text-white text-sm">
-              WINENODE v2.0 - 2024
-            </div>
+          <div className="flex items-center justify-center h-16">
+            <button
+              onClick={addNewRow}
+              className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-700 transition-colors"
+            >
+              Aggiungi Righe
+            </button>
           </div>
         </div>
       </footer>
