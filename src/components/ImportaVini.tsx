@@ -87,35 +87,9 @@ export default function ImportaVini({}: ImportaViniProps) {
   }
 
   const handleImportFromGoogleSheet = async () => {
-    const userId = authManager.getUserId()
-    if (!userId) {
-      setSheetStatus('error')
-      setSheetMessage('Utente non autenticato')
-      return
-    }
-
-    if (!googleSheetUrl.trim()) {
-      setSheetStatus('error')
-      setSheetMessage('Inserisci un link al Google Sheet')
-      return
-    }
-
-    setIsLoadingSheet(true)
-    setSheetStatus('idle')
-
-    try {
-      // Per ora disabilitiamo l'importazione da Google Sheets
-      // e mostriamo un messaggio di funzionalità in sviluppo
-      setSheetStatus('error')
-      setSheetMessage('❌ Importazione Google Sheets temporaneamente disabilitata. Usa il metodo manuale.')
-      await handleSaveSheetLink()
-    } catch (error) {
-      console.error('Errore importazione Google Sheet:', error)
-      setSheetStatus('error')
-      setSheetMessage('❌ Errore durante l\'importazione')
-    } finally {
-      setIsLoadingSheet(false)
-    }
+    // Funzione disabilitata - pronta per futura riconfigurazione
+    setSheetStatus('error')
+    setSheetMessage('❌ Funzionalità AI temporaneamente disabilitata')
   }
 
   const handleSaveSheetLink = async () => {
