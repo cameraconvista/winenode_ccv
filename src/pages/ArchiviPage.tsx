@@ -1188,7 +1188,6 @@ export default function ArchiviPage() {
                     </div>
                   </th>
                   <th className="px-2 py-3 text-center align-middle font-bold text-white border border-amber-900 uppercase bg-[#3b1d1d] backdrop-blur-sm" style={{ width: columnWidths['azioni'] }}>
-                    Azioni
                   </th>
                 </tr>
               </thead>
