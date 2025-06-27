@@ -1045,7 +1045,6 @@ export default function ArchiviPage() {
               <thead className="sticky top-0 z-30 shadow-lg" style={{ backgroundColor: '#3b1d1d' }}>
                 <tr style={{ fontSize: `${fontSize}px`, lineHeight: `${lineHeight}px`, height: `${rowHeight}px` }}>
                   <th className="px-2 py-3 text-center align-middle font-bold text-white border border-amber-900 border-r-2 border-r-amber-900 uppercase bg-[#3b1d1d] backdrop-blur-sm" style={{ width: columnWidths['#'] }}>
-                    #
                   </th>
                   <th className="px-3 py-3 text-center align-middle font-bold text-white border border-amber-900 border-r-2 border-r-amber-900 uppercase bg-[#3b1d1d] backdrop-blur-sm relative group" style={{ width: columnWidths['tipologia'] }}>
                     <span>Tipologia</span>
