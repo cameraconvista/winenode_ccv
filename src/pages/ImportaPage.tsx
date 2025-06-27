@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase, authManager } from '../lib/supabase';
-import WineConfirmModal from '../components/WineConfirmModal';
+
 import { normalizzaAnnata, paroleDaEscludereComeProduttore, regioni } from '../lib/wineProcessing';
 import { useTipologie } from '../hooks/useTipologie';
 
@@ -14,16 +14,9 @@ export default function ImportaPage() {
   const [isProcessingAI, setIsProcessingAI] = useState(false);
   const [aiStep, setAiStep] = useState<'idle' | 'cleaning' | 'optimizing' | 'completed'>('idle');
 
-  // Stati per il modale di conferma
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [parsedWines, setParsedWines] = useState<any[]>([]);
-  const [currentWineIndex, setCurrentWineIndex] = useState(0);
-  const [arrayViniConfermati, setArrayViniConfermati] = useState<any[]>([]);
-  const [showSummary, setShowSummary] = useState(false);
+  
 
-  // Stati per categoria
-  const [categoriaApplicaATutti, setCategoriaApplicaATutti] = useState<string>('');
-  const [applicaATutti, setApplicaATutti] = useState(false);
+  
 
   const [user, setUser] = useState<any>(null);
 
@@ -216,7 +209,10 @@ export default function ImportaPage() {
 
   // Parsing ottimizzato per analisi lista
   const handleAnalyzeList = () => {
-    if (!textAreaContent.trim()) return;
+    if (!textAreaContent.trim()) {
+      alert('❌ Inserisci del testo prima di analizzare la lista.');
+      return;
+    }
 
     const lines = textAreaContent.split(/\r?\n+/).filter(line => line.trim().length > 10);
 
@@ -225,134 +221,12 @@ export default function ImportaPage() {
       return;
     }
 
-    const parsedWines = lines.map((line, index) => {
-      let workingLine = normalizzaAnnata(line.trim());
-
-      // Rimuovi prezzi
-      workingLine = workingLine.replace(/–?\s*(\d{1,4}(?:[,.]\d{1,2})?)\s*€/gi, '').trim();
-
-      // Estrai anno
-      let annoParsed = '';
-      const annoMatch = workingLine.match(/\b(19|20)(\d{2})\b/);
-      if (annoMatch) {
-        annoParsed = annoMatch[0];
-      }
-
-      let nomeVino = '';
-      let produttore = '';
-      let provenienza = '';
-
-      // Pattern doppio spazio
-      const patternDoppioSpazio = /(.+?)(\s{2,}|\t+)(.+)/;
-      const matchDoppioSpazio = workingLine.match(patternDoppioSpazio);
-
-      if (matchDoppioSpazio) {
-        nomeVino = matchDoppioSpazio[1].trim();
-        const restoParte = matchDoppioSpazio[3].trim();
-
-        const partiVirgola = restoParte.split(',');
-        if (partiVirgola.length >= 2) {
-          produttore = partiVirgola[0].trim();
-          provenienza = partiVirgola.slice(1).join(',').trim();
-        } else {
-          const regioneTrovata = regioni.find(regione => restoParte.toUpperCase().includes(regione));
-          if (regioneTrovata) {
-            provenienza = regioneTrovata;
-            produttore = restoParte.replace(new RegExp(`\\b${regioneTrovata}\\b`, 'gi'), '').trim();
-          } else {
-            produttore = restoParte;
-          }
-        }
-      } else {
-        // Pattern virgole
-        const parts = workingLine.split(',').map(part => part.trim());
-
-        if (parts.length >= 2) {
-          nomeVino = parts[0].trim();
-          const restoParts = parts.slice(1).join(',').trim();
-
-          const regioneTrovata = regioni.find(regione => restoParts.toUpperCase().includes(regione));
-          if (regioneTrovata) {
-            provenienza = regioneTrovata;
-            let testoProduttore = restoParts.replace(new RegExp(`\\b${regioneTrovata}\\b`, 'gi'), '').trim();
-            testoProduttore = testoProduttore.replace(/^[,\s–-]+|[,\s–-]+$/g, '').trim();
-
-            if (testoProduttore && 
-                testoProduttore.length > 2 && 
-                !paroleDaEscludereComeProduttore.includes(testoProduttore.toUpperCase())) {
-              produttore = testoProduttore;
-            }
-          }
-        } else {
-          nomeVino = workingLine;
-        }
-      }
-
-      return {
-        nomeVino: nomeVino.toUpperCase() || 'VINO DA DEFINIRE',
-        anno: annoParsed || '',
-        produttore: produttore || 'INSERISCI IL NOME DEL PRODUTTORE',
-        provenienza: provenienza || '',
-        categoria: '',
-        costo: '',
-        vendita: ''
-      };
-    });
-
-    setParsedWines(parsedWines);
-    setCurrentWineIndex(0);
-    setArrayViniConfermati([]);
-    setShowConfirmModal(true);
+    alert(`✅ Lista analizzata con successo!\n\nRighe riconosciute: ${lines.length}\n\nLa funzionalità di importazione avanzata sarà disponibile prossimamente.`);
   };
 
-  // Salvataggio nel database
-  const handleSaveToDatabase = async () => {
-    try {
-      const userId = authManager.getUserId();
-      if (!userId) {
-        alert('❌ Errore: Utente non autenticato');
-        return;
-      }
+  
 
-      const viniPerSupabase = arrayViniConfermati.map(vino => ({
-        nome_vino: vino.nomeVino,
-        anno: vino.anno,
-        produttore: vino.produttore,
-        provenienza: vino.provenienza,
-        tipologia: vino.categoria,
-        costo: parseFloat(vino.costo.toString()) || 0,
-        prezzo_vendita: parseFloat(vino.vendita.toString()) || 0,
-        user_id: userId
-      }));
-
-      const { error } = await supabase
-        .from('vini')
-        .insert(viniPerSupabase);
-
-      if (error) {
-        alert(`❌ Errore nel salvataggio:\n${error.message}`);
-        return;
-      }
-
-      alert('✅ Dati salvati correttamente!');
-      handleResetImport();
-
-    } catch (error) {
-      alert(`❌ Errore imprevisto: ${error instanceof Error ? error.message : 'Errore sconosciuto'}`);
-    }
-  };
-
-  // Reset importazione
-  const handleResetImport = () => {
-    setShowSummary(false);
-    setShowConfirmModal(false);
-    setCurrentWineIndex(0);
-    setArrayViniConfermati([]);
-    setParsedWines([]);
-    setTextAreaContent('');
-    setCategoriaApplicaATutti('');
-    setApplicaATutti(false);
-  };
+  
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "#2e0d0d" }}>
@@ -536,128 +410,9 @@ Barolo DOCG 2019 Burzi Alberto, Piemonte – 65 €`}
         </div>
       </main>
 
-      {/* Modale di Conferma */}
-      <WineConfirmModal
-        showModal={showConfirmModal}
-        currentWine={parsedWines[currentWineIndex]}
-        currentWineIndex={currentWineIndex}
-        parsedWines={parsedWines}
-        arrayViniConfermati={arrayViniConfermati}
-        applicaATutti={applicaATutti}
-        categoriaApplicaATutti={categoriaApplicaATutti}
-        tipologie={tipologie}
-        setShowConfirmModal={setShowConfirmModal}
-        setCurrentWineIndex={setCurrentWineIndex}
-        setArrayViniConfermati={setArrayViniConfermati}
-        setApplicaATutti={setApplicaATutti}
-        setCategoriaApplicaATutti={setCategoriaApplicaATutti}
-        setShowSummary={setShowSummary}
-      />
+      
 
-      {/* Sezione Riepilogo Finale */}
-      {showSummary && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-black/90 backdrop-blur-sm rounded-2xl border border-amber-900/50 w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-2xl">
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-amber-900/30 sticky top-0 bg-black/90">
-              <h2 className="text-3xl font-bold text-white">🎉 Riepilogo Importazione Completata</h2>
-              <button
-                onClick={() => setShowSummary(false)}
-                className="text-gray-400 hover:text-white transition-colors p-2"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Statistiche */}
-            <div className="p-6 border-b border-amber-900/30">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-gradient-to-r from-green-600/20 to-green-700/20 rounded-lg p-4 border border-green-500/30">
-                  <div className="text-green-400 text-2xl font-bold">{arrayViniConfermati.length}</div>
-                  <div className="text-gray-300">Vini Confermati</div>
-                </div>
-                <div className="bg-gradient-to-r from-amber-600/20 to-amber-700/20 rounded-lg p-4 border border-amber-500/30">
-                  <div className="text-amber-400 text-2xl font-bold">
-                    €{arrayViniConfermati.reduce((sum, vino) => sum + (vino.vendita || 0), 0).toFixed(2)}
-                  </div>
-                  <div className="text-gray-300">Valore Vendita Totale</div>
-                </div>
-                <div className="bg-gradient-to-r from-purple-600/20 to-purple-700/20 rounded-lg p-4 border border-purple-500/30">
-                  <div className="text-purple-400 text-2xl font-bold">
-                    {new Set(arrayViniConfermati.map(vino => vino.produttore)).size}
-                  </div>
-                  <div className="text-gray-300">Produttori Unici</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Tabella Vini */}
-            <div className="p-6">
-              <h3 className="text-xl font-bold text-white mb-4">📋 Lista Vini Confermati</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="bg-amber-900/30 border-b border-amber-600/50">
-                      <th className="text-left p-4 text-amber-300 font-semibold">#</th>
-                      <th className="text-left p-4 text-amber-300 font-semibold">Nome Vino</th>
-                      <th className="text-left p-4 text-amber-300 font-semibold">Anno</th>
-                      <th className="text-left p-4 text-amber-300 font-semibold">Categoria</th>
-                      <th className="text-left p-4 text-amber-300 font-semibold">Produttore</th>
-                      <th className="text-left p-4 text-amber-300 font-semibold">Provenienza</th>
-                      <th className="text-right p-4 text-amber-300 font-semibold">Costo</th>
-                      <th className="text-right p-4 text-amber-300 font-semibold">Vendita</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {arrayViniConfermati.map((vino, index) => (
-                      <tr key={index} className="border-b border-amber-900/20 hover:bg-amber-950/20 transition-colors">
-                        <td className="p-4 text-gray-300 font-medium">{index + 1}</td>
-                        <td className="p-4 text-white font-medium">{vino.nomeVino}</td>
-                        <td className="p-4 text-gray-300">{vino.anno}</td>
-                        <td className="p-4 text-amber-300 font-medium">{vino.categoria}</td>
-                        <td className="p-4 text-gray-300">{vino.produttore}</td>
-                        <td className="p-4 text-gray-300">{vino.provenienza}</td>
-                        <td className="p-4 text-right text-green-400 font-semibold">€{vino.costo.toFixed(2)}</td>
-                        <td className="p-4 text-right text-amber-400 font-semibold">€{vino.vendita.toFixed(2)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="flex items-center justify-between p-6 border-t border-amber-900/30 bg-black/50">
-              <button
-                onClick={handleResetImport}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg transition-all duration-200"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Nuova Importazione
-              </button>
-
-              <div className="text-center">
-                <div className="text-lg text-white font-semibold mb-1">Pronto per il salvataggio</div>
-                <div className="text-sm text-gray-400">{arrayViniConfermati.length} vini saranno aggiunti al database</div>
-              </div>
-
-              <button
-                onClick={handleSaveToDatabase}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold text-lg rounded-lg transition-all duration-200 hover:scale-105 shadow-lg"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 12l2 2 4-4" />
-                </svg>
-                📥 Salva nel Database
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      
     </div>
   );
 }
