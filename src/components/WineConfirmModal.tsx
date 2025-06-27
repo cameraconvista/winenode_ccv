@@ -147,8 +147,8 @@ export default function WineConfirmModal({
             <input
               type="text"
               value={formData.anno}
-              onChange={(e) => setFormData({...formData, anno: e.target.value.toUpperCase()})}
-              className="w-full p-3 bg-black/30 border border-amber-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 uppercase"
+              onChange={(e) => setFormData({...formData, anno: e.target.value})}
+              className="w-full p-3 bg-black/30 border border-amber-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
               placeholder="ES. 2019 (FACOLTATIVO)"
             />
           </div>
