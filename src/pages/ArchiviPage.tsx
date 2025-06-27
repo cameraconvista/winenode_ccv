@@ -1174,7 +1174,7 @@ export default function ArchiviPage() {
                     </div>
                   </th>
                   <th className="px-1 py-3 text-center align-middle font-bold text-white border border-amber-900 border-r-2 border-r-amber-900 uppercase bg-[#3b1d1d] backdrop-blur-sm relative group" style={{ width: columnWidths['giacenza'] }}>
-                    N°
+                    GIACENZA
                     {/* Handle di resize */}
                     <div
                       className="absolute top-0 right-0 w-2 h-full cursor-col-resize group-hover:bg-amber-600/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
