@@ -87,9 +87,11 @@ export default function ImportaVini({}: ImportaViniProps) {
   }
 
   const handleImportFromGoogleSheet = async () => {
-    // Funzione disabilitata - pronta per futura riconfigurazione
+    // Funzione AI completamente disabilitata
+    setIsLoadingSheet(false)
     setSheetStatus('error')
-    setSheetMessage('❌ Funzionalità AI temporaneamente disabilitata')
+    setSheetMessage('❌ Funzionalità AI disabilitata')
+    return
   }
 
   const handleSaveSheetLink = async () => {

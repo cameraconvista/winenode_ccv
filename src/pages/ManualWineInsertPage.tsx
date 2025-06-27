@@ -50,55 +50,16 @@ export default function ManualWineInsertPage() {
   }
 
   function ottimizzaTesto() {
-    let testoOriginale = testo;
-
-    // 1. Identifica tutti i prezzi nel testo per usarli come separatori
-    const patternPrezzi = /(\s*[-–]?\s*\d{1,3}\s*€|\s*\d{1,3}\s*euro)/gi;
-
-    // 2. Dividi il testo usando i prezzi come separatori naturali
-    let segmenti = testoOriginale.split(patternPrezzi);
-
-    // 3. Ricostruisci i vini: ogni vino è formato da testo + prezzo
-    const viniCompleti = [];
-    for (let i = 0; i < segmenti.length - 1; i += 2) {
-      const testoVino = segmenti[i];
-      const prezzo = segmenti[i + 1];
-
-      if (testoVino && prezzo) {
-        // Combina testo + prezzo per identificare la fine del vino
-        const vinoCompleto = testoVino.trim();
-        if (vinoCompleto.length > 3) {
-          viniCompleti.push(vinoCompleto);
-        }
-      }
-    }
-
-    // Se non ci sono prezzi, usa la nuova funzione per processare il testo
-    if (viniCompleti.length === 0) {
-      const righeAlternative = parseWineText(testoOriginale);
-      viniCompleti.push(...righeAlternative.filter(riga => riga.length > 3));
-    }
-
-    // 4. Pulisci ogni vino rimuovendo simboli non ammessi (mantieni solo ", ,, (, ))
-    const viniPuliti = viniCompleti.map(vino => {
-      return vino
-        .replace(/[\u200B-\u200D\uFEFF\u00A0\u2028\u2029]/g, " ")  // Caratteri invisibili
-        .replace(/[€–""''…•·]/g, "")  // Simboli speciali non ammessi
-        .replace(/\s*[-–]?\s*\d{1,3}\s*€/gi, "")  // Rimuovi prezzi rimanenti
-        .replace(/\s*\d{1,3}\s*euro/gi, "")       // Rimuovi prezzi rimanenti
-        .replace(/\s+/g, " ")  // Normalizza spazi
-        .trim();
-    }).filter(vino => vino.length > 3);
-
-    // 5. Aggiorna textarea e contatore
-    const risultatoFinale = viniPuliti.join('\n');
+    // Funzione AI disabilitata - solo parsing semplice
+    const righe = parseWineText(testo);
+    const risultatoFinale = righe.join('\n');
     setTesto(risultatoFinale);
-    setRigheRiconosciute(viniPuliti.length);
+    setRigheRiconosciute(righe.length);
 
     // Aggiorna il contatore nel DOM
     const countElement = document.getElementById("count-righe");
     if (countElement) {
-      countElement.textContent = `${viniPuliti.length}`;
+      countElement.textContent = `${righe.length}`;
     }
   }
 
