@@ -1337,9 +1337,9 @@ export default function ArchiviPage() {
             <div className="sticky bottom-0 z-40 bg-[#8B4513] border-t-2 border-amber-900 shadow-lg">
               <button
                 onClick={addNewRow}
-                className="w-full border border-amber-900 p-3 text-gray-600 font-medium hover:bg-amber-200 transition-colors"
+                className="w-full border border-amber-900 p-3 text-white font-medium hover:bg-amber-200 transition-colors"
                 style={{ 
-                  backgroundColor: '#F5F0E6',
+                  backgroundColor: '#5d2f0a',
                   fontSize: `${fontSize}px`,
                   height: '40px',
                   display: 'flex',
