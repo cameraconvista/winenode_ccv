@@ -904,20 +904,6 @@ export default function ArchiviPage() {
               </button>
 
               <div className="flex items-center gap-3">
-                <button
-                  onClick={() => navigate('/settings/archivi/importa')}
-                  className="flex items-center gap-2 bg-[#3b1d1d] text-[#F5EEDC] rounded-md px-3 py-2 text-sm shadow-sm hover:border-[#A97B50] hover:shadow-md transition-all"
-                  style={{
-                    backgroundColor: '#3b1d1d',
-                    border: '1px solid #A855F7',
-                    color: '#F3E8FF'
-                  }}
-                >
-                  <span className="text-yellow-300">✨</span>
-                  <span className="font-bold text-white">AI</span>
-                  <span className="font-medium">IMPORTA</span>
-                </button>
-
                 <div className="flex items-center">
                   <button
                     onClick={() => {
