@@ -42,12 +42,6 @@ export default function ImportaPage() {
     setIsProcessingAI(true);
 
     try {
-      setAiStep('cleaning');
-      await handleClean();
-
-      setAiStep('optimizing');
-      await handleOptimizeStep();
-
       setAiStep('completed');
 
       setTimeout(() => {
