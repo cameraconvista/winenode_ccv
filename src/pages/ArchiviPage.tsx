@@ -1333,17 +1333,18 @@ export default function ArchiviPage() {
               </tbody>
             </table>
 
-            {/* Pulsante Aggiungi sotto la tabella */}
+            {/* Pulsante Aggiungi sotto la tabella - BLOCCATO */}
             <button
-              onClick={addNewRow}
-              className="w-full border border-amber-900 p-3 text-gray-600 font-medium hover:bg-amber-200 transition-colors"
+              disabled={true}
+              className="w-full border border-amber-900 p-3 text-gray-400 font-medium cursor-not-allowed"
               style={{ 
-                backgroundColor: '#F5F0E6',
+                backgroundColor: '#E5E5E5',
                 fontSize: `${fontSize}px`,
                 height: '40px',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                opacity: '0.6'
               }}
             >
               Aggiungi
