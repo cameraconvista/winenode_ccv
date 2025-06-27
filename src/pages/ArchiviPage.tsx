@@ -1339,7 +1339,7 @@ export default function ArchiviPage() {
                 onClick={addNewRow}
                 className="w-full border border-amber-900 p-3 text-white font-medium hover:bg-amber-200 transition-colors"
                 style={{ 
-                  backgroundColor: '#5d2f0a',
+                  backgroundColor: '#0f172a',
                   fontSize: `${fontSize}px`,
                   height: '40px',
                   display: 'flex',
