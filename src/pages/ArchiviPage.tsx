@@ -906,9 +906,9 @@ export default function ArchiviPage() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => navigate('/settings/archivi/importa')}
-                  className="flex items-center gap-2 bg-[#3A1E18] text-[#F5EEDC] rounded-md px-3 py-2 text-sm shadow-sm hover:border-[#A97B50] hover:shadow-md transition-all"
+                  className="flex items-center gap-2 bg-[#3b1d1d] text-[#F5EEDC] rounded-md px-3 py-2 text-sm shadow-sm hover:border-[#A97B50] hover:shadow-md transition-all"
                   style={{
-                    background: 'linear-gradient(135deg, #8B5A96 0%, #6B46C1 50%, #7C3AED 100%)',
+                    backgroundColor: '#3b1d1d',
                     border: '1px solid #A855F7',
                     color: '#F3E8FF'
                   }}
