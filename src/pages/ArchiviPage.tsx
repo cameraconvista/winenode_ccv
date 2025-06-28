@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useWines } from '../hooks/useWines';
 import { useTipologie } from '../hooks/useTipologie';
-import Papa from 'papaparse';
 
 import { supabase, authManager } from '../lib/supabase';
 import ImportaVini from "../components/ImportaVini";
@@ -122,17 +121,6 @@ export default function ArchiviPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
   const [activeTab, setActiveTab] = useState('BOLLICINE ITALIANE')
-  const [isLoadingTab, setIsLoadingTab] = useState(false)
-
-  // Mapping URLs CSV per ogni categoria
-  const csvUrls = {
-    'BOLLICINE ITALIANE': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=294419425&single=true&output=csv',
-    'BOLLICINE FRANCESI': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=700257433&single=true&output=csv',
-    'BIANCHI': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=2127910877&single=true&output=csv',
-    'ROSSI': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=254687727&single=true&output=csv',
-    'ROSATI': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=498630601&single=true&output=csv',
-    'VINI DOLCI': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=1582691495&single=true&output=csv'
-  }
 
   // Stati per la selezione del colore tipologia
   const [selectedColor, setSelectedColor] = useState('#cccccc');
@@ -356,126 +344,6 @@ export default function ArchiviPage() {
     setWineRows([...winesFromDb, ...emptyRows]);
     console.log(`✅ Tabella sincronizzata: ${winesFromDb.length} vini dal DB + ${emptyRows.length} righe vuote`);
   }, [existingWines]);
-
-  // Funzione per caricare i dati CSV dal Google Sheet
-  const loadCsvData = async (category: string) => {
-    const csvUrl = csvUrls[category as keyof typeof csvUrls];
-    if (!csvUrl) {
-      console.error(`URL CSV non trovato per la categoria: ${category}`);
-      return;
-    }
-
-    setIsLoadingTab(true);
-    console.log(`📥 Caricamento dati CSV per categoria: ${category}`);
-
-    try {
-      const response = await fetch(csvUrl);
-      if (!response.ok) {
-        throw new Error(`Errore HTTP: ${response.status}`);
-      }
-
-      const csvText = await response.text();
-      console.log(`📄 CSV ricevuto (${csvText.length} caratteri)`);
-
-      // Parse CSV con PapaParse senza header
-      Papa.parse(csvText, {
-        header: false,
-        skipEmptyLines: true,
-        complete: (results) => {
-          console.log(`✅ CSV parsato: ${results.data.length} righe`);
-          
-          // Definisci le intestazioni manualmente
-          const headers = ["TIPOLOGIA", "NOME VINO", "ANNO", "PRODUTTORE", "PROVENIENZA", "FORNITORE", "COSTO", "VENDITA", "MARGINE", "GIACENZA"];
-          
-          // Ignora la prima riga (che può essere vuota o errata)
-          const dataRows = results.data.slice(1);
-          
-          console.log(`📋 Righe dati dopo rimozione header: ${dataRows.length}`);
-          
-          // Mappa ogni riga usando le intestazioni definite
-          const mappedData = dataRows.map((row: any[], rowIndex: number) => {
-            const obj: any = {};
-            headers.forEach((header, i) => {
-              const key = header.toLowerCase().replace(/\s+/g, '');
-              obj[key] = row[i] || "";
-            });
-            return obj;
-          });
-          
-          console.log('📊 Esempio prima riga mappata:', mappedData[0]);
-          
-          // Converti i dati mappati in formato tabella
-          const csvWines = mappedData.map((row: any, index: number) => ({
-            id: `csv-${category}-${index}`,
-            tipologia: category, // La tipologia viene dal TAB selezionato
-            nomeVino: row.nomevino || '',
-            anno: row.anno || '',
-            produttore: row.produttore || '',
-            provenienza: row.provenienza || '',
-            fornitore: row.fornitore || '',
-            costo: row.costo || '',
-            vendita: row.vendita || '',
-            margine: '', // Calcolabile dopo se necessario
-            giacenza: 0  // Valore iniziale fisso
-          }));
-
-          // Aggiungi righe vuote per completare a 100
-          const emptyRows = Array.from({ length: Math.max(0, 100 - csvWines.length) }, (_, index) => ({
-            id: `empty-${category}-${index}`,
-            tipologia: '',
-            nomeVino: '',
-            anno: '',
-            produttore: '',
-            provenienza: '',
-            costo: '',
-            vendita: '',
-            margine: '',
-            giacenza: 0,
-            fornitore: ''
-          }));
-
-          const newWineRows = [...csvWines, ...emptyRows];
-          setWineRows(newWineRows);
-          
-          console.log(`📊 Tabella aggiornata: ${csvWines.length} vini CSV + ${emptyRows.length} righe vuote`);
-        },
-        error: (error) => {
-          console.error('❌ Errore nel parsing CSV:', error);
-        }
-      });
-
-    } catch (error) {
-      console.error(`❌ Errore nel caricamento CSV per ${category}:`, error);
-    } finally {
-      setIsLoadingTab(false);
-    }
-  };
-
-  // Funzione per gestire il cambio tab con caricamento dinamico
-  const handleTabChange = async (category: string) => {
-    setActiveTab(category);
-    await loadCsvData(category);
-  };
-
-  // Carica i dati della prima categoria al mount del componente
-  useEffect(() => {
-    loadCsvData('BOLLICINE ITALIANE');
-  }, []);
-
-  // Filtro i vini in base al TAB selezionato
-  const filteredWineRows = wineRows.filter(row => {
-    // Se la riga è vuota (nessun nome vino), mostrala sempre per permettere inserimenti
-    if (!row.nomeVino.trim()) {
-      return true;
-    }
-    
-    // Confronta la tipologia del vino con il TAB selezionato
-    // Normalizza entrambe le stringhe per il confronto (maiuscole, trim)
-    const rowTipologia = row.tipologia.toUpperCase().trim();
-    const selectedTab = activeTab.toUpperCase().trim();
-    
-    return rowTipologia === selectedTab;
-  });
 
 
 
@@ -1187,9 +1055,8 @@ export default function ArchiviPage() {
               ].map((category, index) => (
                 <button
                   key={category}
-                  onClick={() => handleTabChange(category)}
-                  disabled={isLoadingTab}
-                  className={`px-6 py-3 font-semibold text-sm rounded-lg transition-all duration-200 border-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                  onClick={() => setActiveTab(category)}
+                  className={`px-6 py-3 font-semibold text-sm rounded-lg transition-all duration-200 border-2 ${
                     activeTab === category
                       ? 'bg-amber-700 text-cream border-amber-500 shadow-lg'
                       : 'bg-brown-800/60 text-cream/80 border-brown-600/40 hover:bg-brown-700/70 hover:border-brown-500/60'
@@ -1199,14 +1066,7 @@ export default function ArchiviPage() {
                     borderColor: activeTab === category ? '#f59e0b' : '#8b4513aa'
                   }}
                 >
-                  {isLoadingTab && activeTab === category ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-cream border-t-transparent rounded-full animate-spin"></div>
-                      {category}
-                    </div>
-                  ) : (
-                    category
-                  )}
+                  {category}
                 </button>
               ))}
             </div>
@@ -1366,10 +1226,8 @@ export default function ArchiviPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredWineRows.map((row, filteredIndex) => {
-                  // Trova l'indice originale del vino nell'array completo
-                  const originalIndex = wineRows.findIndex(originalRow => originalRow.id === row.id);
-                  const isSelected = selectedRows.includes(originalIndex);
+                {wineRows.map((row, index) => {
+                  const isSelected = selectedRows.includes(index);
                   const rowStyle = {
                     backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6',
                     borderWidth: isSelected ? '2px' : '1px',
@@ -1379,13 +1237,13 @@ export default function ArchiviPage() {
                   return (
                   <tr 
                     key={row.id}
-                    onClick={(e) => handleRowClick(originalIndex, e)}
+                    onClick={(e) => handleRowClick(index, e)}
                     className="cursor-pointer transition-all duration-200 hover:bg-opacity-80"
                     style={rowStyle}
                   >
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['#'] }}>
                       <div className="w-full px-2 py-2 text-center text-gray-600 font-medium select-none flex items-center justify-center" style={{ fontSize: `${fontSize * 0.7}px`, userSelect: 'none', height: '40px' }}>
-                        {originalIndex + 1}
+                        {index + 1}
                       </div>
                     </td>
                     {/* Tipologia */}
@@ -1393,7 +1251,7 @@ export default function ArchiviPage() {
                       <input
                         type="text"
                         value={row.tipologia}
-                        onChange={(e) => handleCellChange(originalIndex, 'tipologia', e.target.value)}
+                        onChange={(e) => handleCellChange(index, 'tipologia', e.target.value)}
                         className="w-full h-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
@@ -1402,7 +1260,7 @@ export default function ArchiviPage() {
                       <input
                         type="text"
                         value={row.nomeVino}
-                        onChange={(e) => handleCellChange(originalIndex, 'nomeVino', e.target.value)}
+                        onChange={(e) => handleCellChange(index, 'nomeVino', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
@@ -1411,7 +1269,7 @@ export default function ArchiviPage() {
                       <input
                         type="text"
                         value={row.anno}
-                        onChange={(e) => handleCellChange(originalIndex, 'anno', e.target.value)}
+                        onChange={(e) => handleCellChange(index, 'anno', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
@@ -1420,7 +1278,7 @@ export default function ArchiviPage() {
                       <input
                         type="text"
                         value={row.produttore}
-                        onChange={(e) => handleCellChange(originalIndex, 'produttore', e.target.value)}
+                        onChange={(e) => handleCellChange(index, 'produttore', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
@@ -1429,7 +1287,7 @@ export default function ArchiviPage() {
                       <input
                         type="text"
                         value={row.provenienza}
-                        onChange={(e) => handleCellChange(originalIndex, 'provenienza', e.target.value)}
+                        onChange={(e) => handleCellChange(index, 'provenienza', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
@@ -1438,7 +1296,7 @@ export default function ArchiviPage() {
                       <input
                         type="text"
                         value={row.fornitore}
-                        onChange={(e) => handleCellChange(originalIndex, 'fornitore', e.target.value)}
+                        onChange={(e) => handleCellChange(index, 'fornitore', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
@@ -1447,7 +1305,7 @@ export default function ArchiviPage() {
                       <input
                         type="number"
                         value={row.costo}
-                        onChange={(e) => handleCellChange(originalIndex, 'costo', e.target.value)}
+                        onChange={(e) => handleCellChange(index, 'costo', e.target.value)}
                         className="w-full px-1 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center appearance-none select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
@@ -1456,7 +1314,7 @@ export default function ArchiviPage() {
                       <input
                         type="number"
                         value={row.vendita}
-                        onChange={(e) => handleCellChange(originalIndex, 'vendita', e.target.value)}
+                        onChange={(e) => handleCellChange(index, 'vendita', e.target.value)}
                         className="w-full px-1 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center appearance-none select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
@@ -1468,7 +1326,7 @@ export default function ArchiviPage() {
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['giacenza'] }}>
                       <button
-                        onClick={() => handleInventoryClick(originalIndex)}
+                        onClick={() => handleInventoryClick(index)}
                         className="w-full px-1 py-2 text-center text-gray-600 font-bold hover:bg-amber-200 transition-colors select-none"
                         style={{ fontSize: `${fontSize}px`, userSelect: 'none', height: '40px', lineHeight: 'normal' }}
                       >
@@ -1478,7 +1336,7 @@ export default function ArchiviPage() {
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['azioni'] }}>
                       <div className="flex items-center justify-center gap-2 h-full">
                         <button
-                          onClick={() => handleDeleteRow(originalIndex)}
+                          onClick={() => handleDeleteRow(index)}
                           className="px-3 py-1 text-gray-600 hover:text-red-600 transition-colors select-none h-full flex items-center justify-center"
                           style={{ userSelect: 'none', fontSize: `${fontSize * 0.8}px` }}
                           title="Elimina riga"
