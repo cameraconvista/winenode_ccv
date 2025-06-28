@@ -377,29 +377,44 @@ export default function ArchiviPage() {
       const csvText = await response.text();
       console.log(`📄 CSV ricevuto (${csvText.length} caratteri)`);
 
-      // Parse CSV con PapaParse
+      // Parse CSV con PapaParse senza header
       Papa.parse(csvText, {
-        header: true,
+        header: false,
         skipEmptyLines: true,
         complete: (results) => {
           console.log(`✅ CSV parsato: ${results.data.length} righe`);
           
-          // Log delle intestazioni per debug
-          if (results.data.length > 0) {
-            console.log('📋 Intestazioni CSV:', Object.keys(results.data[0]));
-          }
+          // Definisci le intestazioni manualmente
+          const headers = ["TIPOLOGIA", "NOME VINO", "ANNO", "PRODUTTORE", "PROVENIENZA", "FORNITORE", "COSTO", "VENDITA", "MARGINE", "GIACENZA"];
           
-          // Converti i dati CSV in formato tabella usando il mapping corretto
-          const csvWines = results.data.map((row: any, index: number) => ({
+          // Ignora la prima riga (che può essere vuota o errata)
+          const dataRows = results.data.slice(1);
+          
+          console.log(`📋 Righe dati dopo rimozione header: ${dataRows.length}`);
+          
+          // Mappa ogni riga usando le intestazioni definite
+          const mappedData = dataRows.map((row: any[], rowIndex: number) => {
+            const obj: any = {};
+            headers.forEach((header, i) => {
+              const key = header.toLowerCase().replace(/\s+/g, '');
+              obj[key] = row[i] || "";
+            });
+            return obj;
+          });
+          
+          console.log('📊 Esempio prima riga mappata:', mappedData[0]);
+          
+          // Converti i dati mappati in formato tabella
+          const csvWines = mappedData.map((row: any, index: number) => ({
             id: `csv-${category}-${index}`,
             tipologia: category, // La tipologia viene dal TAB selezionato
-            nomeVino: row['_1'] || '',
-            anno: row['_2'] || '',
-            produttore: row['_3'] || '',
-            provenienza: row['_4'] || '',
-            fornitore: row['_5'] || '',
-            costo: row['_6'] || '',
-            vendita: row['_7'] || '',
+            nomeVino: row.nomevino || '',
+            anno: row.anno || '',
+            produttore: row.produttore || '',
+            provenienza: row.provenienza || '',
+            fornitore: row.fornitore || '',
+            costo: row.costo || '',
+            vendita: row.vendita || '',
             margine: '', // Calcolabile dopo se necessario
             giacenza: 0  // Valore iniziale fisso
           }));
