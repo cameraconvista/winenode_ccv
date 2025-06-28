@@ -195,6 +195,20 @@ export default function ArchiviPage() {
         const row = parsed.data[i];
         if (row && row.length > 0) {
           const rowText = row.join('').toLowerCase();
+          const firstCell = row[0] ? row[0].trim().toUpperCase() : '';
+          
+          // Salta righe di titolo categoria (incluso VINI DOLCI)
+          if (firstCell === 'BIANCHI' ||
+              firstCell === 'BOLLICINE' ||
+              firstCell === 'BOLLICINE ITALIANE' ||
+              firstCell === 'BOLLICINE FRANCESI' ||
+              firstCell === 'ROSSI' ||
+              firstCell === 'ROSATI' ||
+              firstCell === 'VINI DOLCI' ||
+              firstCell.includes('BOLLICINE')) {
+            console.log(`📋 Riga titolo categoria saltata alla riga ${i}:`, firstCell);
+            continue;
+          }
           
           // Cerca intestazioni esplicite (NOME VINO, ANNO, PRODUTTORE, ecc.)
           if (rowText.includes('nome vino') || 
@@ -204,27 +218,23 @@ export default function ArchiviPage() {
               rowText.includes('costo') ||
               rowText.includes('vendita') ||
               rowText.includes('margine') ||
-              rowText.includes('giacenza')) {
+              rowText.includes('giacenza') ||
+              firstCell === 'NOME VINO' ||
+              firstCell === 'ANNO' ||
+              firstCell === 'PRODUTTORE') {
             headerRow = i;
             startRow = i + 1;
             console.log(`📋 Intestazioni colonne trovate alla riga ${i}:`, row);
             continue; // Salta questa riga di intestazione
           }
           
-          // Salta righe di titolo categoria (BIANCHI, BOLLICINE, ecc.)
-          if (row[0] && (
-              row[0].toUpperCase() === 'BIANCHI' ||
-              row[0].toUpperCase() === 'BOLLICINE' ||
-              row[0].toUpperCase() === 'ROSSI' ||
-              row[0].toUpperCase() === 'ROSATI' ||
-              row[0].toLowerCase().includes('bollicine')
-          )) {
-            console.log(`📋 Riga titolo categoria saltata alla riga ${i}:`, row[0]);
-            continue;
-          }
-          
-          // Se la prima colonna ha un nome vino valido, inizia da qui
-          if (row[0] && row[0].trim() && row[0].length > 3) {
+          // Se la prima colonna ha un nome vino valido e non è una categoria, inizia da qui
+          if (row[0] && row[0].trim() && row[0].length > 3 && 
+              !firstCell.includes('VINI') &&
+              !firstCell.includes('BOLLICINE') &&
+              !firstCell.includes('BIANCHI') &&
+              !firstCell.includes('ROSSI') &&
+              !firstCell.includes('ROSATI')) {
             startRow = i;
             console.log(`📋 Prima riga dati valida trovata alla riga ${i}:`, row);
             break;
