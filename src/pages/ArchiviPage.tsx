@@ -118,6 +118,9 @@ export default function ArchiviPage() {
   const [searchResults, setSearchResults] = useState<Tipologia[]>([]);
   const [editingProducer, setEditingProducer] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showImportModal, setShowImportModal] = useState(false)
+  const [activeTab, setActiveTab] = useState('BOLLICINE ITALIANE')
 
   // Stati per la selezione del colore tipologia
   const [selectedColor, setSelectedColor] = useState('#cccccc');
@@ -1034,6 +1037,38 @@ export default function ArchiviPage() {
                 </svg>
                 Reset Dati
               </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Wine Category Tabs */}
+        <div className="bg-black/30 border-b border-red-900/30 px-4 py-4">
+          <div className="max-w-full mx-auto">
+            <div className="flex items-center justify-center flex-wrap gap-2">
+              {[
+                'BOLLICINE ITALIANE',
+                'BOLLICINE FRANCESI', 
+                'BIANCHI',
+                'ROSSI',
+                'ROSATI',
+                'VINI DOLCI'
+              ].map((category, index) => (
+                <button
+                  key={category}
+                  onClick={() => setActiveTab(category)}
+                  className={`px-6 py-3 font-semibold text-sm rounded-lg transition-all duration-200 border-2 ${
+                    activeTab === category
+                      ? 'bg-amber-700 text-cream border-amber-500 shadow-lg'
+                      : 'bg-brown-800/60 text-cream/80 border-brown-600/40 hover:bg-brown-700/70 hover:border-brown-500/60'
+                  }`}
+                  style={{
+                    backgroundColor: activeTab === category ? '#b45309' : '#5d2f0a80',
+                    borderColor: activeTab === category ? '#f59e0b' : '#8b4513aa'
+                  }}
+                >
+                  {category}
+                </button>
+              ))}
             </div>
           </div>
         </div>
