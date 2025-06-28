@@ -148,6 +148,11 @@ export default function ArchiviPage() {
   });
   const [showFornitoreModal, setShowFornitoreModal] = useState(false);
   const [fornitori, setFornitori] = useState<string[]>([]);
+  const [modalFilters, setModalFilters] = useState({
+    fornitore: '',
+    tipologie: [] as string[],
+    isActive: false
+  });
 
   // Resize colonne handlers
   const handleMouseDown = (e: React.MouseEvent, colKey: string) => {
@@ -655,6 +660,24 @@ export default function ArchiviPage() {
 
   const filteredRows = useMemo(() => {
     return wineRows.filter(row => {
+      // Se il filtro modale è attivo, usa quello
+      if (modalFilters.isActive) {
+        const matchesModalFornitore = !modalFilters.fornitore || 
+          row.fornitore?.toLowerCase().includes(modalFilters.fornitore.toLowerCase())
+        
+        const matchesModalTipologie = modalFilters.tipologie.length === 0 || 
+          modalFilters.tipologie.includes(activeTab) ||
+          modalFilters.tipologie.includes('TUTTE')
+        
+        const matchesSearch = !filters.search || 
+          row.nomeVino?.toLowerCase().includes(filters.search.toLowerCase()) ||
+          row.produttore?.toLowerCase().includes(filters.search.toLowerCase()) ||
+          row.provenienza?.toLowerCase().includes(filters.search.toLowerCase())
+
+        return matchesModalFornitore && matchesModalTipologie && matchesSearch
+      }
+
+      // Altrimenti usa i filtri normali
       const matchesTipologia = !filters.tipologia || row.tipologia === filters.tipologia
       const matchesSearch = !filters.search || 
         row.nomeVino?.toLowerCase().includes(filters.search.toLowerCase()) ||
@@ -665,7 +688,7 @@ export default function ArchiviPage() {
 
       return matchesTipologia && matchesSearch && matchesFornitore
     })
-  }, [wineRows, filters])
+  }, [wineRows, filters, modalFilters, activeTab])
 
   return (
     <div
@@ -743,7 +766,31 @@ export default function ArchiviPage() {
               </button>
             </div>
             <div className="flex items-center gap-3">
-              {filters.fornitore && (
+              {modalFilters.isActive && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-blue-600/20 border border-blue-600/50 rounded-lg text-blue-200 text-sm">
+                  <span>
+                    Filtro: {modalFilters.fornitore || 'Tutti i fornitori'}
+                    {modalFilters.tipologie.length > 0 && modalFilters.tipologie.includes('TUTTE') 
+                      ? ' - Tutte le tipologie' 
+                      : modalFilters.tipologie.length > 0 
+                      ? ` - ${modalFilters.tipologie.length} tipologie` 
+                      : ''}
+                  </span>
+                  <button
+                    onClick={() => {
+                      setModalFilters({ fornitore: '', tipologie: [], isActive: false });
+                      setFilters({ ...filters, fornitore: '' });
+                    }}
+                    className="ml-1 hover:text-blue-100"
+                    title="Rimuovi filtro modale"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+              {!modalFilters.isActive && filters.fornitore && (
                 <div className="flex items-center gap-2 px-3 py-1 bg-amber-600/20 border border-amber-600/50 rounded-lg text-amber-200 text-sm">
                   <span>Fornitore: {filters.fornitore}</span>
                   <button
@@ -859,19 +906,28 @@ export default function ArchiviPage() {
                 <button
                   key={category}
                   onClick={() => {
-                    setActiveTab(category);
-                    if (csvUrls[category as keyof typeof csvUrls]) {
-                      fetchAndParseCSV(csvUrls[category as keyof typeof csvUrls], category);
+                    if (!modalFilters.isActive) {
+                      setActiveTab(category);
+                      if (csvUrls[category as keyof typeof csvUrls]) {
+                        fetchAndParseCSV(csvUrls[category as keyof typeof csvUrls], category);
+                      }
                     }
                   }}
+                  disabled={modalFilters.isActive}
                   className={`px-6 py-3 font-semibold text-sm rounded-lg transition-all duration-200 border-2 ${
-                    activeTab === category
+                    modalFilters.isActive
+                      ? "bg-gray-500/40 text-gray-400 border-gray-400/40 cursor-not-allowed opacity-50"
+                      : activeTab === category
                       ? "bg-amber-700 text-cream border-amber-500 shadow-lg"
                       : "bg-brown-800/60 text-cream/80 border-brown-600/40 hover:bg-brown-700/70 hover:border-brown-500/60"
                   }`}
                   style={{
-                    backgroundColor: activeTab === category ? "#b45309" : "#5d2f0a80",
-                    borderColor: activeTab === category ? "#f59e0b" : "#8b4513aa",
+                    backgroundColor: modalFilters.isActive 
+                      ? "#6b728080" 
+                      : activeTab === category ? "#b45309" : "#5d2f0a80",
+                    borderColor: modalFilters.isActive 
+                      ? "#9ca3af60" 
+                      : activeTab === category ? "#f59e0b" : "#8b4513aa",
                   }}
                 >
                   {category}
@@ -1303,17 +1359,17 @@ export default function ArchiviPage() {
         </div>
       )}
 
-      {/* Modale Filtro Fornitori */}
+      {/* Modale Filtro Avanzato */}
       {showFornitoreModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 border border-gray-700 rounded-lg w-full max-w-sm max-h-[80vh] overflow-hidden shadow-2xl">
+          <div className="bg-gray-900 border border-gray-700 rounded-lg w-full max-w-md max-h-[85vh] overflow-hidden shadow-2xl">
             {/* Header della modale */}
             <div className="flex items-center justify-between p-4 border-b border-gray-700 bg-gray-800/50">
               <h3 className="text-xl font-bold text-cream flex items-center gap-2">
-                <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                 </svg>
-                Fornitori
+                Filtro Avanzato
               </h3>
               <button
                 onClick={() => setShowFornitoreModal(false)}
@@ -1327,95 +1383,132 @@ export default function ArchiviPage() {
             </div>
 
             {/* Corpo della modale */}
-            <div className="p-4 max-h-96 overflow-y-auto">
-              {/* Opzione per rimuovere filtro */}
-              <button
-                onClick={() => {
-                  setFilters({ ...filters, fornitore: '' });
-                  setShowFornitoreModal(false);
-                }}
-                className={`w-full p-4 text-left rounded-lg mb-3 transition-all duration-200 ${
-                  !filters.fornitore 
-                    ? 'bg-amber-600/20 border-2 border-amber-500/60 text-amber-100 shadow-lg' 
-                    : 'bg-gray-800 hover:bg-gray-700 text-cream border border-gray-600 hover:border-gray-500'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-3 h-3 rounded-full ${!filters.fornitore ? 'bg-amber-400 shadow-amber-400/50 shadow-lg' : 'bg-gray-500'}`} />
-                  <div>
-                    <span className="font-semibold text-base">Tutti i fornitori</span>
-                    <div className="text-sm opacity-80">Mostra tutti i vini senza filtro</div>
-                  </div>
-                  {!filters.fornitore && (
-                    <svg className="w-5 h-5 text-amber-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </div>
-              </button>
-
-              {/* Lista fornitori */}
-              {fornitori.length > 0 ? (
+            <div className="p-4 max-h-96 overflow-y-auto space-y-6">
+              {/* Selezione Fornitore */}
+              <div>
+                <h4 className="text-lg font-semibold text-cream mb-3 flex items-center gap-2">
+                  <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  Fornitore
+                </h4>
                 <div className="space-y-2">
-                  <div className="text-sm text-gray-400 font-medium mb-3 px-1">
-                    Seleziona fornitore ({fornitori.length} disponibili):
-                  </div>
-                  {fornitori.map((fornitore, index) => (
+                  <button
+                    onClick={() => setModalFilters(prev => ({ ...prev, fornitore: '' }))}
+                    className={`w-full p-3 text-left rounded-lg transition-all duration-200 ${
+                      !modalFilters.fornitore 
+                        ? 'bg-amber-600/20 border-2 border-amber-500/60 text-amber-100' 
+                        : 'bg-gray-800 hover:bg-gray-700 text-cream border border-gray-600'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${!modalFilters.fornitore ? 'bg-amber-400' : 'bg-gray-500'}`} />
+                      <span className="font-medium">Tutti i fornitori</span>
+                    </div>
+                  </button>
+                  {fornitori.map((fornitore) => (
                     <button
                       key={fornitore}
-                      onClick={() => {
-                        setFilters({ ...filters, fornitore });
-                        setShowFornitoreModal(false);
-                      }}
-                      className={`w-full p-4 text-left rounded-lg transition-all duration-200 ${
-                        filters.fornitore === fornitore 
-                          ? 'bg-amber-600/20 border-2 border-amber-500/60 text-amber-100 shadow-lg transform scale-[1.02]' 
-                          : 'bg-gray-800 hover:bg-gray-700 text-cream border border-gray-600 hover:border-gray-500 hover:transform hover:scale-[1.01]'
+                      onClick={() => setModalFilters(prev => ({ ...prev, fornitore }))}
+                      className={`w-full p-3 text-left rounded-lg transition-all duration-200 ${
+                        modalFilters.fornitore === fornitore 
+                          ? 'bg-amber-600/20 border-2 border-amber-500/60 text-amber-100' 
+                          : 'bg-gray-800 hover:bg-gray-700 text-cream border border-gray-600'
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
-                          filters.fornitore === fornitore ? 'bg-amber-400 shadow-amber-400/50 shadow-lg' : 'bg-gray-500'
-                        }`} />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-base truncate">{fornitore}</div>
+                        <div className={`w-3 h-3 rounded-full ${modalFilters.fornitore === fornitore ? 'bg-amber-400' : 'bg-gray-500'}`} />
+                        <div className="flex-1">
+                          <div className="font-medium">{fornitore}</div>
                           <div className="text-sm opacity-70">
                             {wineRows.filter(wine => wine.fornitore === fornitore).length} vini
                           </div>
                         </div>
-                        {filters.fornitore === fornitore && (
-                          <svg className="w-5 h-5 text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
                       </div>
                     </button>
                   ))}
                 </div>
-              ) : (
-                <div className="text-center py-12 px-4">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-800 flex items-center justify-center">
-                    <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                  </div>
-                  <h4 className="font-semibold text-cream mb-2">Nessun fornitore trovato</h4>
-                  <p className="text-sm text-gray-400 leading-relaxed">
-                    I fornitori vengono estratti automaticamente dai vini presenti nella tabella.
-                    <br />
-                    Aggiungi vini con fornitori per vederli qui.
-                  </p>
+              </div>
+
+              {/* Selezione Tipologie */}
+              <div>
+                <h4 className="text-lg font-semibold text-cream mb-3 flex items-center gap-2">
+                  <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                  </svg>
+                  Tipologie
+                </h4>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setModalFilters(prev => ({ ...prev, tipologie: ['TUTTE'] }))}
+                    className={`w-full p-3 text-left rounded-lg transition-all duration-200 ${
+                      modalFilters.tipologie.includes('TUTTE') 
+                        ? 'bg-green-600/20 border-2 border-green-500/60 text-green-100' 
+                        : 'bg-gray-800 hover:bg-gray-700 text-cream border border-gray-600'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${modalFilters.tipologie.includes('TUTTE') ? 'bg-green-400' : 'bg-gray-500'}`} />
+                      <span className="font-medium">Tutte le tipologie</span>
+                    </div>
+                  </button>
+                  {[
+                    "BOLLICINE ITALIANE",
+                    "BOLLICINE FRANCESI", 
+                    "BIANCHI",
+                    "ROSSI",
+                    "ROSATI",
+                    "VINI DOLCI"
+                  ].map((tipologia) => (
+                    <button
+                      key={tipologia}
+                      onClick={() => {
+                        setModalFilters(prev => {
+                          const newTipologie = prev.tipologie.includes('TUTTE') 
+                            ? [tipologia]
+                            : prev.tipologie.includes(tipologia)
+                            ? prev.tipologie.filter(t => t !== tipologia)
+                            : [...prev.tipologie.filter(t => t !== 'TUTTE'), tipologia];
+                          return { ...prev, tipologie: newTipologie };
+                        });
+                      }}
+                      className={`w-full p-3 text-left rounded-lg transition-all duration-200 ${
+                        modalFilters.tipologie.includes(tipologia) && !modalFilters.tipologie.includes('TUTTE')
+                          ? 'bg-green-600/20 border-2 border-green-500/60 text-green-100' 
+                          : 'bg-gray-800 hover:bg-gray-700 text-cream border border-gray-600'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded-full ${
+                          modalFilters.tipologie.includes(tipologia) && !modalFilters.tipologie.includes('TUTTE') ? 'bg-green-400' : 'bg-gray-500'
+                        }`} />
+                        <span className="font-medium">{tipologia}</span>
+                      </div>
+                    </button>
+                  ))}
                 </div>
-              )}
+              </div>
             </div>
 
             {/* Footer della modale */}
-            <div className="p-4 border-t border-gray-700 bg-gray-800/30">
+            <div className="p-4 border-t border-gray-700 bg-gray-800/30 space-y-3">
+              <button
+                onClick={() => {
+                  setModalFilters(prev => ({ ...prev, isActive: true }));
+                  setShowFornitoreModal(false);
+                }}
+                className="w-full px-4 py-3 bg-blue-600 text-cream rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                Applica Filtro
+              </button>
               <button
                 onClick={() => setShowFornitoreModal(false)}
                 className="w-full px-4 py-3 bg-gray-700 text-cream rounded-lg hover:bg-gray-600 transition-colors font-medium"
               >
-                Chiudi
+                Annulla
               </button>
             </div>
           </div>
