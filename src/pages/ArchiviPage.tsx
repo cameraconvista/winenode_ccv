@@ -974,16 +974,7 @@ export default function ArchiviPage() {
                 Filtra
               </button>
 
-              <button
-                onClick={() => console.log('Visualizza')}
-                className="flex items-center gap-2 bg-[#3A1E18] text-[#F5EEDC] rounded-md px-3 py-2 text-sm shadow-sm hover:border-[#A97B50] hover:shadow-md transition-all"
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-                Visualizza
-              </button>
+              
 
               <button
                 onClick={() => console.log('Cerca')}
@@ -1074,55 +1065,11 @@ export default function ArchiviPage() {
                 Backup
               </button>
 
-              <button
-                onClick={() => {
-                  if (confirm('Vuoi ripristinare le larghezze predefinite delle colonne?')) {
-                    setColumnWidths(defaultColumnWidths);
-                    localStorage.removeItem('winenode-column-widths');
-                    alert('Larghezze colonne ripristinate ai valori predefiniti');
-                  }
-                }}
-                className="flex items-center gap-2 bg-[#3A1E18] text-[#F5EEDC] rounded-md px-3 py-2 text-sm shadow-sm hover:border-[#A97B50] hover:shadow-md transition-all"
-                title="Ripristina larghezze predefinite colonne"
-              >
-                <svg 
-                  className="h-4 w-4" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2v0"/>
-                  <rect x="8" y="5" width="8" height="4"/>
-                </svg>
-                Reset Colonne
-              </button>
+              
 
 
 
-              <button
-                onClick={() => {
-                  if (confirm('Sei sicuro di voler resettare tutti i dati?')) {
-                    setWineRows(Array.from({ length: 100 }, (_, index) => ({
-                      id: `row-${index}`,
-                      nomeVino: '',
-                      anno: '',
-                      produttore: '',
-                      provenienza: '',
-                      giacenza: 0,
-                      fornitore: ''
-                    })));
-                  }
-                }}
-                className="flex items-center gap-2 bg-[#3A1E18] text-[#F5EEDC] rounded-md px-3 py-2 text-sm shadow-sm hover:border-[#A97B50] hover:shadow-md transition-all"
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Reset Dati
-              </button>
+              
             </div>
           </div>
         </div>
