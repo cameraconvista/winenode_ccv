@@ -605,12 +605,22 @@ export default function ArchiviPage() {
 
     // Calcola margini se vengono modificati costo o vendita
     if (field === 'costo' || field === 'vendita') {
-      const costo = parseFloat(field === 'costo' ? value : updatedRows[rowIndex].costo) || 0;
-      const vendita = parseFloat(field === 'vendita' ? value : updatedRows[rowIndex].vendita) || 0;
+      // Pulisci i valori rimuovendo caratteri non numerici eccetto punto e virgola
+      const costoValue = field === 'costo' ? value : updatedRows[rowIndex].costo;
+      const venditaValue = field === 'vendita' ? value : updatedRows[rowIndex].vendita;
+      
+      // Converti virgole in punti e rimuovi simboli di valuta
+      const costoClean = costoValue.toString().replace(/[€$,]/g, '').replace(',', '.');
+      const venditaClean = venditaValue.toString().replace(/[€$,]/g, '').replace(',', '.');
+      
+      const costo = parseFloat(costoClean) || 0;
+      const vendita = parseFloat(venditaClean) || 0;
 
       if (costo > 0 || vendita > 0) {
         const margineEuro = vendita - costo;
         updatedRows[rowIndex].margine = margineEuro.toFixed(2);
+      } else {
+        updatedRows[rowIndex].margine = '';
       }
     }
 
