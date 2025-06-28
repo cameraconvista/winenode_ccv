@@ -345,6 +345,21 @@ export default function ArchiviPage() {
     console.log(`✅ Tabella sincronizzata: ${winesFromDb.length} vini dal DB + ${emptyRows.length} righe vuote`);
   }, [existingWines]);
 
+  // Filtro i vini in base al TAB selezionato
+  const filteredWineRows = wineRows.filter(row => {
+    // Se la riga è vuota (nessun nome vino), mostrala sempre per permettere inserimenti
+    if (!row.nomeVino.trim()) {
+      return true;
+    }
+    
+    // Confronta la tipologia del vino con il TAB selezionato
+    // Normalizza entrambe le stringhe per il confronto (maiuscole, trim)
+    const rowTipologia = row.tipologia.toUpperCase().trim();
+    const selectedTab = activeTab.toUpperCase().trim();
+    
+    return rowTipologia === selectedTab;
+  });
+
 
 
 
@@ -1226,8 +1241,10 @@ export default function ArchiviPage() {
                 </tr>
               </thead>
               <tbody>
-                {wineRows.map((row, index) => {
-                  const isSelected = selectedRows.includes(index);
+                {filteredWineRows.map((row, filteredIndex) => {
+                  // Trova l'indice originale del vino nell'array completo
+                  const originalIndex = wineRows.findIndex(originalRow => originalRow.id === row.id);
+                  const isSelected = selectedRows.includes(originalIndex);
                   const rowStyle = {
                     backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6',
                     borderWidth: isSelected ? '2px' : '1px',
@@ -1237,13 +1254,13 @@ export default function ArchiviPage() {
                   return (
                   <tr 
                     key={row.id}
-                    onClick={(e) => handleRowClick(index, e)}
+                    onClick={(e) => handleRowClick(originalIndex, e)}
                     className="cursor-pointer transition-all duration-200 hover:bg-opacity-80"
                     style={rowStyle}
                   >
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['#'] }}>
                       <div className="w-full px-2 py-2 text-center text-gray-600 font-medium select-none flex items-center justify-center" style={{ fontSize: `${fontSize * 0.7}px`, userSelect: 'none', height: '40px' }}>
-                        {index + 1}
+                        {originalIndex + 1}
                       </div>
                     </td>
                     {/* Tipologia */}
@@ -1251,7 +1268,7 @@ export default function ArchiviPage() {
                       <input
                         type="text"
                         value={row.tipologia}
-                        onChange={(e) => handleCellChange(index, 'tipologia', e.target.value)}
+                        onChange={(e) => handleCellChange(originalIndex, 'tipologia', e.target.value)}
                         className="w-full h-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
@@ -1260,7 +1277,7 @@ export default function ArchiviPage() {
                       <input
                         type="text"
                         value={row.nomeVino}
-                        onChange={(e) => handleCellChange(index, 'nomeVino', e.target.value)}
+                        onChange={(e) => handleCellChange(originalIndex, 'nomeVino', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
@@ -1269,7 +1286,7 @@ export default function ArchiviPage() {
                       <input
                         type="text"
                         value={row.anno}
-                        onChange={(e) => handleCellChange(index, 'anno', e.target.value)}
+                        onChange={(e) => handleCellChange(originalIndex, 'anno', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
@@ -1278,7 +1295,7 @@ export default function ArchiviPage() {
                       <input
                         type="text"
                         value={row.produttore}
-                        onChange={(e) => handleCellChange(index, 'produttore', e.target.value)}
+                        onChange={(e) => handleCellChange(originalIndex, 'produttore', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
@@ -1287,7 +1304,7 @@ export default function ArchiviPage() {
                       <input
                         type="text"
                         value={row.provenienza}
-                        onChange={(e) => handleCellChange(index, 'provenienza', e.target.value)}
+                        onChange={(e) => handleCellChange(originalIndex, 'provenienza', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
@@ -1296,7 +1313,7 @@ export default function ArchiviPage() {
                       <input
                         type="text"
                         value={row.fornitore}
-                        onChange={(e) => handleCellChange(index, 'fornitore', e.target.value)}
+                        onChange={(e) => handleCellChange(originalIndex, 'fornitore', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
@@ -1305,7 +1322,7 @@ export default function ArchiviPage() {
                       <input
                         type="number"
                         value={row.costo}
-                        onChange={(e) => handleCellChange(index, 'costo', e.target.value)}
+                        onChange={(e) => handleCellChange(originalIndex, 'costo', e.target.value)}
                         className="w-full px-1 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center appearance-none select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
@@ -1314,7 +1331,7 @@ export default function ArchiviPage() {
                       <input
                         type="number"
                         value={row.vendita}
-                        onChange={(e) => handleCellChange(index, 'vendita', e.target.value)}
+                        onChange={(e) => handleCellChange(originalIndex, 'vendita', e.target.value)}
                         className="w-full px-1 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center appearance-none select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
@@ -1326,7 +1343,7 @@ export default function ArchiviPage() {
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['giacenza'] }}>
                       <button
-                        onClick={() => handleInventoryClick(index)}
+                        onClick={() => handleInventoryClick(originalIndex)}
                         className="w-full px-1 py-2 text-center text-gray-600 font-bold hover:bg-amber-200 transition-colors select-none"
                         style={{ fontSize: `${fontSize}px`, userSelect: 'none', height: '40px', lineHeight: 'normal' }}
                       >
@@ -1336,7 +1353,7 @@ export default function ArchiviPage() {
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['azioni'] }}>
                       <div className="flex items-center justify-center gap-2 h-full">
                         <button
-                          onClick={() => handleDeleteRow(index)}
+                          onClick={() => handleDeleteRow(originalIndex)}
                           className="px-3 py-1 text-gray-600 hover:text-red-600 transition-colors select-none h-full flex items-center justify-center"
                           style={{ userSelect: 'none', fontSize: `${fontSize * 0.8}px` }}
                           title="Elimina riga"
