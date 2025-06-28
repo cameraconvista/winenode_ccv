@@ -842,8 +842,8 @@ export default function ArchiviPage() {
 
                     // Elimina da Supabase solo se la riga ha un ID dal database
                     if (rowToDelete.id.startsWith('db-')) {
-                        const userId = authManager.getUserId();
-                        if (!userId) {
+                        const userId:w
+        if (!userId) {
                             throw new Error('ID utente non disponibile');
                         }
 
