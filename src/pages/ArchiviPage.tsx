@@ -1306,19 +1306,27 @@ export default function ArchiviPage() {
       {/* Modale Filtro Fornitori */}
       {showFornitoreModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 border border-gray-700 rounded-lg w-full max-w-sm max-h-[80vh] overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-gray-700">
-              <h3 className="text-lg font-bold text-cream">Filtra per Fornitore</h3>
+          <div className="bg-gray-900 border border-gray-700 rounded-lg w-full max-w-sm max-h-[80vh] overflow-hidden shadow-2xl">
+            {/* Header della modale */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-700 bg-gray-800/50">
+              <h3 className="text-xl font-bold text-cream flex items-center gap-2">
+                <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                Fornitori
+              </h3>
               <button
                 onClick={() => setShowFornitoreModal(false)}
-                className="text-gray-400 hover:text-cream"
+                className="text-gray-400 hover:text-cream p-1 rounded-lg hover:bg-gray-700 transition-colors"
+                title="Chiudi"
               >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
+            {/* Corpo della modale */}
             <div className="p-4 max-h-96 overflow-y-auto">
               {/* Opzione per rimuovere filtro */}
               <button
@@ -1326,56 +1334,86 @@ export default function ArchiviPage() {
                   setFilters({ ...filters, fornitore: '' });
                   setShowFornitoreModal(false);
                 }}
-                className={`w-full p-3 text-left rounded-lg mb-2 transition-colors ${
+                className={`w-full p-4 text-left rounded-lg mb-3 transition-all duration-200 ${
                   !filters.fornitore 
-                    ? 'bg-amber-600/20 border border-amber-600/50 text-amber-200' 
-                    : 'bg-gray-800 hover:bg-gray-700 text-cream border border-gray-600'
+                    ? 'bg-amber-600/20 border-2 border-amber-500/60 text-amber-100 shadow-lg' 
+                    : 'bg-gray-800 hover:bg-gray-700 text-cream border border-gray-600 hover:border-gray-500'
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${!filters.fornitore ? 'bg-amber-500' : 'bg-gray-500'}`} />
-                  <span className="font-medium">Tutti i fornitori</span>
+                <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full ${!filters.fornitore ? 'bg-amber-400 shadow-amber-400/50 shadow-lg' : 'bg-gray-500'}`} />
+                  <div>
+                    <span className="font-semibold text-base">Tutti i fornitori</span>
+                    <div className="text-sm opacity-80">Mostra tutti i vini senza filtro</div>
+                  </div>
+                  {!filters.fornitore && (
+                    <svg className="w-5 h-5 text-amber-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
                 </div>
               </button>
 
               {/* Lista fornitori */}
               {fornitori.length > 0 ? (
-                fornitori.map((fornitore) => (
-                  <button
-                    key={fornitore}
-                    onClick={() => {
-                      setFilters({ ...filters, fornitore });
-                      setShowFornitoreModal(false);
-                    }}
-                    className={`w-full p-3 text-left rounded-lg mb-2 transition-colors ${
-                      filters.fornitore === fornitore 
-                        ? 'bg-amber-600/20 border border-amber-600/50 text-amber-200' 
-                        : 'bg-gray-800 hover:bg-gray-700 text-cream border border-gray-600'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${
-                        filters.fornitore === fornitore ? 'bg-amber-500' : 'bg-gray-500'
-                      }`} />
-                      <span className="font-medium">{fornitore}</span>
-                    </div>
-                  </button>
-                ))
+                <div className="space-y-2">
+                  <div className="text-sm text-gray-400 font-medium mb-3 px-1">
+                    Seleziona fornitore ({fornitori.length} disponibili):
+                  </div>
+                  {fornitori.map((fornitore, index) => (
+                    <button
+                      key={fornitore}
+                      onClick={() => {
+                        setFilters({ ...filters, fornitore });
+                        setShowFornitoreModal(false);
+                      }}
+                      className={`w-full p-4 text-left rounded-lg transition-all duration-200 ${
+                        filters.fornitore === fornitore 
+                          ? 'bg-amber-600/20 border-2 border-amber-500/60 text-amber-100 shadow-lg transform scale-[1.02]' 
+                          : 'bg-gray-800 hover:bg-gray-700 text-cream border border-gray-600 hover:border-gray-500 hover:transform hover:scale-[1.01]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
+                          filters.fornitore === fornitore ? 'bg-amber-400 shadow-amber-400/50 shadow-lg' : 'bg-gray-500'
+                        }`} />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-base truncate">{fornitore}</div>
+                          <div className="text-sm opacity-70">
+                            {wineRows.filter(wine => wine.fornitore === fornitore).length} vini
+                          </div>
+                        </div>
+                        {filters.fornitore === fornitore && (
+                          <svg className="w-5 h-5 text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
               ) : (
-                <div className="text-center py-8 text-gray-400">
-                  <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m0 0V9a2 2 0 012-2h2m0 0V6a1 1 0 011-1h1m0 0V3" />
-                  </svg>
-                  <p className="font-medium">Nessun fornitore trovato</p>
-                  <p className="text-sm">Aggiungi fornitori dalla sezione apposita</p>
+                <div className="text-center py-12 px-4">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-800 flex items-center justify-center">
+                    <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <h4 className="font-semibold text-cream mb-2">Nessun fornitore trovato</h4>
+                  <p className="text-sm text-gray-400 leading-relaxed">
+                    I fornitori vengono estratti automaticamente dai vini presenti nella tabella.
+                    <br />
+                    Aggiungi vini con fornitori per vederli qui.
+                  </p>
                 </div>
               )}
             </div>
 
-            <div className="p-4 border-t border-gray-700">
+            {/* Footer della modale */}
+            <div className="p-4 border-t border-gray-700 bg-gray-800/30">
               <button
                 onClick={() => setShowFornitoreModal(false)}
-                className="w-full px-4 py-2 bg-gray-700 text-cream rounded-lg hover:bg-gray-600 transition-colors"
+                className="w-full px-4 py-3 bg-gray-700 text-cream rounded-lg hover:bg-gray-600 transition-colors font-medium"
               >
                 Chiudi
               </button>
