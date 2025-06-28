@@ -1485,8 +1485,8 @@ export default function ArchiviPage() {
                                 newValue.toString(),
                               );
                             }}
-                            className="absolute left-1 w-3 h-3 bg-red-500 hover:bg-red-600 text-white rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center shadow-sm"
-                            style={{ fontSize: "8px" }}
+                            className="absolute left-1 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center shadow-sm"
+                            style={{ fontSize: "10px" }}
                             title="Diminuisci giacenza"
                           >
                             -
@@ -1527,8 +1527,8 @@ export default function ArchiviPage() {
                                 newValue.toString(),
                               );
                             }}
-                            className="absolute right-1 w-3 h-3 bg-green-500 hover:bg-green-600 text-white rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center shadow-sm"
-                            style={{ fontSize: "8px" }}
+                            className="absolute right-1 w-5 h-5 bg-green-500 hover:bg-green-600 text-white rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center shadow-sm"
+                            style={{ fontSize: "10px" }}
                             title="Aumenta giacenza"
                           >
                             +
@@ -1564,7 +1564,8 @@ export default function ArchiviPage() {
                   backgroundColor: "#2d0505",
                   fontSize: `${fontSize}px`,
                   height: "40px",
-                  display: "flex",alignItems: "center",
+                  display: "flex",
+                  alignItems: "center",
                   justifyContent: "center",
                 }}
               >
