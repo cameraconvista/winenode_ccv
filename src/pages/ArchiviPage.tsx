@@ -180,20 +180,31 @@ export default function ArchiviPage() {
       }
 
       console.log(`✅ CSV parsato: ${parsed.data.length} righe`);
-      console.log('📋 Prime 3 righe CSV raw:', parsed.data.slice(0, 3));
+      console.log('📋 Prime 5 righe CSV raw:', parsed.data.slice(0, 5));
       
-      // Iniziamo dalla riga 1 (riga 0 potrebbe essere la categoria)
-      // Cerchiamo la prima riga con dati significativi
+      // Cerchiamo la riga di intestazione per identificare le colonne
+      let headerRow = -1;
       let startRow = 0;
+      
       for (let i = 0; i < parsed.data.length; i++) {
         const row = parsed.data[i];
-        // Se la riga ha almeno un valore non vuoto nella prima colonna, è probabilmente dati
-        if (row[0] && row[0].trim() && 
-            !row[0].toLowerCase().includes('bollicine') && 
-            !row[0].toLowerCase().includes('nome') &&
-            !row[0].toLowerCase().includes('vino')) {
-          startRow = i;
-          break;
+        if (row && row.length > 0) {
+          // Cerca una riga che contenga intestazioni delle colonne
+          const rowText = row.join('').toLowerCase();
+          if (rowText.includes('nome') || rowText.includes('vino') || rowText.includes('produttore')) {
+            headerRow = i;
+            startRow = i + 1;
+            console.log(`📋 Intestazioni trovate alla riga ${i}:`, row);
+            break;
+          }
+          // Se la prima colonna ha un nome vino valido, inizia da qui
+          if (row[0] && row[0].trim() && 
+              !row[0].toLowerCase().includes('bollicine') && 
+              row[0].length > 3) {
+            startRow = i;
+            console.log(`📋 Prima riga dati trovata alla riga ${i}:`, row);
+            break;
+          }
         }
       }
 
@@ -201,28 +212,39 @@ export default function ArchiviPage() {
       console.log(`📋 Righe dati (partendo da riga ${startRow}): ${dataRows.length}`);
 
       // Mappiamo i dati alle colonne della tabella
+      // Basandoci sulle immagini: NOME VINO, ANNO, PRODUTTORE, PROVENIENZA, FORNITORE, COSTO, VENDITA, MARGINE
       const winesFromCsv: WineRow[] = dataRows
-        .filter(row => row[0] && row[0].trim()) // Solo righe con nome vino non vuoto
+        .filter(row => row && row[0] && row[0].trim()) // Solo righe con nome vino non vuoto
         .map((row, index) => {
           const mappedRow = {
             id: `csv-${categoria}-${index}`,
-            nomeVino: row[0]?.trim() || '', // Colonna A
-            anno: row[1]?.trim() || '',      // Colonna B  
-            produttore: row[2]?.trim() || '', // Colonna C
-            provenienza: row[3]?.trim() || '', // Colonna D
-            fornitore: row[4]?.trim() || '',  // Colonna E
-            costo: row[5]?.trim() || '',      // Colonna F
-            vendita: row[6]?.trim() || '',    // Colonna G
-            margine: row[7]?.trim() || '',    // Colonna H
+            nomeVino: row[0]?.trim() || '',    // Colonna 0: Nome Vino
+            anno: row[1]?.trim() || '',        // Colonna 1: Anno  
+            produttore: row[2]?.trim() || '',  // Colonna 2: Produttore
+            provenienza: row[3]?.trim() || '', // Colonna 3: Provenienza
+            fornitore: row[4]?.trim() || '',   // Colonna 4: Fornitore
+            costo: row[5]?.trim() || '',       // Colonna 5: Costo
+            vendita: row[6]?.trim() || '',     // Colonna 6: Vendita ⭐ Questo è il campo che mancava!
+            margine: row[7]?.trim() || '',     // Colonna 7: Margine
             giacenza: 0
           };
 
-          // Debug delle prime righe mappate
+          // Debug delle prime righe mappate con maggior dettaglio
           if (index < 3) {
-            console.log(`📊 Riga ${index + 1} mappata:`, {
+            console.log(`📊 Riga ${index + 1} mappata dettagliata:`, {
               tipologia: categoria,
-              raw: row,
-              mapped: mappedRow
+              rawLength: row.length,
+              rawData: row,
+              mappedData: {
+                nomeVino: mappedRow.nomeVino,
+                anno: mappedRow.anno,
+                produttore: mappedRow.produttore,
+                provenienza: mappedRow.provenienza,
+                fornitore: mappedRow.fornitore,
+                costo: mappedRow.costo,
+                vendita: mappedRow.vendita, // ⭐ Verifichiamo questo campo
+                margine: mappedRow.margine
+              }
             });
           }
 
