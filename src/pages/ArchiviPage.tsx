@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useWines } from '../hooks/useWines';
 import { useTipologie } from '../hooks/useTipologie';
+import Papa from 'papaparse';
 
 import { supabase, authManager } from '../lib/supabase';
 import ImportaVini from "../components/ImportaVini";
@@ -152,6 +153,96 @@ export default function ArchiviPage() {
   // Stato per auto-save silenzioso
   const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
 
+  // URL CSV per le categorie vini
+  const csvUrls = {
+    'BOLLICINE ITALIANE': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=294419425&single=true&output=csv'
+  };
+
+  // Funzione per scaricare e parsare CSV
+  const fetchAndParseCSV = async (url: string, categoria: string) => {
+    try {
+      console.log(`📥 Caricamento dati CSV per categoria: ${categoria}`);
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Errore HTTP: ${response.status}`);
+      }
+      
+      const csvText = await response.text();
+      console.log(`📄 CSV ricevuto (${csvText.length} caratteri)`);
+
+      const parsed = Papa.parse<string[]>(csvText, {
+        skipEmptyLines: false, // Manteniamo anche le righe vuote per preservare la struttura
+      });
+
+      if (parsed.errors.length > 0) {
+        console.warn('⚠️ Errori nel parsing CSV:', parsed.errors);
+      }
+
+      console.log(`✅ CSV parsato: ${parsed.data.length} righe`);
+      
+      // Rimuoviamo solo la prima riga (intestazioni) se presente
+      const dataRows = parsed.data.length > 0 ? parsed.data.slice(1) : [];
+      console.log(`📋 Righe dati dopo rimozione header: ${dataRows.length}`);
+
+      // Mappiamo i dati alle colonne della tabella
+      const winesFromCsv: WineRow[] = dataRows.map((row, index) => {
+        const mappedRow = {
+          id: `csv-${categoria}-${index}`,
+          nomeVino: row[0] || '', // Colonna A
+          anno: row[1] || '',      // Colonna B  
+          produttore: row[2] || '', // Colonna C
+          provenienza: row[3] || '', // Colonna D
+          fornitore: row[4] || '',  // Colonna E
+          costo: row[5] || '',      // Colonna F
+          vendita: row[6] || '',    // Colonna G
+          margine: row[7] || '',    // Colonna H
+          giacenza: 0
+        };
+
+        // Debug della prima riga mappata
+        if (index === 0) {
+          console.log('📊 Esempio prima riga mappata:', {
+            tipologia: categoria,
+            nomevino: mappedRow.nomeVino,
+            anno: mappedRow.anno,
+            produttore: mappedRow.produttore,
+            provenienza: mappedRow.provenienza,
+            fornitore: mappedRow.fornitore,
+            costo: mappedRow.costo,
+            vendita: mappedRow.vendita,
+            margine: mappedRow.margine,
+            giacenza: mappedRow.giacenza
+          });
+        }
+
+        return mappedRow;
+      });
+
+      // Aggiungi righe vuote per completare a 100
+      const emptyRows = Array.from({ length: Math.max(0, 100 - winesFromCsv.length) }, (_, index) => ({
+        id: `empty-${winesFromCsv.length + index}`,
+        nomeVino: '',
+        anno: '',
+        produttore: '',
+        provenienza: '',
+        costo: '',
+        vendita: '',
+        margine: '',
+        giacenza: 0,
+        fornitore: ''
+      }));
+
+      const finalRows = [...winesFromCsv, ...emptyRows];
+      setWineRows(finalRows);
+      console.log(`📊 Tabella aggiornata: ${winesFromCsv.length} vini CSV + ${emptyRows.length} righe vuote`);
+
+    } catch (error) {
+      console.error(`❌ Errore nel caricamento CSV per ${categoria}:`, error);
+      alert(`Errore nel caricamento dati per ${categoria}: ${error}`);
+    }
+  };
+
     // State for font size (in pixels) - dinamico per tablet
     const [fontSize, setFontSize] = useState<number>(() => {
       // Rileva se è tablet in landscape
@@ -290,55 +381,63 @@ export default function ArchiviPage() {
   useEffect(() => {
     console.log('📋 Sincronizzazione vini dal database:', existingWines?.length || 0);
 
-    // Trasforma i vini dal database al formato della tabella
-    const winesFromDb = (existingWines || []).map((wine, index) => {
-      // Estrai costo e prezzo dal database se disponibili
-      const costo = (wine as any).costo || 0;
-      const prezzo = parseFloat(wine.price) || 0;
+    // Se abbiamo vini dal database, usa quelli
+    if (existingWines && existingWines.length > 0) {
+      // Trasforma i vini dal database al formato della tabella
+      const winesFromDb = (existingWines || []).map((wine, index) => {
+        // Estrai costo e prezzo dal database se disponibili
+        const costo = (wine as any).costo || 0;
+        const prezzo = parseFloat(wine.price) || 0;
 
-      // Calcola margine se entrambi i valori sono disponibili
-      let margine = '';
-      if (costo > 0 || prezzo > 0) {
-        const margineCalcolato = prezzo - costo;
-        let percentuale = '';
-        if (costo > 0) {
-          const percentualeCalcolata = (margineCalcolato / costo) * 100;
-          percentuale = ` (${percentualeCalcolata.toFixed(1)}%)`;
+        // Calcola margine se entrambi i valori sono disponibili
+        let margine = '';
+        if (costo > 0 || prezzo > 0) {
+          const margineCalcolato = prezzo - costo;
+          let percentuale = '';
+          if (costo > 0) {
+            const percentualeCalcolata = (margineCalcolato / costo) * 100;
+            percentuale = ` (${percentualeCalcolata.toFixed(1)}%)`;
+          }
+          margine = `${margineCalcolato.toFixed(2)}${percentuale}`;
         }
-        margine = `${margineCalcolato.toFixed(2)}${percentuale}`;
+
+        return {
+          id: `db-${wine.id}`,
+          nomeVino: wine.name || '',
+          anno: wine.vintage || '', // ✅ Ora wine.vintage contiene correttamente l'anno
+          produttore: wine.description || '', // Nel db description contiene il produttore
+          provenienza: wine.region || '',
+          costo: costo > 0 ? costo.toString() : '', // Converti costo in stringa per la visualizzazione
+          vendita: wine.price || '',
+          margine: margine,
+          giacenza: wine.inventory || 0,
+          fornitore: wine.supplier || ''
+        };
+      });
+
+      // Aggiungi righe vuote per completare a 100
+      const emptyRows = Array.from({ length: Math.max(0, 100 - winesFromDb.length) }, (_, index) => ({
+        id: `row-${winesFromDb.length + index}`,
+        nomeVino: '',
+        anno: '',
+        produttore: '',
+        provenienza: '',
+        costo: '',
+        vendita: '',
+        margine: '',
+        giacenza: 0,
+        fornitore: ''
+      }));
+
+      setWineRows([...winesFromDb, ...emptyRows]);
+      console.log(`✅ Tabella sincronizzata: ${winesFromDb.length} vini dal DB + ${emptyRows.length} righe vuote`);
+    } else {
+      // Se non abbiamo vini dal database e siamo su BOLLICINE ITALIANE, carica CSV
+      if (activeTab === 'BOLLICINE ITALIANE' && csvUrls[activeTab]) {
+        fetchAndParseCSV(csvUrls[activeTab], activeTab);
       }
-
-      return {
-        id: `db-${wine.id}`,
-        nomeVino: wine.name || '',
-        anno: wine.vintage || '', // ✅ Ora wine.vintage contiene correttamente l'anno
-        produttore: wine.description || '', // Nel db description contiene il produttore
-        provenienza: wine.region || '',
-        costo: costo > 0 ? costo.toString() : '', // Converti costo in stringa per la visualizzazione
-        vendita: wine.price || '',
-        margine: margine,
-        giacenza: wine.inventory || 0,
-        fornitore: wine.supplier || ''
-      };
-    });
-
-    // Aggiungi righe vuote per completare a 100
-    const emptyRows = Array.from({ length: Math.max(0, 100 - winesFromDb.length) }, (_, index) => ({
-      id: `row-${winesFromDb.length + index}`,
-      nomeVino: '',
-      anno: '',
-      produttore: '',
-      provenienza: '',
-      costo: '',
-      vendita: '',
-      margine: '',
-      giacenza: 0,
-      fornitore: ''
-    }));
-
-    setWineRows([...winesFromDb, ...emptyRows]);
-    console.log(`✅ Tabella sincronizzata: ${winesFromDb.length} vini dal DB + ${emptyRows.length} righe vuote`);
-  }, [existingWines]);
+    }
+  }, [existingWines, activeTab]);
 
 
 
@@ -1046,7 +1145,13 @@ export default function ArchiviPage() {
               ].map((category, index) => (
                 <button
                   key={category}
-                  onClick={() => setActiveTab(category)}
+                  onClick={() => {
+                    setActiveTab(category);
+                    // Carica automaticamente i dati CSV per BOLLICINE ITALIANE
+                    if (category === 'BOLLICINE ITALIANE' && csvUrls[category]) {
+                      fetchAndParseCSV(csvUrls[category], category);
+                    }
+                  }}
                   className={`px-6 py-3 font-semibold text-sm rounded-lg transition-all duration-200 border-2 ${
                     activeTab === category
                       ? 'bg-amber-700 text-cream border-amber-500 shadow-lg'
