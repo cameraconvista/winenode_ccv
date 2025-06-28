@@ -20,6 +20,7 @@ interface WineRow {
   provenienza: string;
   giacenza: number;
   fornitore: string;
+  tipologia?: string;
 }
 
 export default function ArchiviPage() {
@@ -225,7 +226,98 @@ export default function ArchiviPage() {
     return { fontSize: `${adjustedSize}px` };
   };
 
-  // Fetch & parse CSV from Google Sheets
+  // Carica tutti i CSV all'avvio per avere tutti i fornitori
+  const loadAllCSVData = async () => {
+    const allWines: WineRow[] = [];
+
+    for (const [categoria, url] of Object.entries(csvUrls)) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) continue;
+        const csvText = await response.text();
+
+        const parsed = Papa.parse<string[]>(csvText, { skipEmptyLines: false });
+
+        let startRow = 0;
+
+        for (let i = 0; i < parsed.data.length; i++) {
+          const row = parsed.data[i];
+          if (row && row.length > 0) {
+            const firstCell = row[0]?.trim().toUpperCase() || "";
+
+            if (
+              [
+                "BIANCHI",
+                "BOLLICINE",
+                "BOLLICINE ITALIANE",
+                "BOLLICINE FRANCESI",
+                "ROSSI",
+                "ROSATI",
+                "VINI DOLCI",
+              ].includes(firstCell) ||
+              firstCell.includes("BOLLICINE")
+            ) continue;
+
+            const rowText = row.join("").toLowerCase();
+
+            if (
+              rowText.includes("nome vino") ||
+              rowText.includes("produttore") ||
+              rowText.includes("provenienza") ||
+              rowText.includes("fornitore") ||
+              rowText.includes("costo") ||
+              rowText.includes("vendita") ||
+              rowText.includes("margine") ||
+              rowText.includes("giacenza") ||
+              firstCell === "NOME VINO" ||
+              firstCell === "ANNO" ||
+              firstCell === "PRODUTTORE"
+            ) {
+              startRow = i + 1;
+              continue;
+            }
+
+            if (
+              row[0] &&
+              row[0].trim() &&
+              row[0].length > 3 &&
+              !firstCell.includes("VINI") &&
+              !firstCell.includes("BOLLICINE") &&
+              !firstCell.includes("BIANCHI") &&
+              !firstCell.includes("ROSSI") &&
+              !firstCell.includes("ROSATI")
+            ) {
+              startRow = i;
+              break;
+            }
+          }
+        }
+
+        const dataRows = parsed.data.slice(startRow);
+
+        const winesFromCsv: WineRow[] = dataRows
+          .filter((row) => row && row[0] && row[0].trim())
+          .map((row, index) => ({
+            id: `csv-${categoria}-${index}`,
+            nomeVino: row[0]?.trim() || "",
+            anno: row[1]?.trim() || "",
+            produttore: row[2]?.trim() || "",
+            provenienza: row[3]?.trim() || "",
+            fornitore: row[4]?.trim() || "",
+            giacenza: 0,
+            tipologia: categoria, // Aggiungi la tipologia per il filtro
+          }));
+
+        allWines.push(...winesFromCsv);
+      } catch (error) {
+        console.error(`Errore nel caricamento dati per ${categoria}:`, error);
+      }
+    }
+
+    setAllWineRows(allWines);
+  };
+
+  // Fetch & parse CSV from Google Sheets per tipologia specifica
   const fetchAndParseCSV = async (url: string, categoria: string) => {
     try {
       const response = await fetch(url);
@@ -324,11 +416,14 @@ export default function ArchiviPage() {
     }
   };
 
-  // Estrai fornitori unici dalla colonna fornitore dei vini
+  // Mantieni tutti i vini caricati da tutte le tipologie per il conteggio fornitori
+  const [allWineRows, setAllWineRows] = useState<WineRow[]>([]);
+
+  // Estrai fornitori unici da TUTTI i vini (non solo dalla tipologia corrente)
   useEffect(() => {
     const estraiFornitori = () => {
       const fornitoriUnici = Array.from(new Set(
-        wineRows
+        allWineRows
           .map(wine => wine.fornitore?.trim())
           .filter(fornitore => fornitore && fornitore.length > 0)
       )).sort();
@@ -337,7 +432,14 @@ export default function ArchiviPage() {
     };
 
     estraiFornitori();
-  }, [wineRows]);
+  }, [allWineRows]);
+
+  // Carica tutti i CSV all'avvio per avere tutti i fornitori
+  useEffect(() => {
+    if (!existingWines || existingWines.length === 0) {
+      loadAllCSVData();
+    }
+  }, []);
 
   // Sync wines from DB or CSV on mount or activeTab change
   useEffect(() => {
@@ -366,6 +468,8 @@ export default function ArchiviPage() {
       );
 
       setWineRows([...winesFromDb, ...emptyRows]);
+      // Aggiungi i vini dal DB anche ad allWineRows
+      setAllWineRows(prev => [...prev, ...winesFromDb]);
     } else if (csvUrls[activeTab as keyof typeof csvUrls]) {
       fetchAndParseCSV(csvUrls[activeTab as keyof typeof csvUrls], activeTab);
     }
@@ -659,15 +763,15 @@ export default function ArchiviPage() {
   const rowHeight = fontSize * 2.5;
 
   const filteredRows = useMemo(() => {
-    return wineRows.filter(row => {
-      // Se il filtro modale è attivo, usa quello
-      if (modalFilters.isActive) {
+    // Se il filtro modale è attivo, filtra da TUTTI i vini
+    if (modalFilters.isActive) {
+      return allWineRows.filter(row => {
         const matchesModalFornitore = !modalFilters.fornitore || 
           row.fornitore?.toLowerCase().includes(modalFilters.fornitore.toLowerCase())
         
         const matchesModalTipologie = modalFilters.tipologie.length === 0 || 
-          modalFilters.tipologie.includes(activeTab) ||
-          modalFilters.tipologie.includes('TUTTE')
+          modalFilters.tipologie.includes('TUTTE') ||
+          modalFilters.tipologie.includes(row.tipologia || activeTab)
         
         const matchesSearch = !filters.search || 
           row.nomeVino?.toLowerCase().includes(filters.search.toLowerCase()) ||
@@ -675,9 +779,11 @@ export default function ArchiviPage() {
           row.provenienza?.toLowerCase().includes(filters.search.toLowerCase())
 
         return matchesModalFornitore && matchesModalTipologie && matchesSearch
-      }
+      })
+    }
 
-      // Altrimenti usa i filtri normali
+    // Altrimenti usa solo i vini della tipologia corrente
+    return wineRows.filter(row => {
       const matchesTipologia = !filters.tipologia || row.tipologia === filters.tipologia
       const matchesSearch = !filters.search || 
         row.nomeVino?.toLowerCase().includes(filters.search.toLowerCase()) ||
@@ -688,7 +794,7 @@ export default function ArchiviPage() {
 
       return matchesTipologia && matchesSearch && matchesFornitore
     })
-  }, [wineRows, filters, modalFilters, activeTab])
+  }, [wineRows, allWineRows, filters, modalFilters, activeTab])
 
   return (
     <div
@@ -1421,7 +1527,7 @@ export default function ArchiviPage() {
                         <div className="flex-1">
                           <div className="font-medium">{fornitore}</div>
                           <div className="text-sm opacity-70">
-                            {wineRows.filter(wine => wine.fornitore === fornitore).length} vini
+                            {allWineRows.filter(wine => wine.fornitore === fornitore).length} vini
                           </div>
                         </div>
                       </div>
