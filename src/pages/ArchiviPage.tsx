@@ -579,8 +579,8 @@ export default function ArchiviPage() {
         let margineDisplay = margineEuro.toFixed(2);
 
         if (costo > 0) {
-          const moltiplicatore = vendita / costo;
-          margineDisplay += ` (per ${moltiplicatore.toFixed(1)})`;
+          const marginePercentuale = (margineEuro / costo) * 100;
+          margineDisplay += ` (${marginePercentuale.toFixed(1)}%)`;
         }
 
         updatedRows[rowIndex].margine = margineDisplay;
