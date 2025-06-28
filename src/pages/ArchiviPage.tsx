@@ -389,19 +389,19 @@ export default function ArchiviPage() {
             console.log('📋 Intestazioni CSV:', Object.keys(results.data[0]));
           }
           
-          // Converti i dati CSV in formato tabella
+          // Converti i dati CSV in formato tabella usando il mapping corretto
           const csvWines = results.data.map((row: any, index: number) => ({
             id: `csv-${category}-${index}`,
-            tipologia: category,
-            nomeVino: row.NAME || row.name || row.Nome || '', // Prova diversi nomi colonna
-            anno: row.YEAR || row.year || row.Anno || '',
-            produttore: row.PRODUCER || row.producer || row.Produttore || '',
-            provenienza: row.REGION || row.region || row.Provenienza || '',
-            costo: row.COST || row.cost || row.Costo || '',
-            vendita: row.PRICE || row.price || row.Prezzo || '',
-            margine: '',
-            giacenza: parseInt(row.STOCK || row.stock || row.Giacenza || '0') || 0,
-            fornitore: row.SUPPLIER || row.supplier || row.Fornitore || ''
+            tipologia: category, // La tipologia viene dal TAB selezionato
+            nomeVino: row['_1'] || '',
+            anno: row['_2'] || '',
+            produttore: row['_3'] || '',
+            provenienza: row['_4'] || '',
+            fornitore: row['_5'] || '',
+            costo: row['_6'] || '',
+            vendita: row['_7'] || '',
+            margine: '', // Calcolabile dopo se necessario
+            giacenza: 0  // Valore iniziale fisso
           }));
 
           // Aggiungi righe vuote per completare a 100
