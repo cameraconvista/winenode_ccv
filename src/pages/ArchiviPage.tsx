@@ -384,6 +384,11 @@ export default function ArchiviPage() {
         complete: (results) => {
           console.log(`✅ CSV parsato: ${results.data.length} righe`);
           
+          // Log delle intestazioni per debug
+          if (results.data.length > 0) {
+            console.log('📋 Intestazioni CSV:', Object.keys(results.data[0]));
+          }
+          
           // Converti i dati CSV in formato tabella
           const csvWines = results.data.map((row: any, index: number) => ({
             id: `csv-${category}-${index}`,
