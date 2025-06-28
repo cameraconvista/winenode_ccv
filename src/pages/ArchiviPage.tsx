@@ -52,10 +52,7 @@ export default function ArchiviPage() {
   // State for add rows panel
   const [showAddRowsPanel, setShowAddRowsPanel] = useState(false);
 
-  // State for inventory modal
-  const [showInventoryModal, setShowInventoryModal] = useState(false);
-  const [selectedRowForInventory, setSelectedRowForInventory] = useState<number | null>(null);
-  const [tempInventory, setTempInventory] = useState<number>(0);
+  
 
   // Debug completo per identificare problemi
   useEffect(() => {
@@ -601,30 +598,7 @@ export default function ArchiviPage() {
     setWineRows(prev => [...prev, newRow]);
   };
 
-  const handleInventoryClick = (rowIndex: number) => {
-    setSelectedRowForInventory(rowIndex);
-    setTempInventory(wineRows[rowIndex].giacenza);
-    setShowInventoryModal(true);
-  };
-
-  const handleInventoryUpdate = (newInventory: number) => {
-    if (selectedRowForInventory !== null) {
-      setWineRows(prev => prev.map((row, index) => 
-        index === selectedRowForInventory 
-          ? { ...row, giacenza: newInventory }
-          : row
-      ));
-    }
-    setShowInventoryModal(false);
-    setSelectedRowForInventory(null);
-    setTempInventory(0);
-  };
-
-  const handleInventoryCancel = () => {
-    setShowInventoryModal(false);
-    setSelectedRowForInventory(null);
-    setTempInventory(0);
-  };
+  
 
   const addRows = (count: number) => {
     const newRows: WineRow[] = Array.from({ length: count }, (_, index) => ({
@@ -1288,14 +1262,15 @@ export default function ArchiviPage() {
                           -
                         </button>
 
-                        {/* Valore giacenza cliccabile */}
-                        <button
-                          onClick={() => handleInventoryClick(index)}
-                          className="px-1 py-2 text-center text-gray-600 font-bold hover:bg-amber-200 transition-colors select-none flex-1"
-                          style={{ fontSize: `${fontSize}px`, userSelect: 'none', height: '40px', lineHeight: 'normal' }}
-                        >
-                          {row.giacenza}
-                        </button>
+                        {/* Input diretto per giacenza */}
+                        <input
+                          type="number"
+                          value={row.giacenza}
+                          onChange={(e) => handleCellChange(index, 'giacenza', e.target.value)}
+                          className="w-full px-1 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none font-bold"
+                          style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
+                          min="0"
+                        />
 
                         {/* Pulsante più - visibile solo al hover */}
                         <button
@@ -1385,34 +1360,7 @@ export default function ArchiviPage() {
         </div>
       </footer>
 
-      {/* Inventory Modal */}
-      {showInventoryModal && (
-        <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-white p-6 rounded-md shadow-lg">
-            <h2 className="text-lg font-semibold mb-4">Modifica Giacenza</h2>
-            <input
-              type="number"
-              value={tempInventory}
-              onChange={(e) => setTempInventory(Number(e.target.value))}
-              className="w-full px-3 py-2 border rounded-md mb-4"
-            />
-            <div className="flex justify-end">
-              <button
-                onClick={handleInventoryCancel}
-                className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400 transition-colors"
-              >
-                Annulla
-              </button>
-              <button
-                onClick={() => handleInventoryUpdate(tempInventory)}
-                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-              >
-                Salva
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      
 
       {/* Tipologie Modal */}
       {showTipologieModal && (
