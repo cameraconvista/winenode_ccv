@@ -23,9 +23,6 @@ interface WineRow {
   anno: string;
   produttore: string;
   provenienza: string;
-  costo: string;
-  vendita: string;
-  margine: string;
   giacenza: number;
   fornitore: string;
 }
@@ -44,9 +41,6 @@ export default function ArchiviPage() {
       anno: '',
       produttore: '',
       provenienza: '',
-      costo: '',
-      vendita: '',
-      margine: '',
       giacenza: 0,
       fornitore: ''
     }))
@@ -246,27 +240,10 @@ export default function ArchiviPage() {
       console.log(`📋 Righe dati (partendo da riga ${startRow}): ${dataRows.length}`);
 
       // Mappiamo i dati alle colonne della tabella
-      // Ordine colonne CSV: NOME VINO, ANNO, PRODUTTORE, PROVENIENZA, FORNITORE, COSTO, VENDITA, MARGINE
+      // Ordine colonne CSV: NOME VINO, ANNO, PRODUTTORE, PROVENIENZA, FORNITORE
       const winesFromCsv: WineRow[] = dataRows
         .filter(row => row && row[0] && row[0].trim()) // Solo righe con nome vino non vuoto
         .map((row, index) => {
-          // Pulisci e valida il costo dal CSV
-          const costoRaw = row[5]?.trim() || '';
-          const costoValue = costoRaw ? parseFloat(costoRaw.replace(/[€$,]/g, '').replace(',', '.')) : 0;
-          const costoString = costoValue > 0 ? costoValue.toString() : '';
-
-          // Pulisci e valida la vendita dal CSV
-          const venditaRaw = row[6]?.trim() || '';
-          const venditaValue = venditaRaw ? parseFloat(venditaRaw.replace(/[€$,]/g, '').replace(',', '.')) : 0;
-          const venditaString = venditaValue > 0 ? venditaValue.toString() : '';
-
-          // Calcola margine se entrambi i valori sono disponibili
-          let margineString = '';
-          if (costoValue > 0 && venditaValue > 0) {
-            const margineEuro = venditaValue - costoValue;
-            margineString = margineEuro.toFixed(2);
-          }
-
           const mappedRow = {
             id: `csv-${categoria}-${index}`,
             nomeVino: row[0]?.trim() || '',        // Colonna 0: Nome Vino
@@ -274,9 +251,6 @@ export default function ArchiviPage() {
             produttore: row[2]?.trim() || '',      // Colonna 2: Produttore
             provenienza: row[3]?.trim() || '',     // Colonna 3: Provenienza
             fornitore: row[4]?.trim() || '',       // Colonna 4: Fornitore
-            costo: costoString,                    // Colonna 5: Costo (dal CSV, pulito)
-            vendita: venditaString,                // Colonna 6: Vendita (dal CSV, pulito)
-            margine: margineString,                // Colonna 7: Margine (calcolato)
             giacenza: 0
           };
 
@@ -286,17 +260,12 @@ export default function ArchiviPage() {
               tipologia: categoria,
               rawLength: row.length,
               rawData: row,
-              rawCosto: costoRaw,
-              rawVendita: venditaRaw,
               mappedData: {
                 nomeVino: mappedRow.nomeVino,
                 anno: mappedRow.anno,
                 produttore: mappedRow.produttore,
                 provenienza: mappedRow.provenienza,
-                fornitore: mappedRow.fornitore,
-                costo: mappedRow.costo,
-                vendita: mappedRow.vendita,
-                margine: mappedRow.margine
+                fornitore: mappedRow.fornitore
               }
             });
           }
@@ -311,9 +280,6 @@ export default function ArchiviPage() {
         anno: '',
         produttore: '',
         provenienza: '',
-        costo: '',
-        vendita: '',
-        margine: '',
         giacenza: 0,
         fornitore: ''
       }));
@@ -343,17 +309,14 @@ export default function ArchiviPage() {
 
   // Larghezze predefinite delle colonne (ottimizzate per tablet)
   const defaultColumnWidths = {
-    '#': '2.4%',
-    'nomeVino': '20%',
-    'anno': '6%',
-    'produttore': '16%',
-    'provenienza': '12%',
-    'fornitore': '11%',
-    'costo': '6%',
-    'vendita': '6%',
-    'margine': '10%',
-    'giacenza': '4%',
-    'azioni': '5%'
+    '#': '3%',
+    'nomeVino': '30%',
+    'anno': '8%',
+    'produttore': '25%',
+    'provenienza': '20%',
+    'fornitore': '18%',
+    'giacenza': '6%',
+    'azioni': '6%'
   };
 
   // Funzione per caricare larghezze salvate dal localStorage
@@ -470,31 +433,12 @@ export default function ArchiviPage() {
     if (existingWines && existingWines.length > 0) {
       // Trasforma i vini dal database al formato della tabella
       const winesFromDb = (existingWines || []).map((wine, index) => {
-        // Estrai costo e prezzo dal database se disponibili
-        const costo = (wine as any).costo || 0;
-        const prezzo = parseFloat(wine.price) || 0;
-
-        // Calcola margine se entrambi i valori sono disponibili
-        let margine = '';
-        if (costo > 0 || prezzo > 0) {
-          const margineCalcolato = prezzo - costo;
-          let percentuale = '';
-          if (costo > 0) {
-            const percentualeCalcolata = (margineCalcolato / costo) * 100;
-            percentuale = ` (${percentualeCalcolata.toFixed(1)}%)`;
-          }
-          margine = `${margineCalcolato.toFixed(2)}${percentuale}`;
-        }
-
         return {
           id: `db-${wine.id}`,
           nomeVino: wine.name || '',
           anno: wine.vintage || '', // ✅ Ora wine.vintage contiene correttamente l'anno
           produttore: wine.description || '', // Nel db description contiene il produttore
           provenienza: wine.region || '',
-          costo: costo > 0 ? costo.toString() : '', // Converti costo in stringa per la visualizzazione
-          vendita: wine.price || '',
-          margine: margine,
           giacenza: wine.inventory || 0,
           fornitore: wine.supplier || ''
         };
@@ -507,9 +451,6 @@ export default function ArchiviPage() {
         anno: '',
         produttore: '',
         provenienza: '',
-        costo: '',
-        vendita: '',
-        margine: '',
         giacenza: 0,
         fornitore: ''
       }));
@@ -622,27 +563,6 @@ export default function ArchiviPage() {
     const updatedRows = [...wineRows];
     updatedRows[rowIndex] = { ...updatedRows[rowIndex], [field]: value };
 
-    // Calcola margini se vengono modificati costo o vendita (solo per righe non CSV)
-    if ((field === 'costo' || field === 'vendita') && !updatedRows[rowIndex].id.startsWith('csv-')) {
-      // Pulisci i valori rimuovendo caratteri non numerici eccetto punto e virgola
-      const costoValue = field === 'costo' ? value : updatedRows[rowIndex].costo;
-      const venditaValue = field === 'vendita' ? value : updatedRows[rowIndex].vendita;
-      
-      // Converti virgole in punti e rimuovi simboli di valuta
-      const costoClean = costoValue.toString().replace(/[€$,]/g, '').replace(',', '.');
-      const venditaClean = venditaValue.toString().replace(/[€$,]/g, '').replace(',', '.');
-      
-      const costo = parseFloat(costoClean) || 0;
-      const vendita = parseFloat(venditaClean) || 0;
-
-      if (costo > 0 || vendita > 0) {
-        const margineEuro = vendita - costo;
-        updatedRows[rowIndex].margine = margineEuro.toFixed(2);
-      } else {
-        updatedRows[rowIndex].margine = '';
-      }
-    }
-
     setWineRows(updatedRows);
 
     // Debounce del salvataggio per questa riga specifica
@@ -675,9 +595,6 @@ export default function ArchiviPage() {
       anno: '',
       produttore: '',
       provenienza: '',
-      costo: '',
-      vendita: '',
-      margine: '',
       giacenza: 0,
       fornitore: ''
     };
@@ -716,9 +633,6 @@ export default function ArchiviPage() {
       anno: '',
       produttore: '',
       provenienza: '',
-      costo: '',
-      vendita: '',
-      margine: '',
       giacenza: 0,
       fornitore: ''
     }));
@@ -733,8 +647,6 @@ export default function ArchiviPage() {
              row.produttore.trim() !== '' ||
              row.provenienza.trim() !== '' ||
              row.fornitore.trim() !== '' ||
-             row.costo.trim() !== '' ||
-             row.vendita.trim() !== '' ||
              row.giacenza > 0;
     });
 
@@ -774,8 +686,6 @@ export default function ArchiviPage() {
         produttore: rowData.produttore || '',
         provenienza: rowData.provenienza || '',
         fornitore: rowData.fornitore || '',
-        costo: parseFloat(rowData.costo) || 0,
-        prezzo_vendita: parseFloat(rowData.vendita) || 0,
         giacenza: rowData.giacenza || 0,
         updated_at: new Date().toISOString()
       };
@@ -1201,9 +1111,6 @@ export default function ArchiviPage() {
                       anno: '',
                       produttore: '',
                       provenienza: '',
-                      costo: '',
-                      vendita: '',
-                      margine: '',
                       giacenza: 0,
                       fornitore: ''
                     })));
@@ -1337,48 +1244,6 @@ export default function ArchiviPage() {
                       </div>
                     </div>
                   </th>
-                  <th className="px-1 py-3 text-center align-middle font-bold text-white border border-amber-900 border-r-2 border-r-amber-900 uppercase bg-[#3b1d1d] backdrop-blur-sm relative group" style={{ width: columnWidths['costo'] }}>
-                    Costo €
-                    {/* Handle di resize */}
-                    <div
-                      className="absolute top-0 right-0 w-2 h-full cursor-col-resize group-hover:bg-amber-600/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                      onMouseDown={(e) => handleMouseDown(e, 'costo')}
-                      title="Ridimensiona colonna"
-                    >
-                      <div className="flex space-x-0.5">
-                        <div className="w-0.5 h-4 bg-amber-600"></div>
-                        <div className="w-0.5 h-4 bg-amber-600"></div>
-                      </div>
-                    </div>
-                  </th>
-                  <th className="px-1 py-3 text-center align-middle font-bold text-white border border-amber-900 border-r-2 border-r-amber-900 uppercase bg-[#3b1d1d] backdrop-blur-sm relative group" style={{ width: columnWidths['vendita'] }}>
-                    Vendita €
-                    {/* Handle di resize */}
-                    <div
-                      className="absolute top-0 right-0 w-2 h-full cursor-col-resize group-hover:bg-amber-600/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                      onMouseDown={(e) => handleMouseDown(e, 'vendita')}
-                      title="Ridimensiona colonna"
-                    >
-                      <div className="flex space-x-0.5">
-                        <div className="w-0.5 h-4 bg-amber-600"></div>
-                        <div className="w-0.5 h-4 bg-amber-600"></div>
-                      </div>
-                    </div>
-                  </th>
-                  <th className="px-3 py-3 text-center align-middle font-bold text-white border border-amber-900 border-r-2 border-r-amber-900 uppercase bg-[#3b1d1d] backdrop-blur-sm relative group" style={{ width: columnWidths['margine'] }}>
-                    Margine
-                    {/* Handle di resize */}
-                    <div
-                      className="absolute top-0 right-0 w-2 h-full cursor-col-resize group-hover:bg-amber-600/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                      onMouseDown={(e) => handleMouseDown(e, 'margine')}
-                      title="Ridimensiona colonna"
-                    >
-                      <div className="flex space-x-0.5">
-                        <div className="w-0.5 h-4 bg-amber-600"></div>
-                        <div className="w-0.5 h-4 bg-amber-600"></div>
-                      </div>
-                    </div>
-                  </th>
                   <th className="px-1 py-3 text-center align-middle font-bold text-white border border-amber-900 border-r-2 border-r-amber-900 uppercase bg-[#3b1d1d] backdrop-blur-sm relative group" style={{ width: columnWidths['giacenza'] }}>
                     GIACENZA
                     {/* Handle di resize */}
@@ -1463,63 +1328,6 @@ export default function ArchiviPage() {
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
-                    </td>
-                    <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['costo'] }}>
-                      {row.id.startsWith('csv-') ? (
-                        // Campo read-only per dati da CSV
-                        <div className="w-full px-1 py-2 text-center text-gray-500 font-medium select-none bg-gray-100" style={{ fontSize: `${fontSize}px`, userSelect: 'none', height: '40px', lineHeight: 'normal' }} title="Dati da Google Sheet (sola lettura)">
-                          {row.costo}
-                        </div>
-                      ) : (
-                        // Campo editabile per nuove righe
-                        <input
-                          type="text"
-                          inputMode="decimal"
-                          value={row.costo}
-                          onChange={(e) => {
-                            // Permetti solo numeri, punti e virgole
-                            const value = e.target.value.replace(/[^0-9.,]/g, '');
-                            handleCellChange(index, 'costo', value);
-                          }}
-                          className="w-full px-1 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
-                          style={{ 
-                            backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', 
-                            userSelect: 'none', 
-                            ...getFontSizeStyle(), 
-                            height: '40px', 
-                            lineHeight: 'normal',
-                            WebkitAppearance: 'none',
-                            MozAppearance: 'textfield'
-                          }}
-                        />
-                      )}
-                    </td>
-                    <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['vendita'] }}>
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        value={row.vendita}
-                        onChange={(e) => {
-                          // Permetti solo numeri, punti e virgole
-                          const value = e.target.value.replace(/[^0-9.,]/g, '');
-                          handleCellChange(index, 'vendita', value);
-                        }}
-                        className="w-full px-1 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
-                        style={{ 
-                          backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', 
-                          userSelect: 'none', 
-                          ...getFontSizeStyle(), 
-                          height: '40px', 
-                          lineHeight: 'normal',
-                          WebkitAppearance: 'none',
-                          MozAppearance: 'textfield'
-                        }}
-                      />
-                    </td>
-                    <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['margine'] }}>
-                      <div className="w-full px-2 py-2 text-center text-gray-600 font-medium select-none" style={{ fontSize: `${fontSize}px`, userSelect: 'none', height: '40px', lineHeight: 'normal' }}>
-                        {row.margine}
-                      </div>
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['giacenza'] }}>
                       <button
