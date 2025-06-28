@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useWines } from '../hooks/useWines';
 import { useTipologie } from '../hooks/useTipologie';
+import Papa from 'papaparse';
 
 import { supabase, authManager } from '../lib/supabase';
 import ImportaVini from "../components/ImportaVini";
@@ -121,6 +122,17 @@ export default function ArchiviPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
   const [activeTab, setActiveTab] = useState('BOLLICINE ITALIANE')
+  const [isLoadingTab, setIsLoadingTab] = useState(false)
+
+  // Mapping URLs CSV per ogni categoria
+  const csvUrls = {
+    'BOLLICINE ITALIANE': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=294419425&single=true&output=csv',
+    'BOLLICINE FRANCESI': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=700257433&single=true&output=csv',
+    'BIANCHI': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=2127910877&single=true&output=csv',
+    'ROSSI': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=254687727&single=true&output=csv',
+    'ROSATI': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=498630601&single=true&output=csv',
+    'VINI DOLCI': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=1582691495&single=true&output=csv'
+  }
 
   // Stati per la selezione del colore tipologia
   const [selectedColor, setSelectedColor] = useState('#cccccc');
@@ -344,6 +356,91 @@ export default function ArchiviPage() {
     setWineRows([...winesFromDb, ...emptyRows]);
     console.log(`✅ Tabella sincronizzata: ${winesFromDb.length} vini dal DB + ${emptyRows.length} righe vuote`);
   }, [existingWines]);
+
+  // Funzione per caricare i dati CSV dal Google Sheet
+  const loadCsvData = async (category: string) => {
+    const csvUrl = csvUrls[category as keyof typeof csvUrls];
+    if (!csvUrl) {
+      console.error(`URL CSV non trovato per la categoria: ${category}`);
+      return;
+    }
+
+    setIsLoadingTab(true);
+    console.log(`📥 Caricamento dati CSV per categoria: ${category}`);
+
+    try {
+      const response = await fetch(csvUrl);
+      if (!response.ok) {
+        throw new Error(`Errore HTTP: ${response.status}`);
+      }
+
+      const csvText = await response.text();
+      console.log(`📄 CSV ricevuto (${csvText.length} caratteri)`);
+
+      // Parse CSV con PapaParse
+      Papa.parse(csvText, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          console.log(`✅ CSV parsato: ${results.data.length} righe`);
+          
+          // Converti i dati CSV in formato tabella
+          const csvWines = results.data.map((row: any, index: number) => ({
+            id: `csv-${category}-${index}`,
+            tipologia: category,
+            nomeVino: row.NAME || row.name || row.Nome || '', // Prova diversi nomi colonna
+            anno: row.YEAR || row.year || row.Anno || '',
+            produttore: row.PRODUCER || row.producer || row.Produttore || '',
+            provenienza: row.REGION || row.region || row.Provenienza || '',
+            costo: row.COST || row.cost || row.Costo || '',
+            vendita: row.PRICE || row.price || row.Prezzo || '',
+            margine: '',
+            giacenza: parseInt(row.STOCK || row.stock || row.Giacenza || '0') || 0,
+            fornitore: row.SUPPLIER || row.supplier || row.Fornitore || ''
+          }));
+
+          // Aggiungi righe vuote per completare a 100
+          const emptyRows = Array.from({ length: Math.max(0, 100 - csvWines.length) }, (_, index) => ({
+            id: `empty-${category}-${index}`,
+            tipologia: '',
+            nomeVino: '',
+            anno: '',
+            produttore: '',
+            provenienza: '',
+            costo: '',
+            vendita: '',
+            margine: '',
+            giacenza: 0,
+            fornitore: ''
+          }));
+
+          const newWineRows = [...csvWines, ...emptyRows];
+          setWineRows(newWineRows);
+          
+          console.log(`📊 Tabella aggiornata: ${csvWines.length} vini CSV + ${emptyRows.length} righe vuote`);
+        },
+        error: (error) => {
+          console.error('❌ Errore nel parsing CSV:', error);
+        }
+      });
+
+    } catch (error) {
+      console.error(`❌ Errore nel caricamento CSV per ${category}:`, error);
+    } finally {
+      setIsLoadingTab(false);
+    }
+  };
+
+  // Funzione per gestire il cambio tab con caricamento dinamico
+  const handleTabChange = async (category: string) => {
+    setActiveTab(category);
+    await loadCsvData(category);
+  };
+
+  // Carica i dati della prima categoria al mount del componente
+  useEffect(() => {
+    loadCsvData('BOLLICINE ITALIANE');
+  }, []);
 
   // Filtro i vini in base al TAB selezionato
   const filteredWineRows = wineRows.filter(row => {
@@ -1070,8 +1167,9 @@ export default function ArchiviPage() {
               ].map((category, index) => (
                 <button
                   key={category}
-                  onClick={() => setActiveTab(category)}
-                  className={`px-6 py-3 font-semibold text-sm rounded-lg transition-all duration-200 border-2 ${
+                  onClick={() => handleTabChange(category)}
+                  disabled={isLoadingTab}
+                  className={`px-6 py-3 font-semibold text-sm rounded-lg transition-all duration-200 border-2 disabled:opacity-50 disabled:cursor-not-allowed ${
                     activeTab === category
                       ? 'bg-amber-700 text-cream border-amber-500 shadow-lg'
                       : 'bg-brown-800/60 text-cream/80 border-brown-600/40 hover:bg-brown-700/70 hover:border-brown-500/60'
@@ -1081,7 +1179,14 @@ export default function ArchiviPage() {
                     borderColor: activeTab === category ? '#f59e0b' : '#8b4513aa'
                   }}
                 >
-                  {category}
+                  {isLoadingTab && activeTab === category ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-cream border-t-transparent rounded-full animate-spin"></div>
+                      {category}
+                    </div>
+                  ) : (
+                    category
+                  )}
                 </button>
               ))}
             </div>
