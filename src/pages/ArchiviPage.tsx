@@ -1285,40 +1285,40 @@ export default function ArchiviPage() {
                     </td>
 
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['nomeVino'] }}>
-                      <div
-                        className="w-full px-2 py-2 text-gray-600 text-center cursor-not-allowed bg-gray-100"
-                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#E8E8E8', ...getFontSizeStyle(), height: '40px', lineHeight: '40px', opacity: 0.7 }}
-                        title="Campo di sola lettura"
-                      >
-                        {row.nomeVino}
-                      </div>
+                      <input
+                        type="text"
+                        value={row.nomeVino}
+                        onChange={(e) => handleCellChange(index, 'nomeVino', e.target.value)}
+                        className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
+                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
+                      />
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['anno'] }}>
-                      <div
-                        className="w-full px-2 py-2 text-gray-600 text-center cursor-not-allowed bg-gray-100"
-                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#E8E8E8', ...getFontSizeStyle(), height: '40px', lineHeight: '40px', opacity: 0.7 }}
-                        title="Campo di sola lettura"
-                      >
-                        {row.anno}
-                      </div>
+                      <input
+                        type="text"
+                        value={row.anno}
+                        onChange={(e) => handleCellChange(index, 'anno', e.target.value)}
+                        className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
+                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
+                      />
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['produttore'] }}>
-                      <div
-                        className="w-full px-2 py-2 text-gray-600 text-center cursor-not-allowed bg-gray-100"
-                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#E8E8E8', ...getFontSizeStyle(), height: '40px', lineHeight: '40px', opacity: 0.7 }}
-                        title="Campo di sola lettura"
-                      >
-                        {row.produttore}
-                      </div>
+                      <input
+                        type="text"
+                        value={row.produttore}
+                        onChange={(e) => handleCellChange(index, 'produttore', e.target.value)}
+                        className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
+                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
+                      />
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['provenienza'] }}>
-                      <div
-                        className="w-full px-2 py-2 text-gray-600 text-center cursor-not-allowed bg-gray-100"
-                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#E8E8E8', ...getFontSizeStyle(), height: '40px', lineHeight: '40px', opacity: 0.7 }}
-                        title="Campo di sola lettura"
-                      >
-                        {row.provenienza}
-                      </div>
+                      <input
+                        type="text"
+                        value={row.provenienza}
+                        onChange={(e) => handleCellChange(index, 'provenienza', e.target.value)}
+                        className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
+                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
+                      />
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['fornitore'] }}>
                       <input
