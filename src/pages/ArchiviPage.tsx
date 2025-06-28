@@ -162,12 +162,12 @@ export default function ArchiviPage() {
   const fetchAndParseCSV = async (url: string, categoria: string) => {
     try {
       console.log(`📥 Caricamento dati CSV per categoria: ${categoria}`);
-      
+
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`Errore HTTP: ${response.status}`);
       }
-      
+
       const csvText = await response.text();
       console.log(`📄 CSV ricevuto (${csvText.length} caratteri)`);
 
@@ -181,11 +181,11 @@ export default function ArchiviPage() {
 
       console.log(`✅ CSV parsato: ${parsed.data.length} righe`);
       console.log('📋 Prime 5 righe CSV raw:', parsed.data.slice(0, 5));
-      
+
       // Cerchiamo la riga di intestazione per identificare le colonne
       let headerRow = -1;
       let startRow = 0;
-      
+
       for (let i = 0; i < parsed.data.length; i++) {
         const row = parsed.data[i];
         if (row && row.length > 0) {
@@ -576,14 +576,7 @@ export default function ArchiviPage() {
 
       if (costo > 0 || vendita > 0) {
         const margineEuro = vendita - costo;
-        let margineDisplay = margineEuro.toFixed(2);
-
-        if (costo > 0) {
-          const marginePercentuale = (margineEuro / costo) * 100;
-          margineDisplay += ` (${marginePercentuale.toFixed(1)}%)`;
-        }
-
-        updatedRows[rowIndex].margine = margineDisplay;
+        updatedRows[rowIndex].margine = margineEuro.toFixed(2);
       }
     }
 
@@ -849,8 +842,8 @@ export default function ArchiviPage() {
 
                     // Elimina da Supabase solo se la riga ha un ID dal database
                     if (rowToDelete.id.startsWith('db-')) {
-                        const userId = authManager.getUserId();
-                        if (!userId) {
+                        const userId:w
+        if (!userId) {
                             throw new Error('ID utente non disponibile');
                         }
 
@@ -1210,7 +1203,7 @@ export default function ArchiviPage() {
                 <tr style={{ fontSize: `${fontSize}px`, lineHeight: `${lineHeight}px`, height: `${rowHeight}px` }}>
                   <th className="px-2 py-3 text-center align-middle font-bold text-white border border-amber-900 border-r-2 border-r-amber-900 uppercase bg-[#3b1d1d] backdrop-blur-sm" style={{ width: columnWidths['#'] }}>
                   </th>
-                  
+
                   <th className="px-3 py-3 text-center align-middle font-bold text-white border border-amber-900 border-r-2 border-r-amber-900 uppercase bg-[#3b1d1d] backdrop-blur-sm relative group" style={{ width: columnWidths['nomeVino'] }}>
                     Nome Vino
                     {/* Handle di resize */}
@@ -1362,7 +1355,7 @@ export default function ArchiviPage() {
                         {index + 1}
                       </div>
                     </td>
-                    
+
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['nomeVino'] }}>
                       <input
                         type="text"
@@ -1387,7 +1380,7 @@ export default function ArchiviPage() {
                         value={row.produttore}
                         onChange={(e) => handleCellChange(index, 'produttore', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
-                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
+                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight:normal' }}
                       />
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['provenienza'] }}>
