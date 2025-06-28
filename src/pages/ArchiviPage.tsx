@@ -977,19 +977,19 @@ export default function ArchiviPage() {
               </button>
 
               <div className="flex items-center gap-3">
-                <div className="flex items-center">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => {
                       setFontSize(prevSize => Math.max(10, prevSize - 5));
                     }}
-                    className="flex items-center justify-center px-2 py-2 bg-[#3A1E18] hover:border-[#A97B50] hover:shadow-md text-[#F5EEDC] rounded-l-lg transition-all text-sm font-bold"
+                    className="flex items-center justify-center px-2 py-2 bg-[#3A1E18] hover:border-[#A97B50] hover:shadow-md text-[#F5EEDC] rounded-md transition-all text-sm font-bold"
                     disabled={fontSize <= 10}
                     style={{ opacity: fontSize <= 10 ? 0.5 : 1 }}
                   >
                     -
                   </button>
                   <button
-                    className="flex items-center gap-2 px-3 py-2 bg-[#3A1E18] hover:border-[#A97B50] hover:shadow-md text-[#F5EEDC] transition-all text-sm font-medium border-l border-r border-gray-500"
+                    className="flex items-center gap-2 px-3 py-2 bg-[#3A1E18] hover:border-[#A97B50] hover:shadow-md text-[#F5EEDC] transition-all text-sm font-medium rounded-md"
                     style={{ cursor: 'default' }}
                   >
                     Aa
@@ -998,7 +998,7 @@ export default function ArchiviPage() {
                     onClick={() => {
                       setFontSize(prevSize => Math.min(24, prevSize + 5));
                     }}
-                    className="flex items-center justify-center px-2 py-2 bg-[#3A1E18] hover:border-[#A97B50] hover:shadow-md text-[#F5EEDC] rounded-r-lg transition-all text-sm font-bold"
+                    className="flex items-center justify-center px-2 py-2 bg-[#3A1E18] hover:border-[#A97B50] hover:shadow-md text-[#F5EEDC] rounded-md transition-all text-sm font-bold"
                     disabled={fontSize >= 24}
                     style={{ opacity: fontSize >= 24 ? 0.5 : 1 }}
                   >
