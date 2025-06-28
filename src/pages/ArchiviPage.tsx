@@ -146,6 +146,8 @@ export default function ArchiviPage() {
     search: '',
     fornitore: ''
   });
+  const [showFornitoreModal, setShowFornitoreModal] = useState(false);
+  const [fornitori, setFornitori] = useState<string[]>([]);
 
   // Resize colonne handlers
   const handleMouseDown = (e: React.MouseEvent, colKey: string) => {
@@ -316,6 +318,33 @@ export default function ArchiviPage() {
       alert(`Errore nel caricamento dati per ${categoria}: ${error}`);
     }
   };
+
+  // Carica fornitori da Supabase
+  useEffect(() => {
+    const loadFornitori = async () => {
+      try {
+        if (!authManager.isAuthenticated() || !supabase) return;
+        
+        const userId = authManager.getUserId();
+        if (!userId) return;
+
+        const { data, error } = await supabase
+          .from('fornitori')
+          .select('nome')
+          .eq('user_id', userId)
+          .order('nome');
+
+        if (!error && data) {
+          const nomi = data.map(f => f.nome);
+          setFornitori(nomi);
+        }
+      } catch (error) {
+        console.error('Errore caricamento fornitori:', error);
+      }
+    };
+
+    loadFornitori();
+  }, []);
 
   // Sync wines from DB or CSV on mount or activeTab change
   useEffect(() => {
@@ -715,15 +744,31 @@ export default function ArchiviPage() {
                 className="flex-1 px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-cream placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
 
-              <input
-                type="text"
-                placeholder="Filtra per fornitore..."
-                value={filters.fornitore}
-                onChange={(e) => setFilters({ ...filters, fornitore: e.target.value })}
-                className="px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-cream placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 min-w-[200px]"
-              />
+              <button
+                onClick={() => setShowFornitoreModal(true)}
+                className="px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-cream hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500 min-w-[200px] text-left flex items-center justify-between"
+              >
+                <span>{filters.fornitore || 'Filtra per fornitore...'}</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
             </div>
             <div className="flex items-center gap-3">
+              {filters.fornitore && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-amber-600/20 border border-amber-600/50 rounded-lg text-amber-200 text-sm">
+                  <span>Fornitore: {filters.fornitore}</span>
+                  <button
+                    onClick={() => setFilters({ ...filters, fornitore: '' })}
+                    className="ml-1 hover:text-amber-100"
+                    title="Rimuovi filtro fornitore"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setFontSize((size) => Math.max(10, size - 5))}
@@ -1266,6 +1311,87 @@ export default function ArchiviPage() {
             >
               Chiudi
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modale Filtro Fornitori */}
+      {showFornitoreModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 border border-gray-700 rounded-lg w-full max-w-sm max-h-[80vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-gray-700">
+              <h3 className="text-lg font-bold text-cream">Filtra per Fornitore</h3>
+              <button
+                onClick={() => setShowFornitoreModal(false)}
+                className="text-gray-400 hover:text-cream"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-4 max-h-96 overflow-y-auto">
+              {/* Opzione per rimuovere filtro */}
+              <button
+                onClick={() => {
+                  setFilters({ ...filters, fornitore: '' });
+                  setShowFornitoreModal(false);
+                }}
+                className={`w-full p-3 text-left rounded-lg mb-2 transition-colors ${
+                  !filters.fornitore 
+                    ? 'bg-amber-600/20 border border-amber-600/50 text-amber-200' 
+                    : 'bg-gray-800 hover:bg-gray-700 text-cream border border-gray-600'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${!filters.fornitore ? 'bg-amber-500' : 'bg-gray-500'}`} />
+                  <span className="font-medium">Tutti i fornitori</span>
+                </div>
+              </button>
+
+              {/* Lista fornitori */}
+              {fornitori.length > 0 ? (
+                fornitori.map((fornitore) => (
+                  <button
+                    key={fornitore}
+                    onClick={() => {
+                      setFilters({ ...filters, fornitore });
+                      setShowFornitoreModal(false);
+                    }}
+                    className={`w-full p-3 text-left rounded-lg mb-2 transition-colors ${
+                      filters.fornitore === fornitore 
+                        ? 'bg-amber-600/20 border border-amber-600/50 text-amber-200' 
+                        : 'bg-gray-800 hover:bg-gray-700 text-cream border border-gray-600'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${
+                        filters.fornitore === fornitore ? 'bg-amber-500' : 'bg-gray-500'
+                      }`} />
+                      <span className="font-medium">{fornitore}</span>
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-400">
+                  <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m0 0V9a2 2 0 012-2h2m0 0V6a1 1 0 011-1h1m0 0V3" />
+                  </svg>
+                  <p className="font-medium">Nessun fornitore trovato</p>
+                  <p className="text-sm">Aggiungi fornitori dalla sezione apposita</p>
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-gray-700">
+              <button
+                onClick={() => setShowFornitoreModal(false)}
+                className="w-full px-4 py-2 bg-gray-700 text-cream rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                Chiudi
+              </button>
+            </div>
           </div>
         </div>
       )}
