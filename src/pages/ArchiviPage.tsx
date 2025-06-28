@@ -246,20 +246,37 @@ export default function ArchiviPage() {
       console.log(`📋 Righe dati (partendo da riga ${startRow}): ${dataRows.length}`);
 
       // Mappiamo i dati alle colonne della tabella
-      // Basandoci sulle immagini: NOME VINO, ANNO, PRODUTTORE, PROVENIENZA, FORNITORE, COSTO, VENDITA, MARGINE
+      // Ordine colonne CSV: NOME VINO, ANNO, PRODUTTORE, PROVENIENZA, FORNITORE, COSTO, VENDITA, MARGINE
       const winesFromCsv: WineRow[] = dataRows
         .filter(row => row && row[0] && row[0].trim()) // Solo righe con nome vino non vuoto
         .map((row, index) => {
+          // Pulisci e valida il costo dal CSV
+          const costoRaw = row[5]?.trim() || '';
+          const costoValue = costoRaw ? parseFloat(costoRaw.replace(/[€$,]/g, '').replace(',', '.')) : 0;
+          const costoString = costoValue > 0 ? costoValue.toString() : '';
+
+          // Pulisci e valida la vendita dal CSV
+          const venditaRaw = row[6]?.trim() || '';
+          const venditaValue = venditaRaw ? parseFloat(venditaRaw.replace(/[€$,]/g, '').replace(',', '.')) : 0;
+          const venditaString = venditaValue > 0 ? venditaValue.toString() : '';
+
+          // Calcola margine se entrambi i valori sono disponibili
+          let margineString = '';
+          if (costoValue > 0 && venditaValue > 0) {
+            const margineEuro = venditaValue - costoValue;
+            margineString = margineEuro.toFixed(2);
+          }
+
           const mappedRow = {
             id: `csv-${categoria}-${index}`,
-            nomeVino: row[0]?.trim() || '',    // Colonna 0: Nome Vino
-            anno: row[1]?.trim() || '',        // Colonna 1: Anno  
-            produttore: row[2]?.trim() || '',  // Colonna 2: Produttore
-            provenienza: row[3]?.trim() || '', // Colonna 3: Provenienza
-            fornitore: row[4]?.trim() || '',   // Colonna 4: Fornitore
-            costo: row[5]?.trim() || '',       // Colonna 5: Costo
-            vendita: row[6]?.trim() || '',     // Colonna 6: Vendita ⭐ Questo è il campo che mancava!
-            margine: row[7]?.trim() || '',     // Colonna 7: Margine
+            nomeVino: row[0]?.trim() || '',        // Colonna 0: Nome Vino
+            anno: row[1]?.trim() || '',            // Colonna 1: Anno  
+            produttore: row[2]?.trim() || '',      // Colonna 2: Produttore
+            provenienza: row[3]?.trim() || '',     // Colonna 3: Provenienza
+            fornitore: row[4]?.trim() || '',       // Colonna 4: Fornitore
+            costo: costoString,                    // Colonna 5: Costo (dal CSV, pulito)
+            vendita: venditaString,                // Colonna 6: Vendita (dal CSV, pulito)
+            margine: margineString,                // Colonna 7: Margine (calcolato)
             giacenza: 0
           };
 
@@ -269,6 +286,8 @@ export default function ArchiviPage() {
               tipologia: categoria,
               rawLength: row.length,
               rawData: row,
+              rawCosto: costoRaw,
+              rawVendita: venditaRaw,
               mappedData: {
                 nomeVino: mappedRow.nomeVino,
                 anno: mappedRow.anno,
@@ -276,7 +295,7 @@ export default function ArchiviPage() {
                 provenienza: mappedRow.provenienza,
                 fornitore: mappedRow.fornitore,
                 costo: mappedRow.costo,
-                vendita: mappedRow.vendita, // ⭐ Verifichiamo questo campo
+                vendita: mappedRow.vendita,
                 margine: mappedRow.margine
               }
             });
@@ -603,8 +622,8 @@ export default function ArchiviPage() {
     const updatedRows = [...wineRows];
     updatedRows[rowIndex] = { ...updatedRows[rowIndex], [field]: value };
 
-    // Calcola margini se vengono modificati costo o vendita
-    if (field === 'costo' || field === 'vendita') {
+    // Calcola margini se vengono modificati costo o vendita (solo per righe non CSV)
+    if ((field === 'costo' || field === 'vendita') && !updatedRows[rowIndex].id.startsWith('csv-')) {
       // Pulisci i valori rimuovendo caratteri non numerici eccetto punto e virgola
       const costoValue = field === 'costo' ? value : updatedRows[rowIndex].costo;
       const venditaValue = field === 'vendita' ? value : updatedRows[rowIndex].vendita;
@@ -1446,26 +1465,34 @@ export default function ArchiviPage() {
                       />
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['costo'] }}>
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        value={row.costo}
-                        onChange={(e) => {
-                          // Permetti solo numeri, punti e virgole
-                          const value = e.target.value.replace(/[^0-9.,]/g, '');
-                          handleCellChange(index, 'costo', value);
-                        }}
-                        className="w-full px-1 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
-                        style={{ 
-                          backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', 
-                          userSelect: 'none', 
-                          ...getFontSizeStyle(), 
-                          height: '40px', 
-                          lineHeight: 'normal',
-                          WebkitAppearance: 'none',
-                          MozAppearance: 'textfield'
-                        }}
-                      />
+                      {row.id.startsWith('csv-') ? (
+                        // Campo read-only per dati da CSV
+                        <div className="w-full px-1 py-2 text-center text-gray-500 font-medium select-none bg-gray-100" style={{ fontSize: `${fontSize}px`, userSelect: 'none', height: '40px', lineHeight: 'normal' }} title="Dati da Google Sheet (sola lettura)">
+                          {row.costo}
+                        </div>
+                      ) : (
+                        // Campo editabile per nuove righe
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={row.costo}
+                          onChange={(e) => {
+                            // Permetti solo numeri, punti e virgole
+                            const value = e.target.value.replace(/[^0-9.,]/g, '');
+                            handleCellChange(index, 'costo', value);
+                          }}
+                          className="w-full px-1 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
+                          style={{ 
+                            backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', 
+                            userSelect: 'none', 
+                            ...getFontSizeStyle(), 
+                            height: '40px', 
+                            lineHeight: 'normal',
+                            WebkitAppearance: 'none',
+                            MozAppearance: 'textfield'
+                          }}
+                        />
+                      )}
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['vendita'] }}>
                       <input
