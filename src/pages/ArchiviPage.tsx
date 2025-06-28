@@ -1410,20 +1410,46 @@ export default function ArchiviPage() {
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['costo'] }}>
                       <input
-                        type="number"
+                        type="text"
+                        inputMode="decimal"
                         value={row.costo}
-                        onChange={(e) => handleCellChange(index, 'costo', e.target.value)}
-                        className="w-full px-1 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center appearance-none select-none"
-                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
+                        onChange={(e) => {
+                          // Permetti solo numeri, punti e virgole
+                          const value = e.target.value.replace(/[^0-9.,]/g, '');
+                          handleCellChange(index, 'costo', value);
+                        }}
+                        className="w-full px-1 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
+                        style={{ 
+                          backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', 
+                          userSelect: 'none', 
+                          ...getFontSizeStyle(), 
+                          height: '40px', 
+                          lineHeight: 'normal',
+                          WebkitAppearance: 'none',
+                          MozAppearance: 'textfield'
+                        }}
                       />
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['vendita'] }}>
                       <input
-                        type="number"
+                        type="text"
+                        inputMode="decimal"
                         value={row.vendita}
-                        onChange={(e) => handleCellChange(index, 'vendita', e.target.value)}
-                        className="w-full px-1 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center appearance-none select-none"
-                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
+                        onChange={(e) => {
+                          // Permetti solo numeri, punti e virgole
+                          const value = e.target.value.replace(/[^0-9.,]/g, '');
+                          handleCellChange(index, 'vendita', value);
+                        }}
+                        className="w-full px-1 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
+                        style={{ 
+                          backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', 
+                          userSelect: 'none', 
+                          ...getFontSizeStyle(), 
+                          height: '40px', 
+                          lineHeight: 'normal',
+                          WebkitAppearance: 'none',
+                          MozAppearance: 'textfield'
+                        }}
                       />
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['margine'] }}>
