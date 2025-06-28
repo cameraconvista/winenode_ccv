@@ -18,7 +18,6 @@ interface Anno {
 
 interface WineRow {
   id: string;
-  tipologia: string;
   nomeVino: string;
   anno: string;
   produttore: string;
@@ -40,7 +39,6 @@ export default function ArchiviPage() {
   const [wineRows, setWineRows] = useState<WineRow[]>(() => 
     Array.from({ length: 100 }, (_, index) => ({
       id: `row-${index}`,
-      tipologia: '',
       nomeVino: '',
       anno: '',
       produttore: '',
@@ -170,7 +168,6 @@ export default function ArchiviPage() {
   // Larghezze predefinite delle colonne (ottimizzate per tablet)
   const defaultColumnWidths = {
     '#': '4%',
-    'tipologia': '14%',
     'nomeVino': '20%',
     'anno': '6%',
     'produttore': '16%',
@@ -313,7 +310,6 @@ export default function ArchiviPage() {
 
       return {
         id: `db-${wine.id}`,
-        tipologia: wine.type || '',
         nomeVino: wine.name || '',
         anno: wine.vintage || '', // ✅ Ora wine.vintage contiene correttamente l'anno
         produttore: wine.description || '', // Nel db description contiene il produttore
@@ -329,7 +325,6 @@ export default function ArchiviPage() {
     // Aggiungi righe vuote per completare a 100
     const emptyRows = Array.from({ length: Math.max(0, 100 - winesFromDb.length) }, (_, index) => ({
       id: `row-${winesFromDb.length + index}`,
-      tipologia: '',
       nomeVino: '',
       anno: '',
       produttore: '',
@@ -488,7 +483,6 @@ export default function ArchiviPage() {
   const addNewRow = () => {
     const newRow: WineRow = {
       id: `row-${Date.now()}`,
-      tipologia: '',
       nomeVino: '',
       anno: '',
       produttore: '',
@@ -530,7 +524,6 @@ export default function ArchiviPage() {
   const addRows = (count: number) => {
     const newRows: WineRow[] = Array.from({ length: count }, (_, index) => ({
       id: `row-${Date.now()}-${index}`,
-      tipologia: '',
       nomeVino: '',
       anno: '',
       produttore: '',
@@ -547,8 +540,7 @@ export default function ArchiviPage() {
 
   const removeEmptyRows = () => {
     const filledRows = wineRows.filter(row => {
-      return row.tipologia.trim() !== '' ||
-             row.nomeVino.trim() !== '' ||
+      return row.nomeVino.trim() !== '' ||
              row.anno.trim() !== '' ||
              row.produttore.trim() !== '' ||
              row.provenienza.trim() !== '' ||
@@ -590,7 +582,6 @@ export default function ArchiviPage() {
       const wineToSave = {
         user_id: userId,
         nome_vino: rowData.nomeVino.trim(),
-        tipologia: rowData.tipologia || '',
         anno: rowData.anno || '',
         produttore: rowData.produttore || '',
         provenienza: rowData.provenienza || '',
@@ -864,7 +855,7 @@ export default function ArchiviPage() {
         {/* Action Buttons Bar */}
         <div className="mb-4">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center justify-center flex-wrap">
               <button
                 onClick={() => console.log('Esporta')}
                 className="flex items-center gap-2 bg-[#3A1E18] text-[#F5EEDC] rounded-md px-3 py-2 text-sm shadow-sm hover:border-[#A97B50] hover:shadow-md transition-all"
@@ -946,7 +937,7 @@ export default function ArchiviPage() {
                   const backupData = {
                     timestamp: new Date().toISOString(),
                     vini: wineRows.filter(row => 
-                      row.nomeVino.trim() || row.produttore.trim() || row.tipologia
+                      row.nomeVino.trim() || row.produttore.trim()
                     ),
                     tipologie: tipologie,
                     fornitori: suppliers,
@@ -1018,8 +1009,8 @@ export default function ArchiviPage() {
                   if (confirm('Sei sicuro di voler resettare tutti i dati?')) {
                     setWineRows(Array.from({ length: 100 }, (_, index) => ({
                       id: `row-${index}`,
-                      tipologia: '',
                       nomeVino: '',
+                      anno: '',
                       produttore: '',
                       provenienza: '',
                       costo: '',
@@ -1081,20 +1072,7 @@ export default function ArchiviPage() {
                 <tr style={{ fontSize: `${fontSize}px`, lineHeight: `${lineHeight}px`, height: `${rowHeight}px` }}>
                   <th className="px-2 py-3 text-center align-middle font-bold text-white border border-amber-900 border-r-2 border-r-amber-900 uppercase bg-[#3b1d1d] backdrop-blur-sm" style={{ width: columnWidths['#'] }}>
                   </th>
-                  <th className="px-3 py-3 text-center align-middle font-bold text-white border border-amber-900 border-r-2 border-r-amber-900 uppercase bg-[#3b1d1d] backdrop-blur-sm relative group" style={{ width: columnWidths['tipologia'] }}>
-                    <span>Tipologia</span>
-                    {/* Handle di resize */}
-                    <div
-                      className="absolute top-0 right-0 w-2 h-full cursor-col-resize group-hover:bg-amber-600/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                      onMouseDown={(e) => handleMouseDown(e, 'tipologia')}
-                      title="Ridimensiona colonna"
-                    >
-                      <div className="flex space-x-0.5">
-                        <div className="w-0.5 h-4 bg-amber-600"></div>
-                        <div className="w-0.5 h-4 bg-amber-600"></div>
-                      </div>
-                    </div>
-                  </th>
+                  
                   <th className="px-3 py-3 text-center align-middle font-bold text-white border border-amber-900 border-r-2 border-r-amber-900 uppercase bg-[#3b1d1d] backdrop-blur-sm relative group" style={{ width: columnWidths['nomeVino'] }}>
                     Nome Vino
                     {/* Handle di resize */}
@@ -1246,16 +1224,7 @@ export default function ArchiviPage() {
                         {index + 1}
                       </div>
                     </td>
-                    {/* Tipologia */}
-                  <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['tipologia'] }}>
-                      <input
-                        type="text"
-                        value={row.tipologia}
-                        onChange={(e) => handleCellChange(index, 'tipologia', e.target.value)}
-                        className="w-full h-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
-                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
-                      />
-                    </td>
+                    
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['nomeVino'] }}>
                       <input
                         type="text"
@@ -1376,7 +1345,7 @@ export default function ArchiviPage() {
         {showAddRowsPanel && (
           <div className="mt-4 p-4 bg-gray-800 rounded-md shadow-md">
             <h3 className="text-lg font-semibold text-white mb-2">Aggiungi Righe</h3>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center">
               <button
                 onClick={() => addRows(5)}
                 className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-700 transition-colors"
@@ -1426,7 +1395,7 @@ export default function ArchiviPage() {
               onChange={(e) => setTempInventory(Number(e.target.value))}
               className="w-full px-3 py-2 border rounded-md mb-4"
             />
-            <div className="flex justify-end gap-4">
+            <div className="flex justify-end">
               <button
                 onClick={handleInventoryCancel}
                 className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400 transition-colors"
@@ -1453,7 +1422,7 @@ export default function ArchiviPage() {
             {/* Add New Tipologia */}
             <div className="mb-4">
               <h3 className="text-md font-semibold mb-2">Aggiungi Nuova Tipologia</h3>
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2">
                 <input
                   type="text"
                   value={newItemName}
@@ -1482,7 +1451,7 @@ export default function ArchiviPage() {
             {/* Edit Existing Tipologia */}
             <div className="mb-4">
               <h3 className="text-md font-semibold mb-2">Modifica Tipologia Esistente</h3>
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2">
                 <input
                   type="text"
                   placeholder="Cerca tipologia..."
