@@ -857,7 +857,7 @@ export default function ArchiviPage() {
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center justify-center flex-wrap">
               <button
-                onClick={() => console.log('Esporta')}```python
+                onClick={() => console.log('Esporta')}
                 className="flex items-center gap-2 bg-[#3A1E18] text-[#F5EEDC] rounded-md px-3 py-2 text-sm shadow-sm hover:border-[#A97B50] hover:shadow-md transition-all"
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1072,7 +1072,7 @@ export default function ArchiviPage() {
                 <tr style={{ fontSize: `${fontSize}px`, lineHeight: `${lineHeight}px`, height: `${rowHeight}px` }}>
                   <th className="px-2 py-3 text-center align-middle font-bold text-white border border-amber-900 border-r-2 border-r-amber-900 uppercase bg-[#3b1d1d] backdrop-blur-sm" style={{ width: columnWidths['#'] }}>
                   </th>
-
+                  
                   <th className="px-3 py-3 text-center align-middle font-bold text-white border border-amber-900 border-r-2 border-r-amber-900 uppercase bg-[#3b1d1d] backdrop-blur-sm relative group" style={{ width: columnWidths['nomeVino'] }}>
                     Nome Vino
                     {/* Handle di resize */}
@@ -1224,14 +1224,14 @@ export default function ArchiviPage() {
                         {index + 1}
                       </div>
                     </td>
-
+                    
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['nomeVino'] }}>
                       <input
                         type="text"
                         value={row.nomeVino}
                         onChange={(e) => handleCellChange(index, 'nomeVino', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
-                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', userSelect: 'none', ...getFontSizeStyle(), height: '30px', lineHeight: 'normal' }}
+                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', width: columnWidths['anno'] }}>
@@ -1240,7 +1240,7 @@ export default function ArchiviPage() {
                         value={row.anno}
                         onChange={(e) => handleCellChange(index, 'anno', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
-                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', userSelect: 'none', ...getFontSizeStyle(), height: '30px', lineHeight: 'normal' }}
+                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#F5F0E6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['produttore'] }}>
@@ -1249,7 +1249,7 @@ export default function ArchiviPage() {
                         value={row.produttore}
                         onChange={(e) => handleCellChange(index, 'produttore', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
-                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '30px', lineHeight: 'normal' }}
+                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['provenienza'] }}>
@@ -1258,7 +1258,7 @@ export default function ArchiviPage() {
                         value={row.provenienza}
                         onChange={(e) => handleCellChange(index, 'provenienza', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
-                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '30px', lineHeight: 'normal' }}
+                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['fornitore'] }}>
@@ -1267,7 +1267,7 @@ export default function ArchiviPage() {
                         value={row.fornitore}
                         onChange={(e) => handleCellChange(index, 'fornitore', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
-                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '30px', lineHeight: 'normal' }}
+                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['costo'] }}>
@@ -1276,7 +1276,7 @@ export default function ArchiviPage() {
                         value={row.costo}
                         onChange={(e) => handleCellChange(index, 'costo', e.target.value)}
                         className="w-full px-1 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center appearance-none select-none"
-                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '30px', lineHeight: 'normal' }}
+                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['vendita'] }}>
@@ -1285,7 +1285,7 @@ export default function ArchiviPage() {
                         value={row.vendita}
                         onChange={(e) => handleCellChange(index, 'vendita', e.target.value)}
                         className="w-full px-1 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center appearance-none select-none"
-                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '30px', lineHeight: 'normal' }}
+                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['margine'] }}>
@@ -1327,8 +1327,9 @@ export default function ArchiviPage() {
                 onClick={addNewRow}
                 className="w-full border border-amber-900 p-3 text-white font-medium hover:bg-amber-200 transition-colors"
                 style={{ 
-                  backgroundColor: '#2d0505',                  fontSize: `${fontSize}px`,
-                  height: '30px',
+                  backgroundColor: '#2d0505',
+                  fontSize: `${fontSize}px`,
+                  height: '40px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
