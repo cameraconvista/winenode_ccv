@@ -319,32 +319,20 @@ export default function ArchiviPage() {
     }
   };
 
-  // Carica fornitori da Supabase
+  // Estrai fornitori unici dalla colonna fornitore dei vini
   useEffect(() => {
-    const loadFornitori = async () => {
-      try {
-        if (!authManager.isAuthenticated() || !supabase) return;
-        
-        const userId = authManager.getUserId();
-        if (!userId) return;
-
-        const { data, error } = await supabase
-          .from('fornitori')
-          .select('nome')
-          .eq('user_id', userId)
-          .order('nome');
-
-        if (!error && data) {
-          const nomi = data.map(f => f.nome);
-          setFornitori(nomi);
-        }
-      } catch (error) {
-        console.error('Errore caricamento fornitori:', error);
-      }
+    const estraiFornitori = () => {
+      const fornitoriUnici = Array.from(new Set(
+        wineRows
+          .map(wine => wine.fornitore?.trim())
+          .filter(fornitore => fornitore && fornitore.length > 0)
+      )).sort();
+      
+      setFornitori(fornitoriUnici);
     };
 
-    loadFornitori();
-  }, []);
+    estraiFornitori();
+  }, [wineRows]);
 
   // Sync wines from DB or CSV on mount or activeTab change
   useEffect(() => {
