@@ -1272,14 +1272,45 @@ export default function ArchiviPage() {
                         style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
                     </td>
-                    <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['giacenza'] }}>
-                      <button
-                        onClick={() => handleInventoryClick(index)}
-                        className="w-full px-1 py-2 text-center text-gray-600 font-bold hover:bg-amber-200 transition-colors select-none"
-                        style={{ fontSize: `${fontSize}px`, userSelect: 'none', height: '40px', lineHeight: 'normal' }}
-                      >
-                        {row.giacenza}
-                      </button>
+                    <td className="border border-amber-900 p-0 group" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['giacenza'] }}>
+                      <div className="relative flex items-center justify-center h-full">
+                        {/* Pulsante meno - visibile solo al hover */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const newValue = Math.max(0, row.giacenza - 1);
+                            handleCellChange(index, 'giacenza', newValue.toString());
+                          }}
+                          className="absolute left-1 w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center shadow-sm"
+                          style={{ fontSize: '10px' }}
+                          title="Diminuisci giacenza"
+                        >
+                          -
+                        </button>
+
+                        {/* Valore giacenza cliccabile */}
+                        <button
+                          onClick={() => handleInventoryClick(index)}
+                          className="px-1 py-2 text-center text-gray-600 font-bold hover:bg-amber-200 transition-colors select-none flex-1"
+                          style={{ fontSize: `${fontSize}px`, userSelect: 'none', height: '40px', lineHeight: 'normal' }}
+                        >
+                          {row.giacenza}
+                        </button>
+
+                        {/* Pulsante più - visibile solo al hover */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const newValue = row.giacenza + 1;
+                            handleCellChange(index, 'giacenza', newValue.toString());
+                          }}
+                          className="absolute right-1 w-4 h-4 bg-green-500 hover:bg-green-600 text-white rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center shadow-sm"
+                          style={{ fontSize: '10px' }}
+                          title="Aumenta giacenza"
+                        >
+                          +
+                        </button>
+                      </div>
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['azioni'] }}>
                       <div className="flex items-center justify-center gap-2 h-full" style={{ height: '40px' }}>
