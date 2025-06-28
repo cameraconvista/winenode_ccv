@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useWines } from "../hooks/useWines";
 import { useTipologie } from "../hooks/useTipologie";
@@ -141,6 +141,11 @@ export default function ArchiviPage() {
   const [resizingColumn, setResizingColumn] = useState<string | null>(null);
   const [startX, setStartX] = useState(0);
   const [startWidth, setStartWidth] = useState(0);
+  const [filters, setFilters] = useState({
+    tipologia: '',
+    search: '',
+    fornitore: ''
+  });
 
   // Resize colonne handlers
   const handleMouseDown = (e: React.MouseEvent, colKey: string) => {
@@ -631,6 +636,20 @@ export default function ArchiviPage() {
   const lineHeight = fontSize * 1.2;
   const rowHeight = fontSize * 2.5;
 
+  const filteredRows = useMemo(() => {
+    return wineRows.filter(row => {
+      const matchesTipologia = !filters.tipologia || row.tipologia === filters.tipologia
+      const matchesSearch = !filters.search || 
+        row.nomeVino?.toLowerCase().includes(filters.search.toLowerCase()) ||
+        row.produttore?.toLowerCase().includes(filters.search.toLowerCase()) ||
+        row.provenienza?.toLowerCase().includes(filters.search.toLowerCase())
+      const matchesFornitore = !filters.fornitore || 
+        row.fornitore?.toLowerCase().includes(filters.fornitore.toLowerCase())
+
+      return matchesTipologia && matchesSearch && matchesFornitore
+    })
+  }, [wineRows, filters])
+
   return (
     <div
       className="h-[95vh] flex flex-col"
@@ -687,44 +706,23 @@ export default function ArchiviPage() {
 
         <div className="mb-4 flex items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-4">
-            <button
-              onClick={() => console.log("Filtra")}
-              className="flex items-center gap-2 bg-[#3A1E18] text-[#F5EEDC] rounded-md px-3 py-2 text-sm shadow-sm hover:border-[#A97B50] hover:shadow-md transition-all"
-            >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"
-                />
-              </svg>
-              Filtra
-            </button>
-            <button
-              onClick={() => console.log("Cerca")}
-              className="flex items-center gap-2 bg-[#3A1E18] text-[#F5EEDC] rounded-md px-3 py-2 text-sm shadow-sm hover:border-[#A97B50] hover:shadow-md transition-all"
-            >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              Cerca
-            </button>
+            <div className="flex items-center space-x-2">
+              <input
+                type="text"
+                placeholder="Cerca vini..."
+                value={filters.search}
+                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                className="flex-1 px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-cream placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+
+              <input
+                type="text"
+                placeholder="Filtra per fornitore..."
+                value={filters.fornitore}
+                onChange={(e) => setFilters({ ...filters, fornitore: e.target.value })}
+                className="px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-cream placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 min-w-[200px]"
+              />
+            </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
                 <button
@@ -978,7 +976,7 @@ export default function ArchiviPage() {
               </thead>
 
               <tbody>
-                {wineRows.map((row, index) => {
+                {filteredRows.map((row, index) => {
                   const isSelected = selectedRows.includes(index);
                   const bgColor = isSelected ? "#E6D7B8" : "#F5F0E6";
                   const borderW = isSelected ? "2px" : "1px";
@@ -1055,13 +1053,12 @@ export default function ArchiviPage() {
                         className="border border-amber-900 p-0"
                         style={{ backgroundColor: bgColor, width: columnWidths["fornitore"] }}
                       >
-                        <input
-                          type="text"
-                          value={row.fornitore}
-                          onChange={(e) => handleCellChange(index, "fornitore", e.target.value)}
-                          className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
+                        <div
+                          className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 text-center select-none flex items-center justify-center"
                           style={{ backgroundColor: bgColor, userSelect: "none", ...getFontSizeStyle(), height: 40, lineHeight: "normal" }}
-                        />
+                        >
+                          {row.fornitore}
+                        </div>
                       </td>
 
                       <td
