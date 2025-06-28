@@ -167,7 +167,7 @@ export default function ArchiviPage() {
 
   // Larghezze predefinite delle colonne (ottimizzate per tablet)
   const defaultColumnWidths = {
-    '#': '4%',
+    '#': '2.4%',
     'nomeVino': '20%',
     'anno': '6%',
     'produttore': '16%',
