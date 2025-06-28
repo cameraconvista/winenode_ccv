@@ -28,7 +28,6 @@ type WineData = {
   vintage: string | null;
   region: string | null;
   description: string | null;
-  costo?: number;
 };
 
 const fallbackWines: WineData[] = []
@@ -53,33 +52,32 @@ export function useWines() {
         setLoading(false)
       }
     })
-
     return unsubscribe
   }, [])
 
   const loadWines = async () => {
+    setLoading(true)
+    setError(null)
+    if (!isSupabaseAvailable) {
+      setWines(fallbackWines)
+      setSuppliers(Array.from(new Set(fallbackWines.map(w => w.supplier))))
+      setTypes([])
+      setLoading(false)
+      return
+    }
+    if (!authManager.isAuthenticated()) {
+      setError('Utente non autenticato')
+      setLoading(false)
+      return
+    }
+    const userId = authManager.getUserId()
+    if (!userId) {
+      setError('ID utente non disponibile')
+      setLoading(false)
+      return
+    }
+
     try {
-      setLoading(true)
-      setError(null)
-
-      if (!isSupabaseAvailable) {
-        setWines(fallbackWines)
-        const uniqueSuppliers = Array.from(new Set(fallbackWines.map(wine => wine.supplier)))
-        setSuppliers(uniqueSuppliers)
-        setTypes([])
-        setLoading(false)
-        return
-      }
-
-      if (!authManager.isAuthenticated()) {
-        setError('Utente non autenticato')
-        setLoading(false)
-        return
-      }
-
-      const userId = authManager.getUserId()
-      if (!userId) throw new Error('ID utente non disponibile')
-
       const { data: wineData, error: wineError } = await supabase!
         .from('vini')
         .select('*')
@@ -89,8 +87,7 @@ export function useWines() {
       if (wineError) {
         if (wineError.code === '42P01') {
           setWines(fallbackWines)
-          const uniqueSuppliers = Array.from(new Set(fallbackWines.map(wine => wine.supplier)))
-          setSuppliers(uniqueSuppliers)
+          setSuppliers(Array.from(new Set(fallbackWines.map(w => w.supplier))))
           setTypes([])
           setLoading(false)
           return
@@ -98,47 +95,39 @@ export function useWines() {
         throw wineError
       }
 
-      const transformedWines: WineData[] = (wineData || []).map((wine: any) => ({
+      const transformedWines = (wineData || []).map((wine: any) => ({
         id: wine.id,
         name: wine.nome_vino,
         type: wine.tipologia,
         supplier: wine.fornitore,
         inventory: wine.giacenza,
-        minStock: 0,
-        price: wine.prezzo_vendita?.toString() || '0',
+        minStock: wine.min_stock ?? 0,
+        price: wine.prezzo_vendita?.toString() ?? '0',
         vintage: wine.anno,
         region: wine.provenienza,
-        description: wine.produttore,
-        costo: wine.costo || 0
+        description: wine.produttore
       }))
 
       setWines(transformedWines)
 
-      const { data: supplierData, error: supplierError } = await supabase!
-        .from('fornitori')
-        .select('nome')
-        .eq('user_id', userId)
+      const [{ data: supplierData, error: supplierError }, { data: typeData, error: typeError }] =
+        await Promise.all([
+          supabase!.from('fornitori').select('nome').eq('user_id', userId),
+          supabase!.from('tipologie').select('nome').eq('user_id', userId)
+        ])
 
-      if (supplierError) {
-        const uniqueSuppliers = Array.from(new Set(transformedWines.map(wine => wine.supplier)))
-        setSuppliers(uniqueSuppliers)
-      } else {
-        const supplierNames = (supplierData || []).map((s: any) => s.nome)
-        setSuppliers(supplierNames)
-      }
-
-      const { data: typeData, error: typeError } = await supabase!
-        .from('tipologie')
-        .select('nome')
-        .eq('user_id', userId)
+      setSuppliers(
+        supplierError
+          ? Array.from(new Set(transformedWines.map(w => w.supplier)))
+          : (supplierData || []).map((s: any) => s.nome)
+      )
 
       if (typeError) {
         console.error('Errore nel caricamento tipologie:', typeError)
+        setTypes([])
       } else {
-        const typeNames = (typeData || []).map((t: any) => t.nome)
-        setTypes(typeNames)
+        setTypes((typeData || []).map((t: any) => t.nome))
       }
-
     } catch (err) {
       console.error('Errore nel caricamento dei vini:', err)
       setError(err instanceof Error ? err.message : 'Errore nel caricamento dei dati')
@@ -148,25 +137,26 @@ export function useWines() {
   }
 
   const updateLocalWine = (wineId: number, updates: Partial<WineData>) => {
-    setWines(prev =>
-      prev.map(wine => (wine.id === wineId ? { ...wine, ...updates } : wine))
-    )
+    setWines(prev => prev.map(w => (w.id === wineId ? { ...w, ...updates } : w)))
   }
 
   const updateWineInventory = async (wineId: number, newInventory: number) => {
+    if (!isSupabaseAvailable || !authManager.isAuthenticated()) {
+      console.error('Non autenticato')
+      return false
+    }
+    const userId = authManager.getUserId()
+    if (!userId) {
+      console.error('ID utente non disponibile')
+      return false
+    }
     try {
-      if (!isSupabaseAvailable || !authManager.isAuthenticated()) throw new Error('Non autenticato')
-      const userId = authManager.getUserId()
-      if (!userId) throw new Error('ID utente non disponibile')
-
       const { error } = await supabase!
         .from('vini')
         .update({ giacenza: newInventory, updated_at: new Date().toISOString() })
         .eq('id', wineId)
         .eq('user_id', userId)
-
       if (error) throw error
-
       updateLocalWine(wineId, { inventory: newInventory })
       return true
     } catch (err) {
@@ -176,30 +166,33 @@ export function useWines() {
   }
 
   const updateWine = async (wineId: number, updates: Partial<WineData>) => {
+    if (!isSupabaseAvailable || !authManager.isAuthenticated()) {
+      console.error('Non autenticato')
+      return false
+    }
+    const userId = authManager.getUserId()
+    if (!userId) {
+      console.error('ID utente non disponibile')
+      return false
+    }
+    const supabaseUpdates: any = { updated_at: new Date().toISOString() }
+    if (updates.name !== undefined) supabaseUpdates.nome = updates.name
+    if (updates.type !== undefined) supabaseUpdates.tipo = updates.type
+    if (updates.supplier !== undefined) supabaseUpdates.fornitore = updates.supplier
+    if (updates.inventory !== undefined) supabaseUpdates.giacenza = updates.inventory
+    if (updates.minStock !== undefined) supabaseUpdates.min_stock = updates.minStock
+    if (updates.price !== undefined) supabaseUpdates.prezzo = parseFloat(updates.price)
+    if (updates.vintage !== undefined) supabaseUpdates.annata = updates.vintage
+    if (updates.region !== undefined) supabaseUpdates.regione = updates.region
+    if (updates.description !== undefined) supabaseUpdates.descrizione = updates.description
+
     try {
-      if (!isSupabaseAvailable || !authManager.isAuthenticated()) throw new Error('Non autenticato')
-      const userId = authManager.getUserId()
-      if (!userId) throw new Error('ID utente non disponibile')
-
-      const supabaseUpdates: any = { updated_at: new Date().toISOString() }
-      if (updates.name !== undefined) supabaseUpdates.nome = updates.name
-      if (updates.type !== undefined) supabaseUpdates.tipo = updates.type
-      if (updates.supplier !== undefined) supabaseUpdates.fornitore = updates.supplier
-      if (updates.inventory !== undefined) supabaseUpdates.giacenza = updates.inventory
-      if (updates.minStock !== undefined) supabaseUpdates.min_stock = updates.minStock
-      if (updates.price !== undefined) supabaseUpdates.prezzo = parseFloat(updates.price)
-      if (updates.vintage !== undefined) supabaseUpdates.annata = updates.vintage
-      if (updates.region !== undefined) supabaseUpdates.regione = updates.region
-      if (updates.description !== undefined) supabaseUpdates.descrizione = updates.description
-
       const { error } = await supabase!
         .from('giacenze')
         .update(supabaseUpdates)
         .eq('id', wineId)
         .eq('user_id', userId)
-
       if (error) throw error
-
       updateLocalWine(wineId, updates)
       return true
     } catch (err) {
@@ -209,11 +202,14 @@ export function useWines() {
   }
 
   const addWine = async (newWine: Omit<WineData, 'id'>) => {
+    if (!isSupabaseAvailable || !authManager.isAuthenticated()) {
+      throw new Error('Non autenticato')
+    }
+    const userId = authManager.getUserId()
+    if (!userId) {
+      throw new Error('ID utente non disponibile')
+    }
     try {
-      if (!isSupabaseAvailable || !authManager.isAuthenticated()) throw new Error('Non autenticato')
-      const userId = authManager.getUserId()
-      if (!userId) throw new Error('ID utente non disponibile')
-
       const { data, error } = await supabase!
         .from('giacenze')
         .insert({
@@ -232,9 +228,7 @@ export function useWines() {
         })
         .select()
         .single()
-
       if (error) throw error
-
       const transformedWine: WineData = {
         id: data.id,
         name: data.nome,
@@ -247,7 +241,6 @@ export function useWines() {
         region: data.regione,
         description: data.descrizione
       }
-
       setWines(prev => [...prev, transformedWine])
       return transformedWine
     } catch (err) {
@@ -257,19 +250,22 @@ export function useWines() {
   }
 
   const deleteWine = async (wineId: number) => {
+    if (!isSupabaseAvailable || !authManager.isAuthenticated()) {
+      console.error('Non autenticato')
+      return false
+    }
+    const userId = authManager.getUserId()
+    if (!userId) {
+      console.error('ID utente non disponibile')
+      return false
+    }
     try {
-      if (!isSupabaseAvailable || !authManager.isAuthenticated()) throw new Error('Non autenticato')
-      const userId = authManager.getUserId()
-      if (!userId) throw new Error('ID utente non disponibile')
-
       const { error } = await supabase!
         .from('giacenze')
         .delete()
         .eq('id', wineId)
         .eq('user_id', userId)
-
       if (error) throw error
-
       setWines(prev => prev.filter(wine => wine.id !== wineId))
       return true
     } catch (err) {

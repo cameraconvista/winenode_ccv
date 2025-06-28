@@ -24,7 +24,17 @@ type WineType = {
 
 export default function HomePage() {
   const navigate = useNavigate()
-  const { wines, suppliers, loading, error, isAuthenticated, refreshWines, updateWineInventory, updateWine } = useWines()
+  const {
+    wines,
+    suppliers,
+    loading,
+    error,
+    isAuthenticated,
+    refreshWines,
+    updateWineInventory,
+    updateWine
+  } = useWines()
+
   const [searchTerm, setSearchTerm] = useState('')
   const [showSearchModal, setShowSearchModal] = useState(false)
   const [showFilterModal, setShowFilterModal] = useState(false)
@@ -85,7 +95,6 @@ export default function HomePage() {
         throw new Error('ID utente non disponibile')
       }
 
-      // Aggiungi vino su Supabase nella tabella giacenze
       const { data, error } = await supabase!
         .from('giacenze')
         .insert({
@@ -110,20 +119,17 @@ export default function HomePage() {
         throw error
       }
 
-      // Reset form e chiudi modal
-      setNewWine({ 
-        name: "", 
-        type: "rosso", 
-        price: "", 
-        minStock: "2", 
-        supplier: "", 
-        description: "" 
+      setNewWine({
+        name: "",
+        type: "rosso",
+        price: "",
+        minStock: "2",
+        supplier: "",
+        description: ""
       })
       setShowAddWineModal(false)
 
-      // Ricarica la lista vini
       await refreshWines()
-
       console.log('Vino aggiunto con successo:', data)
     } catch (error) {
       console.error('Errore nell\'aggiunta del vino:', error)
@@ -132,10 +138,10 @@ export default function HomePage() {
     }
   }
 
-  // Filtra i vini in base ai criteri selezionati
   const filteredWines = wines.filter(wine => {
-    const matchesSearch = wine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         wine.supplier.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch =
+      wine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      wine.supplier.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesType = !filters.wineType || wine.type === filters.wineType
     const matchesSupplier = !filters.supplier || wine.supplier === filters.supplier
@@ -166,16 +172,11 @@ export default function HomePage() {
   }
 
   if (error) {
-    // Se il database non è inizializzato, mostra la guida di configurazione
-    // if (error.includes('Database non inizializzato')) {
-    //   return <DatabaseSetupGuide onRetry={refreshWines} />
-    // }
-
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-400 mb-4">{error}</p>
-          <button 
+          <button
             onClick={refreshWines}
             className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg transition-colors"
           >
@@ -187,17 +188,15 @@ export default function HomePage() {
   }
 
   return (
-    <div className="h-screen max-h-screen overflow-hidden flex flex-col" style={{ background: 'linear-gradient(to bottom right, #1f0202, #2d0505, #1f0202)' }}>
-      {/* Header */}
+    <div
+      className="h-screen max-h-screen overflow-hidden flex flex-col"
+      style={{ background: 'linear-gradient(to bottom right, #1f0202, #2d0505, #1f0202)' }}
+    >
       <header className="border-b border-red-900/30 bg-black/30 backdrop-blur-sm flex-shrink-0">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
           <div className="flex items-center justify-between h-20 sm:h-24">
             <div className="flex items-center justify-between w-full">
-              <img 
-                src="/logo 2 CCV.png" 
-                alt="WINENODE" 
-                className="h-32 w-auto object-contain" 
-              />
+              <img src="/logo 2 CCV.png" alt="WINENODE" className="h-32 w-auto object-contain" />
               <div className="flex items-center gap-1 sm:gap-2">
                 <button
                   onClick={() => navigate('/settings/archivi')}
@@ -207,7 +206,6 @@ export default function HomePage() {
                 >
                   <Database className="h-5 w-5" />
                 </button>
-
                 <button
                   onClick={() => setShowSearchModal(true)}
                   className="p-2 sm:p-2.5 text-cream hover:bg-gray-700 rounded-lg transition-colors"
@@ -215,7 +213,6 @@ export default function HomePage() {
                 >
                   <Search className="h-5 w-5" />
                 </button>
-
                 <button
                   onClick={() => setShowFilterModal(true)}
                   className="p-2 sm:p-2.5 text-cream hover:bg-gray-700 rounded-lg transition-colors"
@@ -223,7 +220,6 @@ export default function HomePage() {
                 >
                   <Filter className="h-5 w-5" />
                 </button>
-
                 <button
                   onClick={() => navigate('/settings')}
                   className="p-2 sm:p-2.5 text-cream hover:bg-gray-700 rounded-lg transition-colors"
@@ -236,8 +232,6 @@ export default function HomePage() {
           </div>
         </div>
       </header>
-
-      {/* Main content */}
       <main className="flex-1 flex flex-col max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-8 w-full overflow-y-auto">
         {filteredWines.length === 0 ? (
           <div className="text-center py-12">
@@ -247,8 +241,11 @@ export default function HomePage() {
           </div>
         ) : (
           <div className="space-y-2">
-            {filteredWines.map((wine) => (
-              <div key={wine.id} className="text-cream text-base p-2 hover:bg-white/5 rounded transition-colors">
+            {filteredWines.map(wine => (
+              <div
+                key={wine.id}
+                className="text-cream text-base p-2 hover:bg-white/5 rounded transition-colors"
+              >
                 <div className="flex items-center gap-4">
                   <button
                     onClick={() => handleWineClick(wine)}
@@ -256,34 +253,26 @@ export default function HomePage() {
                   >
                     {wine.name}
                   </button>
-                  <span className="text-cream text-base">
-                    {wine.description || wine.supplier || '-'}
-                  </span>
-                  <span className="text-cream text-base">
-                    {wine.inventory}
-                  </span>
+                  <span className="text-cream text-base">{wine.description || wine.supplier || '-'}</span>
+                  <span className="text-cream text-base">{wine.inventory}</span>
                 </div>
               </div>
             ))}
           </div>
         )}
       </main>
-
-      {/* Modals */}
       <SearchModal
         open={showSearchModal}
         onOpenChange={setShowSearchModal}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
       />
-
       <FilterModal
         open={showFilterModal}
         onOpenChange={setShowFilterModal}
         filters={filters}
         onFiltersChange={setFilters}
       />
-
       <WineDetailsModal
         wine={selectedWine}
         open={showWineDetailsModal}
@@ -291,8 +280,6 @@ export default function HomePage() {
         onUpdateWine={handleUpdateWine}
         suppliers={suppliers}
       />
-
-      {/* Pulsante + fisso in basso a destra - nascosto quando WineDetailsModal è aperto */}
       {!showWineDetailsModal && (
         <button
           onClick={() => setShowAddWineModal(true)}
@@ -302,8 +289,6 @@ export default function HomePage() {
           <Plus className="h-6 w-6" />
         </button>
       )}
-
-      {/* Modal per aggiungere vino - COMPLETO */}
       {showAddWineModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-gray-900 border border-gray-700 rounded-lg w-full max-w-md">
@@ -317,30 +302,22 @@ export default function HomePage() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-
             <div className="p-4 space-y-3">
-              {/* Nome vino - Full width */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Nome Vino *
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Nome Vino *</label>
                 <input
                   type="text"
                   value={newWine.name}
-                  onChange={(e) => setNewWine(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={e => setNewWine(prev => ({ ...prev, name: e.target.value }))}
                   className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-cream focus:border-blue-500 focus:outline-none"
                   placeholder="Inserisci il nome del vino"
                 />
               </div>
-
-              {/* Colore vino - Full width */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Colore Vino
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Colore Vino</label>
                 <select
                   value={newWine.type}
-                  onChange={(e) => setNewWine(prev => ({ ...prev, type: e.target.value }))}
+                  onChange={e => setNewWine(prev => ({ ...prev, type: e.target.value }))}
                   className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-cream focus:border-blue-500 focus:outline-none"
                 >
                   <option value="rosso">Rosso</option>
@@ -349,45 +326,34 @@ export default function HomePage() {
                   <option value="rosato">Rosato</option>
                 </select>
               </div>
-
-              {/* Prima riga: Costo e Soglia Minima */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Costo Vino (€)
-                  </label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Costo Vino (€)</label>
                   <input
                     type="text"
                     value={newWine.price || ''}
-                    onChange={(e) => setNewWine(prev => ({ ...prev, price: e.target.value }))}
+                    onChange={e => setNewWine(prev => ({ ...prev, price: e.target.value }))}
                     className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-cream focus:border-blue-500 focus:outline-none"
                     placeholder="Es: 15.50"
                   />
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Soglia Minima
-                  </label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Soglia Minima</label>
                   <input
                     type="number"
                     value={newWine.minStock || '2'}
-                    onChange={(e) => setNewWine(prev => ({ ...prev, minStock: e.target.value }))}
+                    onChange={e => setNewWine(prev => ({ ...prev, minStock: e.target.value }))}
                     className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-cream focus:border-blue-500 focus:outline-none"
                     placeholder="2"
                     min="0"
                   />
                 </div>
               </div>
-
-              {/* Fornitore - Full width */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Fornitore
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Fornitore</label>
                 <select
                   value={newWine.supplier || ''}
-                  onChange={(e) => setNewWine(prev => ({ ...prev, supplier: e.target.value }))}
+                  onChange={e => setNewWine(prev => ({ ...prev, supplier: e.target.value }))}
                   className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-cream focus:border-blue-500 focus:outline-none"
                 >
                   <option value="">Seleziona fornitore</option>
@@ -398,23 +364,17 @@ export default function HomePage() {
                   ))}
                 </select>
               </div>
-
-              {/* Descrizione - Full width ma ridotta */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Descrizione Completa
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Descrizione Completa</label>
                 <textarea
                   value={newWine.description || ''}
-                  onChange={(e) => setNewWine(prev => ({ ...prev, description: e.target.value }))}
+                  onChange={e => setNewWine(prev => ({ ...prev, description: e.target.value }))}
                   className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-cream focus:border-blue-500 focus:outline-none resize-none"
                   rows={2}
                   placeholder="Descrizione dettagliata del vino..."
                 />
               </div>
             </div>
-
-            {/* Pulsanti */}
             <div className="flex gap-2 p-4 border-t border-gray-700">
               <button
                 onClick={() => setShowAddWineModal(false)}

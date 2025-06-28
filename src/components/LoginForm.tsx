@@ -25,10 +25,9 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
       } else {
         await authManager.signUp(email, password)
       }
-
       onLoginSuccess?.()
     } catch (err: any) {
-      setError(err.message || 'Errore durante l\'autenticazione')
+      setError(err.message ?? 'Errore durante l\'autenticazione')
     } finally {
       setLoading(false)
     }
@@ -38,25 +37,21 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
     <div className="h-screen flex items-center justify-center p-3 overflow-hidden" style={{ backgroundColor: '#2c0405' }}>
       <div className="rounded-lg p-6 w-full max-w-xs shadow-xl" style={{ backgroundColor: '#24161d', border: '1px solid #374151' }}>
         <div className="text-center mb-6">
-          <div className="flex items-center justify-center mb-3">
-            <img 
-              src="/logo 1 CCV.png" 
-              alt="Logo" 
-              className="h-44 w-44 object-contain"
-            />
-          </div>
+          <img 
+            src="/logo 1 CCV.png" 
+            alt="Logo" 
+            className="h-44 w-44 object-contain mx-auto"
+          />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-xs font-medium text-cream mb-1">
-              EMAIL
-            </label>
+            <label htmlFor="email" className="block text-xs font-medium text-cream mb-1">EMAIL</label>
             <input
               type="email"
               id="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value)}
               className="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-cream rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all text-sm"
               placeholder="inserisci la tua email"
               required
@@ -64,23 +59,22 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-xs font-medium text-cream mb-1">
-              PASSWORD
-            </label>
+            <label htmlFor="password" className="block text-xs font-medium text-cream mb-1">PASSWORD</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 id="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 className="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-cream rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all pr-10 text-sm"
                 placeholder="inserisci la password"
                 required
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => setShowPassword(prev => !prev)}
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-cream transition-colors"
+                aria-label={showPassword ? 'Nascondi password' : 'Mostra password'}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -112,7 +106,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
             <button
               type="button"
               onClick={() => {
-                setIsLogin(!isLogin)
+                setIsLogin(prev => !prev)
                 setError(null)
               }}
               className="text-amber-400 hover:text-amber-300 transition-colors text-xs"
