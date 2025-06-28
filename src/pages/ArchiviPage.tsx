@@ -1301,7 +1301,7 @@ export default function ArchiviPage() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            const newValue = row.giacenza + 1;
+                            const newValue = Number(row.giacenza) + 1;
                             handleCellChange(index, 'giacenza', newValue.toString());
                           }}
                           className="absolute right-1 w-4 h-4 bg-green-500 hover:bg-green-600 text-white rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center shadow-sm"
