@@ -180,44 +180,54 @@ export default function ArchiviPage() {
       }
 
       console.log(`✅ CSV parsato: ${parsed.data.length} righe`);
+      console.log('📋 Prime 3 righe CSV raw:', parsed.data.slice(0, 3));
       
-      // Rimuoviamo solo la prima riga (intestazioni) se presente
-      const dataRows = parsed.data.length > 0 ? parsed.data.slice(1) : [];
-      console.log(`📋 Righe dati dopo rimozione header: ${dataRows.length}`);
+      // Iniziamo dalla riga 1 (riga 0 potrebbe essere la categoria)
+      // Cerchiamo la prima riga con dati significativi
+      let startRow = 0;
+      for (let i = 0; i < parsed.data.length; i++) {
+        const row = parsed.data[i];
+        // Se la riga ha almeno un valore non vuoto nella prima colonna, è probabilmente dati
+        if (row[0] && row[0].trim() && 
+            !row[0].toLowerCase().includes('bollicine') && 
+            !row[0].toLowerCase().includes('nome') &&
+            !row[0].toLowerCase().includes('vino')) {
+          startRow = i;
+          break;
+        }
+      }
+
+      const dataRows = parsed.data.slice(startRow);
+      console.log(`📋 Righe dati (partendo da riga ${startRow}): ${dataRows.length}`);
 
       // Mappiamo i dati alle colonne della tabella
-      const winesFromCsv: WineRow[] = dataRows.map((row, index) => {
-        const mappedRow = {
-          id: `csv-${categoria}-${index}`,
-          nomeVino: row[0] || '', // Colonna A
-          anno: row[1] || '',      // Colonna B  
-          produttore: row[2] || '', // Colonna C
-          provenienza: row[3] || '', // Colonna D
-          fornitore: row[4] || '',  // Colonna E
-          costo: row[5] || '',      // Colonna F
-          vendita: row[6] || '',    // Colonna G
-          margine: row[7] || '',    // Colonna H
-          giacenza: 0
-        };
+      const winesFromCsv: WineRow[] = dataRows
+        .filter(row => row[0] && row[0].trim()) // Solo righe con nome vino non vuoto
+        .map((row, index) => {
+          const mappedRow = {
+            id: `csv-${categoria}-${index}`,
+            nomeVino: row[0]?.trim() || '', // Colonna A
+            anno: row[1]?.trim() || '',      // Colonna B  
+            produttore: row[2]?.trim() || '', // Colonna C
+            provenienza: row[3]?.trim() || '', // Colonna D
+            fornitore: row[4]?.trim() || '',  // Colonna E
+            costo: row[5]?.trim() || '',      // Colonna F
+            vendita: row[6]?.trim() || '',    // Colonna G
+            margine: row[7]?.trim() || '',    // Colonna H
+            giacenza: 0
+          };
 
-        // Debug della prima riga mappata
-        if (index === 0) {
-          console.log('📊 Esempio prima riga mappata:', {
-            tipologia: categoria,
-            nomevino: mappedRow.nomeVino,
-            anno: mappedRow.anno,
-            produttore: mappedRow.produttore,
-            provenienza: mappedRow.provenienza,
-            fornitore: mappedRow.fornitore,
-            costo: mappedRow.costo,
-            vendita: mappedRow.vendita,
-            margine: mappedRow.margine,
-            giacenza: mappedRow.giacenza
-          });
-        }
+          // Debug delle prime righe mappate
+          if (index < 3) {
+            console.log(`📊 Riga ${index + 1} mappata:`, {
+              tipologia: categoria,
+              raw: row,
+              mapped: mappedRow
+            });
+          }
 
-        return mappedRow;
-      });
+          return mappedRow;
+        });
 
       // Aggiungi righe vuote per completare a 100
       const emptyRows = Array.from({ length: Math.max(0, 100 - winesFromCsv.length) }, (_, index) => ({
@@ -432,8 +442,9 @@ export default function ArchiviPage() {
       setWineRows([...winesFromDb, ...emptyRows]);
       console.log(`✅ Tabella sincronizzata: ${winesFromDb.length} vini dal DB + ${emptyRows.length} righe vuote`);
     } else {
-      // Se non abbiamo vini dal database e siamo su BOLLICINE ITALIANE, carica CSV
+      // Carica automaticamente CSV per BOLLICINE ITALIANE quando non ci sono vini dal DB
       if (activeTab === 'BOLLICINE ITALIANE' && csvUrls[activeTab]) {
+        console.log('🍾 Caricamento automatico CSV per BOLLICINE ITALIANE');
         fetchAndParseCSV(csvUrls[activeTab], activeTab);
       }
     }
