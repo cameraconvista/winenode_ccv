@@ -1,0 +1,86 @@
+import Papa from "papaparse";
+import { useState, useEffect } from "react";
+
+const sheetUrls = [
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=294419425&single=true&output=csv",
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=700257433&single=true&output=csv",
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=2127910877&single=true&output=csv",
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=254687727&single=true&output=csv",
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=498630601&single=true&output=csv",
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=1582691495&single=true&output=csv",
+];
+
+type Vino = {
+  nome_vino: string;
+  anno: string;
+  produttore: string;
+  provenienza: string;
+  vendita: string;
+};
+
+async function fetchAndParse(url: string): Promise<Vino[]> {
+  const response = await fetch(url);
+  const csvText = await response.text();
+
+  const parsed = Papa.parse<string[]>(csvText, {
+    skipEmptyLines: true,
+  }).data;
+
+  // Escludiamo la riga categoria (riga 1) e intestazioni (riga 2)
+  const dataRows = parsed.slice(2);
+
+  // Mappiamo solo le colonne di interesse
+  const vini: Vino[] = dataRows
+    .filter(row => row[0]?.trim() !== "")
+    .map(row => ({
+      nome_vino: row[0]?.trim() || "",
+      anno: row[1]?.trim() || "",
+      produttore: row[2]?.trim() || "",
+      provenienza: row[3]?.trim() || "",
+      vendita: row[7]?.trim() || "",
+    }));
+
+  return vini;
+}
+
+export default function ArchiviPage() {
+  const [vini, setVini] = useState<Vino[]>([]);
+
+  useEffect(() => {
+    async function loadAll() {
+      const promises = sheetUrls.map(url => fetchAndParse(url));
+      const results = await Promise.all(promises);
+      const merged = results.flat();
+      setVini(merged);
+    }
+    loadAll();
+  }, []);
+
+  return (
+    <div>
+      <h2>Lista Vini</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nome Vino</th>
+            <th>Anno</th>
+            <th>Produttore</th>
+            <th>Provenienza</th>
+            <th>Vendita €</th>
+          </tr>
+        </thead>
+        <tbody>
+          {vini.map((vino, idx) => (
+            <tr key={idx}>
+              <td>{vino.nome_vino}</td>
+              <td>{vino.anno}</td>
+              <td>{vino.produttore}</td>
+              <td>{vino.provenienza}</td>
+              <td>{vino.vendita}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
