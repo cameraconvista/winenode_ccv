@@ -193,20 +193,39 @@ export default function ArchiviPage() {
       for (let i = 0; i < parsed.data.length; i++) {
         const row = parsed.data[i];
         if (row && row.length > 0) {
-          // Cerca una riga che contenga intestazioni delle colonne
           const rowText = row.join('').toLowerCase();
-          if (rowText.includes('nome') || rowText.includes('vino') || rowText.includes('produttore')) {
+          
+          // Cerca intestazioni esplicite (NOME VINO, ANNO, PRODUTTORE, ecc.)
+          if (rowText.includes('nome vino') || 
+              rowText.includes('produttore') || 
+              rowText.includes('provenienza') ||
+              rowText.includes('fornitore') ||
+              rowText.includes('costo') ||
+              rowText.includes('vendita') ||
+              rowText.includes('margine') ||
+              rowText.includes('giacenza')) {
             headerRow = i;
             startRow = i + 1;
-            console.log(`📋 Intestazioni trovate alla riga ${i}:`, row);
-            break;
+            console.log(`📋 Intestazioni colonne trovate alla riga ${i}:`, row);
+            continue; // Salta questa riga di intestazione
           }
+          
+          // Salta righe di titolo categoria (BIANCHI, BOLLICINE, ecc.)
+          if (row[0] && (
+              row[0].toUpperCase() === 'BIANCHI' ||
+              row[0].toUpperCase() === 'BOLLICINE' ||
+              row[0].toUpperCase() === 'ROSSI' ||
+              row[0].toUpperCase() === 'ROSATI' ||
+              row[0].toLowerCase().includes('bollicine')
+          )) {
+            console.log(`📋 Riga titolo categoria saltata alla riga ${i}:`, row[0]);
+            continue;
+          }
+          
           // Se la prima colonna ha un nome vino valido, inizia da qui
-          if (row[0] && row[0].trim() && 
-              !row[0].toLowerCase().includes('bollicine') && 
-              row[0].length > 3) {
+          if (row[0] && row[0].trim() && row[0].length > 3) {
             startRow = i;
-            console.log(`📋 Prima riga dati trovata alla riga ${i}:`, row);
+            console.log(`📋 Prima riga dati valida trovata alla riga ${i}:`, row);
             break;
           }
         }
