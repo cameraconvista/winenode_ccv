@@ -155,7 +155,9 @@ export default function ArchiviPage() {
 
   // URL CSV per le categorie vini
   const csvUrls = {
-    'BOLLICINE ITALIANE': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=294419425&single=true&output=csv'
+    'BOLLICINE ITALIANE': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=294419425&single=true&output=csv',
+    'BOLLICINE FRANCESI': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=700257433&single=true&output=csv',
+    'BIANCHI': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=2127910877&single=true&output=csv'
   };
 
   // Funzione per scaricare e parsare CSV
@@ -464,10 +466,10 @@ export default function ArchiviPage() {
       setWineRows([...winesFromDb, ...emptyRows]);
       console.log(`✅ Tabella sincronizzata: ${winesFromDb.length} vini dal DB + ${emptyRows.length} righe vuote`);
     } else {
-      // Carica automaticamente CSV per BOLLICINE ITALIANE quando non ci sono vini dal DB
-      if (activeTab === 'BOLLICINE ITALIANE' && csvUrls[activeTab]) {
-        console.log('🍾 Caricamento automatico CSV per BOLLICINE ITALIANE');
-        fetchAndParseCSV(csvUrls[activeTab], activeTab);
+      // Carica automaticamente CSV quando non ci sono vini dal DB
+      if (csvUrls[activeTab as keyof typeof csvUrls]) {
+        console.log(`🍾 Caricamento automatico CSV per ${activeTab}`);
+        fetchAndParseCSV(csvUrls[activeTab as keyof typeof csvUrls], activeTab);
       }
     }
   }, [existingWines, activeTab]);
@@ -1173,9 +1175,9 @@ export default function ArchiviPage() {
                   key={category}
                   onClick={() => {
                     setActiveTab(category);
-                    // Carica automaticamente i dati CSV per BOLLICINE ITALIANE
-                    if (category === 'BOLLICINE ITALIANE' && csvUrls[category]) {
-                      fetchAndParseCSV(csvUrls[category], category);
+                    // Carica automaticamente i dati CSV se disponibili
+                    if (csvUrls[category as keyof typeof csvUrls]) {
+                      fetchAndParseCSV(csvUrls[category as keyof typeof csvUrls], category);
                     }
                   }}
                   className={`px-6 py-3 font-semibold text-sm rounded-lg transition-all duration-200 border-2 ${
@@ -1380,7 +1382,7 @@ export default function ArchiviPage() {
                         value={row.produttore}
                         onChange={(e) => handleCellChange(index, 'produttore', e.target.value)}
                         className="w-full px-2 py-2 bg-transparent border-none outline-none text-gray-600 focus:bg-white focus:shadow-inner text-center select-none"
-                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight:normal' }}
+                        style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', userSelect: 'none', ...getFontSizeStyle(), height: '40px', lineHeight: 'normal' }}
                       />
                     </td>
                     <td className="border border-amber-900 p-0" style={{ backgroundColor: isSelected ? '#E6D7B8' : '#f5f0e6', width: columnWidths['provenienza'] }}>
