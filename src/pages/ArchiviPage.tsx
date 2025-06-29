@@ -640,21 +640,21 @@ export default function ArchiviPage() {
       }
 
       const wineData = {
-        name: wine.nomeVino.trim(),
-        vintage: wine.anno || null,
-        description: wine.produttore || null,
-        region: wine.provenienza || null,
-        supplier: wine.fornitore || null,
-        type: wine.tipologia || tipologiaCorrente || activeTab,
-        inventory: wine.giacenza ?? 0,
+        nome_vino: wine.nomeVino.trim(),
+        anno: wine.anno || null,
+        produttore: wine.produttore || null,
+        provenienza: wine.provenienza || null,
+        fornitore: wine.fornitore || null,
+        tipologia: wine.tipologia || tipologiaCorrente || activeTab,
+        giacenza: wine.giacenza ?? 0,
         user_id: "f52daf3e-c605-4b83-991a-33a2e91ad7ff"
       };
 
-      // Usa upsert con ON CONFLICT basato su name e user_id
+      // Usa upsert con ON CONFLICT basato su nome_vino e user_id
       const { data, error } = await supabase
         .from("vini")
         .upsert(wineData, { 
-          onConflict: 'name,user_id',
+          onConflict: 'nome_vino,user_id',
           ignoreDuplicates: false 
         })
         .select()
