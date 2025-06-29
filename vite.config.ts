@@ -10,10 +10,12 @@ export default defineConfig({
     strictPort: true,
     cors: true,
     allowedHosts: ['.replit.dev'],
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    hmr: {
+      clientPort: 443
+    },
+    watch: {
+      usePolling: false,
+      ignored: ['**/node_modules/**', '**/dist/**']
     }
   },
   preview: {
@@ -30,7 +32,16 @@ export default defineConfig({
     outDir: "dist",
     emptyOutDir: true,
     sourcemap: false,
-    minify: true
+    minify: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          supabase: ['@supabase/supabase-js']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000
   },
   base: './'
 })
