@@ -30,7 +30,32 @@ type WineData = {
   description: string | null;
 };
 
-const fallbackWines: WineData[] = []
+const fallbackWines: WineData[] = [
+  {
+    id: 1,
+    name: "Chianti Classico",
+    type: "rosso",
+    supplier: "Fornitori Test",
+    inventory: 12,
+    minStock: 5,
+    price: "15.50",
+    vintage: "2020",
+    region: "Toscana",
+    description: "Vino rosso di test"
+  },
+  {
+    id: 2,
+    name: "Prosecco DOCG",
+    type: "spumante",
+    supplier: "Fornitori Test",
+    inventory: 8,
+    minStock: 3,
+    price: "12.00",
+    vintage: "2022",
+    region: "Veneto",
+    description: "Spumante di test"
+  }
+]
 
 export function useWines() {
   const [wines, setWines] = useState<WineData[]>([])
@@ -82,7 +107,7 @@ export function useWines() {
         .from('giacenze')
         .select('*')
         .eq('user_id', userId)
-        .order('name')
+        .order('nome')
 
       if (wineError) {
         if (wineError.code === '42P01') {
@@ -97,18 +122,20 @@ export function useWines() {
 
       const transformedWines = (wineData || []).map((wine: any) => ({
         id: wine.id,
-        name: wine.name || '',
-        type: wine.type || 'rosso',
-        supplier: wine.supplier || '',
-        inventory: wine.inventory || 0,
+        name: wine.nome || wine.name || '',
+        type: wine.tipo || wine.type || 'rosso',
+        supplier: wine.fornitore || wine.supplier || '',
+        inventory: wine.giacenza || wine.inventory || 0,
         minStock: wine.min_stock ?? 0,
-        price: wine.price?.toString() ?? '0',
-        vintage: wine.vintage,
-        region: wine.region,
-        description: wine.description
+        price: wine.prezzo?.toString() || wine.price?.toString() || '0',
+        vintage: wine.annata || wine.vintage || '',
+        region: wine.regione || wine.region || '',
+        description: wine.descrizione || wine.description || ''
       }))
 
-      setWines(transformedWines)
+      // Se non ci sono vini nel database, usa i dati di fallback
+      const finalWines = transformedWines.length > 0 ? transformedWines : fallbackWines
+      setWines(finalWines)
 
       const [{ data: supplierData, error: supplierError }, { data: typeData, error: typeError }] =
         await Promise.all([
@@ -118,7 +145,7 @@ export function useWines() {
 
       setSuppliers(
         supplierError
-          ? Array.from(new Set(transformedWines.map(w => w.supplier)))
+          ? Array.from(new Set(finalWines.map(w => w.supplier)))
           : (supplierData || []).map((s: any) => s.nome)
       )
 
@@ -153,7 +180,7 @@ export function useWines() {
     try {
       const { error } = await supabase!
         .from('giacenze')
-        .update({ inventory: newInventory, updated_at: new Date().toISOString() })
+        .update({ giacenza: newInventory, updated_at: new Date().toISOString() })
         .eq('id', wineId)
         .eq('user_id', userId)
       if (error) throw error
