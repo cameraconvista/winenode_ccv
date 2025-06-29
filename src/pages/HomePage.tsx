@@ -34,6 +34,8 @@ export default function HomePage() {
     updateWine
   } = useWines()
 
+  console.log("Vini caricati:", wines)
+
   const [searchTerm, setSearchTerm] = useState('')
   const [showSearchModal, setShowSearchModal] = useState(false)
   const [showFilterModal, setShowFilterModal] = useState(false)
