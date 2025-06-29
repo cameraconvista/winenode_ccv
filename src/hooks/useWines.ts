@@ -82,7 +82,7 @@ export function useWines() {
         .from('giacenze')
         .select('*')
         .eq('user_id', userId)
-        .order('nome')
+        .order('nome_vino')
 
       console.log("Query Supabase risultato:", { wineData, wineError })
 
@@ -99,7 +99,7 @@ export function useWines() {
 
       const transformedWines = (wineData || []).map((wine: any) => ({
         id: wine.id,
-        name: wine.nome,
+        name: wine.nome_vino,
         type: wine.tipo,
         supplier: wine.fornitore,
         inventory: wine.giacenza,
@@ -107,7 +107,7 @@ export function useWines() {
         price: wine.prezzo?.toString() ?? '0',
         vintage: wine.annata,
         region: wine.regione,
-        description: wine.descrizione
+        description: wine.produttore
       }))
 
       setWines(transformedWines)
@@ -178,7 +178,7 @@ export function useWines() {
       return false
     }
     const supabaseUpdates: any = { updated_at: new Date().toISOString() }
-    if (updates.name !== undefined) supabaseUpdates.nome = updates.name
+    if (updates.name !== undefined) supabaseUpdates.nome_vino = updates.name
     if (updates.type !== undefined) supabaseUpdates.tipo = updates.type
     if (updates.supplier !== undefined) supabaseUpdates.fornitore = updates.supplier
     if (updates.inventory !== undefined) supabaseUpdates.giacenza = updates.inventory
@@ -186,7 +186,7 @@ export function useWines() {
     if (updates.price !== undefined) supabaseUpdates.prezzo = parseFloat(updates.price)
     if (updates.vintage !== undefined) supabaseUpdates.annata = updates.vintage
     if (updates.region !== undefined) supabaseUpdates.regione = updates.region
-    if (updates.description !== undefined) supabaseUpdates.descrizione = updates.description
+    if (updates.description !== undefined) supabaseUpdates.produttore = updates.description
 
     try {
       const { error } = await supabase!
@@ -215,7 +215,7 @@ export function useWines() {
       const { data, error } = await supabase!
         .from('giacenze')
         .insert({
-          nome: newWine.name,
+          nome_vino: newWine.name,
           tipo: newWine.type,
           fornitore: newWine.supplier,
           giacenza: newWine.inventory,
@@ -223,7 +223,7 @@ export function useWines() {
           prezzo: parseFloat(newWine.price),
           annata: newWine.vintage,
           regione: newWine.region,
-          descrizione: newWine.description,
+          produttore: newWine.description,
           user_id: userId,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -233,7 +233,7 @@ export function useWines() {
       if (error) throw error
       const transformedWine: WineData = {
         id: data.id,
-        name: data.nome,
+        name: data.nome_vino,
         type: data.tipo,
         supplier: data.fornitore,
         inventory: data.giacenza,
@@ -241,7 +241,7 @@ export function useWines() {
         price: data.prezzo.toString(),
         vintage: data.annata,
         region: data.regione,
-        description: data.descrizione
+        description: data.produttore
       }
       setWines(prev => [...prev, transformedWine])
       return transformedWine
