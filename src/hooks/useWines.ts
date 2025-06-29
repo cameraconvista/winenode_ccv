@@ -30,44 +30,7 @@ type WineData = {
   description: string | null;
 };
 
-const fallbackWines: WineData[] = [
-  {
-    id: 1,
-    name: "Chianti Classico",
-    type: "rosso",
-    supplier: "Fornitori Test",
-    inventory: 12,
-    minStock: 5,
-    price: "15.50",
-    vintage: "2020",
-    region: "Toscana",
-    description: "Vino rosso di test"
-  },
-  {
-    id: 2,
-    name: "Prosecco DOCG",
-    type: "bollicine",
-    supplier: "Fornitori Test",
-    inventory: 8,
-    minStock: 3,
-    price: "12.00",
-    vintage: "2022",
-    region: "Veneto",
-    description: "Spumante di test"
-  },
-  {
-    id: 3,
-    name: "Vermentino di Sardegna",
-    type: "bianco",
-    supplier: "Fornitori Test",
-    inventory: 6,
-    minStock: 2,
-    price: "13.50",
-    vintage: "2023",
-    region: "Sardegna",
-    description: "Vino bianco di test"
-  }
-]
+const fallbackWines: WineData[] = []
 
 export function useWines() {
   const [wines, setWines] = useState<WineData[]>([])
@@ -116,36 +79,36 @@ export function useWines() {
 
     try {
       const { data: wineData, error: wineError } = await supabase!
-        .from('giacenze')
+        .from('vini')
         .select('*')
         .eq('user_id', userId)
-        .order('nome', { ascending: true })
+        .order('nome_vino')
 
       if (wineError) {
-        console.warn('Errore nel caricamento vini dal database, uso dati di fallback:', wineError)
-        setWines(fallbackWines)
-        setSuppliers(Array.from(new Set(fallbackWines.map(w => w.supplier))))
-        setTypes(['rosso', 'bianco', 'bollicine', 'rosato'])
-        setLoading(false)
-        return
+        if (wineError.code === '42P01') {
+          setWines(fallbackWines)
+          setSuppliers(Array.from(new Set(fallbackWines.map(w => w.supplier))))
+          setTypes([])
+          setLoading(false)
+          return
+        }
+        throw wineError
       }
 
       const transformedWines = (wineData || []).map((wine: any) => ({
         id: wine.id,
-        name: wine.nome || wine.name || '',
-        type: wine.tipo || wine.type || 'rosso',
-        supplier: wine.fornitore || wine.supplier || '',
-        inventory: Number(wine.giacenza || wine.inventory || 0),
-        minStock: Number(wine.min_stock || wine.minStock || 0),
-        price: (wine.prezzo || wine.price || 0).toString(),
-        vintage: wine.annata || wine.vintage || '',
-        region: wine.regione || wine.region || '',
-        description: wine.descrizione || wine.description || ''
+        name: wine.nome_vino,
+        type: wine.tipologia,
+        supplier: wine.fornitore,
+        inventory: wine.giacenza,
+        minStock: wine.min_stock ?? 0,
+        price: wine.prezzo_vendita?.toString() ?? '0',
+        vintage: wine.anno,
+        region: wine.provenienza,
+        description: wine.produttore
       }))
 
-      // Se non ci sono vini nel database, usa i dati di fallback
-      const finalWines = transformedWines.length > 0 ? transformedWines : fallbackWines
-      setWines(finalWines)
+      setWines(transformedWines)
 
       const [{ data: supplierData, error: supplierError }, { data: typeData, error: typeError }] =
         await Promise.all([
@@ -153,11 +116,11 @@ export function useWines() {
           supabase!.from('tipologie').select('nome').eq('user_id', userId)
         ])
 
-      const wineSuppliers = Array.from(new Set(finalWines.map(w => w.supplier).filter(s => s && s.trim())))
-      const dbSuppliers = supplierError ? [] : (supplierData || []).map((s: any) => s.nome).filter(s => s && s.trim())
-      const allSuppliers = Array.from(new Set([...wineSuppliers, ...dbSuppliers]))
-
-      setSuppliers(allSuppliers.length > 0 ? allSuppliers : ['Fornitori Test'])
+      setSuppliers(
+        supplierError
+          ? Array.from(new Set(transformedWines.map(w => w.supplier)))
+          : (supplierData || []).map((s: any) => s.nome)
+      )
 
       if (typeError) {
         console.error('Errore nel caricamento tipologie:', typeError)
@@ -189,7 +152,7 @@ export function useWines() {
     }
     try {
       const { error } = await supabase!
-        .from('giacenze')
+        .from('vini')
         .update({ giacenza: newInventory, updated_at: new Date().toISOString() })
         .eq('id', wineId)
         .eq('user_id', userId)
@@ -311,13 +274,10 @@ export function useWines() {
     }
   }
 
-  const years = Array.from(new Set(wines.map(w => w.vintage).filter(v => v && v.trim())))
-
   return {
     wines,
     suppliers,
     types,
-    years,
     loading,
     error,
     isAuthenticated,

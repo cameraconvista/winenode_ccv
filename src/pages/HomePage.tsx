@@ -1,117 +1,159 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Settings, FileText, Upload, Users, RotateCcw, Filter, Search, ChevronDown, Package, Archive } from 'lucide-react';
-import WineCard from '../components/WineCard';
-import WineDetailsModal from '../components/WineDetailsModal';
-import FilterModal from '../components/FilterModal';
-import InventoryModal from '../components/InventoryModal';
-import { useWines } from '../hooks/useWines';
+import { useState } from 'react'
+import { Filter, Settings, Plus, X, Save, Database } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import WineCard from '../components/WineCard'
+import FilterModal from '../components/FilterModal'
+import WineDetailsModal from '../components/WineDetailsModal'
 
-export interface Wine {
+import { useWines } from '../hooks/useWines'
+import { authManager, isSupabaseAvailable, supabase } from '../lib/supabase'
+
+type WineType = {
   id: number;
   name: string;
   type: string;
   supplier: string;
-  vintage: string;
-  description?: string;
-  inventory?: number;
-  price?: string;
-  region?: string;  
-  minStock?: number;
-  created_at?: string;
-  updated_at?: string;
-}
+  inventory: number;
+  minStock: number;
+  price: string;
+  vintage: string | null;
+  region: string | null;
+  description: string | null;
+};
 
-export interface FilterOptions {
-  tipo: string;
-  fornitore: string;
-  annata: string;
-  showOnlyWithStock: boolean;
-}
+export default function HomePage() {
+  const navigate = useNavigate()
+  const {
+    wines,
+    suppliers,
+    loading,
+    error,
+    isAuthenticated,
+    refreshWines,
+    updateWineInventory,
+    updateWine
+  } = useWines()
 
-const HomePage: React.FC = () => {
-  const [selectedWine, setSelectedWine] = useState<Wine | null>(null);
-  const [showFilterModal, setShowFilterModal] = useState(false);
-  const [showInventoryModal, setShowInventoryModal] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState<FilterOptions>({
-    tipo: '',
-    fornitore: '',
-    annata: '',
-    showOnlyWithStock: false
-  });
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showSearchModal, setShowSearchModal] = useState(false)
+  const [showFilterModal, setShowFilterModal] = useState(false)
+  const [showWineDetailsModal, setShowWineDetailsModal] = useState(false)
+  const [selectedWine, setSelectedWine] = useState<WineType | null>(null)
+  const [filters, setFilters] = useState({
+    wineType: '',
+    supplier: '',
+    showAlertsOnly: false
+  })
+  const [showAddWineModal, setShowAddWineModal] = useState(false)
+  const [newWine, setNewWine] = useState({
+    name: "",
+    type: "rosso",
+    price: "",
+    minStock: "2",
+    supplier: "",
+    description: ""
+  })
+  const [isAddingWine, setIsAddingWine] = useState(false)
 
-  const { 
-    wines, 
-    loading, 
-    error, 
-    suppliers, 
-    types,
-    refreshWines, 
-    updateWine, 
-    deleteWine 
-  } = useWines();
+  const wineTypes = [
+    { value: "rosso", label: "Rosso" },
+    { value: "bianco", label: "Bianco" },
+    { value: "bollicine", label: "Bollicine" }
+  ]
 
-  useEffect(() => {
-    refreshWines();
-  }, [refreshWines]);
+  const handleUpdateInventory = async (wineId: number, newInventory: number) => {
+    const success = await updateWineInventory(wineId, newInventory)
+    if (!success) {
+      console.error('Errore nell\'aggiornamento della giacenza')
+    }
+  }
+
+  const handleUpdateWine = async (wineId: number, updates: Partial<WineType>) => {
+    const success = await updateWine(wineId, updates)
+    if (!success) {
+      console.error('Errore nell\'aggiornamento del vino')
+    }
+  }
+
+  const handleWineClick = (wine: WineType) => {
+    setSelectedWine(wine)
+    setShowWineDetailsModal(true)
+  }
+
+  const handleAddWine = async () => {
+    if (!newWine.name.trim()) return
+
+    setIsAddingWine(true)
+    try {
+      if (!isSupabaseAvailable || !authManager.isAuthenticated()) {
+        throw new Error('Supabase non configurato o utente non autenticato')
+      }
+
+      const userId = authManager.getUserId()
+      if (!userId) {
+        throw new Error('ID utente non disponibile')
+      }
+
+      const { data, error } = await supabase!
+        .from('giacenze')
+        .insert({
+          name: newWine.name,
+          type: newWine.type,
+          supplier: newWine.supplier || 'Da definire',
+          inventory: 0,
+          min_stock: parseInt(newWine.minStock) || 2,
+          price: newWine.price || '0',
+          vintage: null,
+          region: null,
+          description: newWine.description || null,
+          user_id: userId,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Errore nell\'aggiunta vino su Supabase:', error)
+        throw error
+      }
+
+      setNewWine({
+        name: "",
+        type: "rosso",
+        price: "",
+        minStock: "2",
+        supplier: "",
+        description: ""
+      })
+      setShowAddWineModal(false)
+
+      await refreshWines()
+      console.log('Vino aggiunto con successo:', data)
+    } catch (error) {
+      console.error('Errore nell\'aggiunta del vino:', error)
+    } finally {
+      setIsAddingWine(false)
+    }
+  }
 
   const filteredWines = wines.filter(wine => {
-    const matchesSearch = wine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         wine.supplier.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = !filters.tipo || wine.type === filters.tipo;
-    const matchesSupplier = !filters.fornitore || wine.supplier === filters.fornitore;
-    const matchesYear = !filters.annata || wine.vintage === filters.annata;
-    const matchesStock = !filters.showOnlyWithStock || (wine.inventory && wine.inventory > 0);
+    const matchesType = !filters.wineType || wine.type === filters.wineType
+    const matchesSupplier = !filters.supplier || wine.supplier === filters.supplier
+    const matchesAlerts = !filters.showAlertsOnly || wine.inventory <= wine.minStock
 
-    return matchesSearch && matchesType && matchesSupplier && matchesYear && matchesStock;
-  });
+    return matchesType && matchesSupplier && matchesAlerts
+  })
 
-  const activeFiltersCount = Object.values(filters).filter(filter => 
-    typeof filter === 'boolean' ? filter : filter !== ''
-  ).length;
-
-  const handleWineClick = (wine: Wine) => {
-    setSelectedWine(wine);
-  };
-
-  const handleCloseModal = () => {
-    setSelectedWine(null);
-  };
-
-  const handleUpdateWine = async (updatedWine: Wine) => {
-    try {
-      await updateWine(updatedWine.id, updatedWine);
-      setSelectedWine(null);
-      refreshWines();
-    } catch (error) {
-      console.error('Errore durante l\'aggiornamento del vino:', error);
-    }
-  };
-
-  const handleDeleteWine = async (wineId: number) => {
-    try {
-      await deleteWine(wineId);
-      setSelectedWine(null);
-      refreshWines();
-    } catch (error) {
-      console.error('Errore durante l\'eliminazione del vino:', error);
-    }
-  };
-
-  const handleApplyFilters = (newFilters: FilterOptions) => {
-    setFilters(newFilters);
-    setShowFilterModal(false);
-  };
-
-  const handleClearFilters = () => {
-    setFilters({
-      tipo: '',
-      fornitore: '',
-      annata: '',
-      showOnlyWithStock: false
-    });
-  };
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-cream">Effettua l'accesso per vedere i tuoi vini</p>
+        </div>
+      </div>
+    )
+  }
 
   if (loading) {
     return (
@@ -121,176 +163,220 @@ const HomePage: React.FC = () => {
           <p className="text-cream">Caricamento vini...</p>
         </div>
       </div>
-    );
+    )
   }
 
   if (error) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-400 mb-4">Errore nel caricamento dei vini</p>
-          <button 
+          <p className="text-red-400 mb-4">{error}</p>
+          <button
             onClick={refreshWines}
-            className="px-4 py-2 bg-amber-600 text-cream rounded-lg hover:bg-amber-700 transition-colors"
+            className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg transition-colors"
           >
             Riprova
           </button>
         </div>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <img src="/logoapp.png" alt="WineNode" className="w-12 h-12" />
-            <div>
-              <h1 className="text-2xl font-bold text-cream">WineNode</h1>
-              <p className="text-gray-400 text-sm">Gestione Inventario Vini</p>
+    <div
+      className="h-screen max-h-screen overflow-hidden flex flex-col"
+      style={{ background: 'linear-gradient(to bottom right, #1f0202, #2d0505, #1f0202)' }}
+    >
+      <header className="border-b border-red-900/30 bg-black/30 backdrop-blur-sm flex-shrink-0">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+          <div className="flex items-center justify-between h-20 sm:h-24">
+            <div className="flex items-center justify-between w-full">
+              <img src="/logo 2 CCV.png" alt="WINENODE" className="h-32 w-auto object-contain" />
+              <div className="flex items-center gap-1 sm:gap-2">
+                <button
+                  onClick={() => navigate('/settings/archivi')}
+                  className="p-2 sm:p-2.5 text-white hover:text-gray-300 transition-colors"
+                  aria-label="Archivi"
+                  title="Archivi"
+                >
+                  <Database className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={() => setShowFilterModal(true)}
+                  className="p-2 sm:p-2.5 text-cream hover:bg-gray-700 rounded-lg transition-colors"
+                  aria-label="Filtri"
+                >
+                  <Filter className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={() => navigate('/settings')}
+                  className="p-2 sm:p-2.5 text-cream hover:bg-gray-700 rounded-lg transition-colors"
+                  aria-label="Impostazioni"
+                >
+                  <Settings className="h-5 w-5" />
+                </button>
+              </div>
             </div>
           </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowInventoryModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-green-700 hover:bg-green-600 text-cream rounded-lg transition-colors"
-            >
-              <Package className="w-4 h-4" />
-              Giacenze
-            </button>
-
-            <Link
-              to="/settings/archivi"
-              className="flex items-center gap-2 px-4 py-2 bg-blue-700 hover:bg-blue-600 text-cream rounded-lg transition-colors"
-            >
-              <Archive className="w-4 h-4" />
-              Archivi
-            </Link>
-
-            <Link
-              to="/settings"
-              className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-cream rounded-lg transition-colors"
-            >
-              <Settings className="w-4 h-4" />
-              Impostazioni
-            </Link>
-          </div>
         </div>
-
-        {/* Search and Filters */}
-        <div className="mb-6 space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Cerca vini o fornitori..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-cream placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
-            </div>
-
-            <button
-              onClick={() => setShowFilterModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-cream rounded-lg transition-colors relative"
-            >
-              <Filter className="w-4 h-4" />
-              Filtri
-              {activeFiltersCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-amber-500 text-gray-900 text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                  {activeFiltersCount}
-                </span>
-              )}
-            </button>
-
-            {activeFiltersCount > 0 && (
-              <button
-                onClick={handleClearFilters}
-                className="flex items-center gap-2 px-3 py-2 bg-red-700 hover:bg-red-600 text-cream rounded-lg transition-colors"
-              >
-                <RotateCcw className="w-4 h-4" />
-                Reset
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Wine Count */}
-        <div className="mb-6">
-          <p className="text-gray-400">
-            Mostrando {filteredWines.length} di {wines.length} vini
-            {activeFiltersCount > 0 && (
-              <span className="ml-2 text-amber-400">
-                (filtri attivi: {activeFiltersCount})
-              </span>
-            )}
-          </p>
-        </div>
-
-        {/* Wine Grid */}
+      </header>
+      <main className="flex-1 flex flex-col max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-8 w-full overflow-y-auto">
         {filteredWines.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-400 text-lg mb-4">
-              {wines.length === 0 ? 'Nessun vino trovato' : 'Nessun vino corrisponde ai filtri selezionati'}
+            <p className="text-gray-400 text-lg">
+              {wines.length === 0 ? 'Nessun vino nel tuo inventario' : 'Nessun vino trovato con i filtri selezionati'}
             </p>
-            {wines.length === 0 && (
-              <Link
-                to="/settings/archivi/manuale"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-cream rounded-lg transition-colors"
-              >
-                <Upload className="w-5 h-5" />
-                Aggiungi il primo vino
-              </Link>
-            )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredWines.map((wine) => (
-              <WineCard
+          <div className="space-y-2">
+            {filteredWines.map(wine => (
+              <div
                 key={wine.id}
-                wine={wine}
-                onClick={handleWineClick}
-              />
+                className="text-cream text-base p-2 hover:bg-white/5 rounded transition-colors"
+              >
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => handleWineClick(wine)}
+                    className="text-cream hover:text-amber-300 hover:underline text-base"
+                  >
+                    {wine.name}
+                  </button>
+                  <span className="text-cream text-base">{wine.description || wine.supplier || '-'}</span>
+                  <span className="text-cream text-base">{wine.inventory}</span>
+                </div>
+              </div>
             ))}
           </div>
         )}
-
-        {/* Modals */}
-        {selectedWine && (
-          <WineDetailsModal
-            wine={selectedWine}
-            onClose={handleCloseModal}
-            onUpdate={handleUpdateWine}
-            onDelete={handleDeleteWine}
-          />
-        )}
-
-        {showFilterModal && (
-          <FilterModal
-            isOpen={showFilterModal}
-            onClose={() => setShowFilterModal(false)}
-            filters={filters}
-            onApplyFilters={handleApplyFilters}
-            suppliers={suppliers}
-            types={types}
-            years={years}
-          />
-        )}
-
-        {showInventoryModal && (
-          <InventoryModal
-            isOpen={showInventoryModal}
-            onClose={() => setShowInventoryModal(false)}
-            wines={wines}
-          />
-        )}
-      </div>
+      </main>
+      <FilterModal
+        open={showFilterModal}
+        onOpenChange={setShowFilterModal}
+        filters={filters}
+        onFiltersChange={setFilters}
+      />
+      <WineDetailsModal
+        wine={selectedWine}
+        open={showWineDetailsModal}
+        onOpenChange={setShowWineDetailsModal}
+        onUpdateWine={handleUpdateWine}
+        suppliers={suppliers}
+      />
+      {!showWineDetailsModal && (
+        <button
+          onClick={() => setShowAddWineModal(true)}
+          className="fixed bottom-6 right-6 w-14 h-14 bg-black/30 backdrop-blur-sm hover:bg-black/40 text-amber-500 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center z-50 border border-red-900/30"
+          title="Aggiungi nuovo vino"
+        >
+          <Plus className="h-6 w-6" />
+        </button>
+      )}
+      {showAddWineModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 border border-gray-700 rounded-lg w-full max-w-md">
+            <div className="flex items-center justify-between p-4 border-b border-gray-700">
+              <h3 className="text-xl font-bold text-cream">AGGIUNGI NUOVO VINO</h3>
+              <button
+                onClick={() => setShowAddWineModal(false)}
+                className="text-gray-400 hover:text-cream"
+                disabled={isAddingWine}
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-4 space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Nome Vino *</label>
+                <input
+                  type="text"
+                  value={newWine.name}
+                  onChange={e => setNewWine(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-cream focus:border-blue-500 focus:outline-none"
+                  placeholder="Inserisci il nome del vino"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Colore Vino</label>
+                <select
+                  value={newWine.type}
+                  onChange={e => setNewWine(prev => ({ ...prev, type: e.target.value }))}
+                  className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-cream focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="rosso">Rosso</option>
+                  <option value="bianco">Bianco</option>
+                  <option value="bollicine">Bollicine</option>
+                  <option value="rosato">Rosato</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Costo Vino (€)</label>
+                  <input
+                    type="text"
+                    value={newWine.price || ''}
+                    onChange={e => setNewWine(prev => ({ ...prev, price: e.target.value }))}
+                    className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-cream focus:border-blue-500 focus:outline-none"
+                    placeholder="Es: 15.50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Soglia Minima</label>
+                  <input
+                    type="number"
+                    value={newWine.minStock || '2'}
+                    onChange={e => setNewWine(prev => ({ ...prev, minStock: e.target.value }))}
+                    className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-cream focus:border-blue-500 focus:outline-none"
+                    placeholder="2"
+                    min="0"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Fornitore</label>
+                <select
+                  value={newWine.supplier || ''}
+                  onChange={e => setNewWine(prev => ({ ...prev, supplier: e.target.value }))}
+                  className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-cream focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="">Seleziona fornitore</option>
+                  {suppliers.map((supplier, index) => (
+                    <option key={`${supplier}-${index}`} value={supplier}>
+                      {supplier}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Descrizione Completa</label>
+                <textarea
+                  value={newWine.description || ''}
+                  onChange={e => setNewWine(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-cream focus:border-blue-500 focus:outline-none resize-none"
+                  rows={2}
+                  placeholder="Descrizione dettagliata del vino..."
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 p-4 border-t border-gray-700">
+              <button
+                onClick={() => setShowAddWineModal(false)}
+                className="flex-1 bg-gray-700 hover:bg-gray-600 text-cream rounded px-4 py-2 transition-colors"
+                disabled={isAddingWine}
+              >
+                Annulla
+              </button>
+              <button
+                onClick={handleAddWine}
+                disabled={!newWine.name.trim() || isAddingWine}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-cream rounded px-4 py-2 flex items-center justify-center gap-2 transition-colors"
+              >
+                <Save className="h-4 w-4" />
+                {isAddingWine ? 'Aggiungendo...' : 'Salva'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-  );
-};
-
-export default HomePage;
+  )
+}
