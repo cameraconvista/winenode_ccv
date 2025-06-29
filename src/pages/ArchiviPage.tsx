@@ -784,19 +784,18 @@ export default function ArchiviPage() {
       if (!rowData.nomeVino?.trim()) return;
 
       const wineToSave = {
-        user_id: userId,
         nome_vino: rowData.nomeVino.trim(),
         anno: rowData.anno || "",
         produttore: rowData.produttore || "",
         provenienza: rowData.provenienza || "",
-        fornitore: rowData.fornitore || "",
         giacenza: rowData.giacenza || 0,
+        fornitore: rowData.fornitore || "",
         updated_at: new Date().toISOString(),
       };
 
       if (rowData.id && rowData.id.startsWith("db-")) {
         const dbId = rowData.id.replace("db-", "");
-        const { error } } = await supabase
+        const { error } = await supabase
           .from("vini")
           .update(wineToSave)
           .eq("id", dbId)
@@ -1468,10 +1467,7 @@ export default function ArchiviPage() {
             <div className="sticky bottom-0 z-40 bg-[#8B4513] border-t-2 border-amber-900 shadow-lg">
               <button
                 onClick={addNewRow}
-                className="This code update involves modifying the `csvUrls` object and the `caricaTuttiIVini` function to align with the specified wine types and Google Sheet structure.
-
-```typescript
-w-full border border-amber-900 p-3 text-white font-medium hover:bg-amber-200 transition-colors"
+                className="w-full border border-amber-900 p-3 text-white font-medium hover:bg-amber-200 transition-colors"
                 style={{ backgroundColor: "#2d0505", fontSize: fontSize, height: 40, display: "flex", alignItems: "center", justifyContent: "center" }}
               >
                 Aggiungi
