@@ -267,7 +267,7 @@ export default function HomePage() {
                       <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
                     </div>
                   )}
-                  </div>
+                </div>
                   
                   {/* Controlli giacenza - pulsanti con valore interno */}
                   <div className="flex items-center gap-1 flex-shrink-0">
