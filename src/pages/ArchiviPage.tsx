@@ -618,6 +618,38 @@ export default function ArchiviPage() {
     alert(removedCount > 0 ? `${removedCount} righe vuote eliminate` : "Nessuna riga vuota trovata");
   };
 
+  const upsertToSupabase = async (wine: WineRow) => {
+    try {
+      if (!supabase) throw new Error("Supabase non disponibile");
+
+      const wineData = {
+        nome_vino: wine.nomeVino || "",
+        anno: wine.anno || "",
+        produttore: wine.produttore || "",
+        provenienza: wine.provenienza || "",
+        fornitore: wine.fornitore || "",
+        tipologia: wine.tipologia || activeTab,
+        giacenza: wine.giacenza || 0,
+        user_id: "f52daf3e-c605-4b83-991a-33a2e91ad7ff"
+      };
+
+      const { data, error } = await supabase
+        .from("vini")
+        .upsert(wineData, { 
+          onConflict: "nome_vino,user_id",
+          ignoreDuplicates: false 
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error("Errore nell'upsert a Supabase:", error);
+      throw error;
+    }
+  };
+
   const saveRowToDatabase = async (rowData: WineRow, rowIndex: number) => {
     try {
       if (!authManager.isAuthenticated() || !supabase)
