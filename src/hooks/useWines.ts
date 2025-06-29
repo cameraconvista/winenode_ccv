@@ -3,15 +3,15 @@ import { supabase, authManager, isSupabaseAvailable } from '../lib/supabase'
 
 type SupabaseWine = {
   id: number;
-  nome: string;
-  tipo: string;
+  nome_vino: string;
+  tipologia: string;
   fornitore: string;
   giacenza: number;
   min_stock: number;
-  prezzo: number;
-  annata: string | null;
-  regione: string | null;
-  descrizione: string | null;
+  prezzo_vendita: number;
+  anno: string | null;
+  provenienza: string | null;
+  produttore: string | null;
   user_id: string;
   created_at: string;
   updated_at: string;
@@ -80,7 +80,7 @@ export function useWines() {
     try {
       const { data: wineData, error: wineError } = await supabase!
         .from('vini')
-        .select('*')
+        .select('id, nome_vino, tipologia, fornitore, giacenza, min_stock, prezzo_vendita, anno, provenienza, produttore, user_id, created_at, updated_at')
         .eq('user_id', userId)
         .order('nome_vino')
 
