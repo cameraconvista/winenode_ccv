@@ -79,10 +79,10 @@ export function useWines() {
 
     try {
       const { data: wineData, error: wineError } = await supabase!
-        .from('vini')
+        .from('giacenze')
         .select('*')
         .eq('user_id', userId)
-        .order('nome_vino')
+        .order('nome')
 
       console.log("Query Supabase risultato:", { wineData, wineError })
 
@@ -99,15 +99,15 @@ export function useWines() {
 
       const transformedWines = (wineData || []).map((wine: any) => ({
         id: wine.id,
-        name: wine.nome_vino,
-        type: wine.tipologia,
+        name: wine.nome,
+        type: wine.tipo,
         supplier: wine.fornitore,
         inventory: wine.giacenza,
         minStock: wine.min_stock ?? 0,
-        price: wine.prezzo_vendita?.toString() ?? '0',
-        vintage: wine.anno,
-        region: wine.provenienza,
-        description: wine.produttore
+        price: wine.prezzo?.toString() ?? '0',
+        vintage: wine.annata,
+        region: wine.regione,
+        description: wine.descrizione
       }))
 
       setWines(transformedWines)
@@ -154,7 +154,7 @@ export function useWines() {
     }
     try {
       const { error } = await supabase!
-        .from('vini')
+        .from('giacenze')
         .update({ giacenza: newInventory, updated_at: new Date().toISOString() })
         .eq('id', wineId)
         .eq('user_id', userId)
