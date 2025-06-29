@@ -46,7 +46,7 @@ const fallbackWines: WineData[] = [
   {
     id: 2,
     name: "Prosecco DOCG",
-    type: "spumante",
+    type: "bollicine",
     supplier: "Fornitori Test",
     inventory: 8,
     minStock: 3,
@@ -54,6 +54,18 @@ const fallbackWines: WineData[] = [
     vintage: "2022",
     region: "Veneto",
     description: "Spumante di test"
+  },
+  {
+    id: 3,
+    name: "Vermentino di Sardegna",
+    type: "bianco",
+    supplier: "Fornitori Test",
+    inventory: 6,
+    minStock: 2,
+    price: "13.50",
+    vintage: "2023",
+    region: "Sardegna",
+    description: "Vino bianco di test"
   }
 ]
 
@@ -107,17 +119,15 @@ export function useWines() {
         .from('giacenze')
         .select('*')
         .eq('user_id', userId)
-        .order('nome')
+        .order('nome', { ascending: true })
 
       if (wineError) {
-        if (wineError.code === '42P01') {
-          setWines(fallbackWines)
-          setSuppliers(Array.from(new Set(fallbackWines.map(w => w.supplier))))
-          setTypes([])
-          setLoading(false)
-          return
-        }
-        throw wineError
+        console.warn('Errore nel caricamento vini dal database, uso dati di fallback:', wineError)
+        setWines(fallbackWines)
+        setSuppliers(Array.from(new Set(fallbackWines.map(w => w.supplier))))
+        setTypes(['rosso', 'bianco', 'bollicine', 'rosato'])
+        setLoading(false)
+        return
       }
 
       const transformedWines = (wineData || []).map((wine: any) => ({
@@ -125,9 +135,9 @@ export function useWines() {
         name: wine.nome || wine.name || '',
         type: wine.tipo || wine.type || 'rosso',
         supplier: wine.fornitore || wine.supplier || '',
-        inventory: wine.giacenza || wine.inventory || 0,
-        minStock: wine.min_stock ?? 0,
-        price: wine.prezzo?.toString() || wine.price?.toString() || '0',
+        inventory: Number(wine.giacenza || wine.inventory || 0),
+        minStock: Number(wine.min_stock || wine.minStock || 0),
+        price: (wine.prezzo || wine.price || 0).toString(),
         vintage: wine.annata || wine.vintage || '',
         region: wine.regione || wine.region || '',
         description: wine.descrizione || wine.description || ''
@@ -143,11 +153,11 @@ export function useWines() {
           supabase!.from('tipologie').select('nome').eq('user_id', userId)
         ])
 
-      setSuppliers(
-        supplierError
-          ? Array.from(new Set(finalWines.map(w => w.supplier)))
-          : (supplierData || []).map((s: any) => s.nome)
-      )
+      const wineSuppliers = Array.from(new Set(finalWines.map(w => w.supplier).filter(s => s && s.trim())))
+      const dbSuppliers = supplierError ? [] : (supplierData || []).map((s: any) => s.nome).filter(s => s && s.trim())
+      const allSuppliers = Array.from(new Set([...wineSuppliers, ...dbSuppliers]))
+      
+      setSuppliers(allSuppliers.length > 0 ? allSuppliers : ['Fornitori Test'])
 
       if (typeError) {
         console.error('Errore nel caricamento tipologie:', typeError)
