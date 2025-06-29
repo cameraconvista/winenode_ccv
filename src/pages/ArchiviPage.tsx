@@ -397,6 +397,17 @@ export default function ArchiviPage() {
           giacenza: 0,
         }));
 
+        // Salva automaticamente ogni vino su Supabase
+        for (const wine of winesFromCsv) {
+          if (wine.nomeVino?.trim()) {
+            try {
+              await upsertToSupabase(wine);
+            } catch (error) {
+              console.error(`Errore nel salvare il vino "${wine.nomeVino}" su Supabase:`, error);
+            }
+          }
+        }
+
       const emptyRows = Array.from(
         { length: Math.max(0, 100 - winesFromCsv.length) },
         (_, idx) => ({
@@ -427,7 +438,7 @@ export default function ArchiviPage() {
           .map(wine => wine.fornitore?.trim())
           .filter(fornitore => fornitore && fornitore.length > 0)
       )).sort();
-      
+
       setFornitori(fornitoriUnici);
     };
 
@@ -800,11 +811,11 @@ export default function ArchiviPage() {
       return allWineRows.filter(row => {
         const matchesModalFornitore = !modalFilters.fornitore || 
           row.fornitore?.toLowerCase().includes(modalFilters.fornitore.toLowerCase())
-        
+
         const matchesModalTipologie = modalFilters.tipologie.length === 0 || 
           modalFilters.tipologie.includes('TUTTE') ||
           modalFilters.tipologie.includes(row.tipologia || activeTab)
-        
+
         const matchesSearch = !filters.search || 
           row.nomeVino?.toLowerCase().includes(filters.search.toLowerCase()) ||
           row.produttore?.toLowerCase().includes(filters.search.toLowerCase()) ||
