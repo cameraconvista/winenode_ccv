@@ -268,27 +268,31 @@ export default function HomePage() {
                     </div>
                   )}
                   
-                  {/* Controlli giacenza - pulsanti con valore interno */}
-                  <div className="flex items-center gap-1 flex-shrink-0">
+                  {/* Controlli giacenza - pulsanti rotondi con valore */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleUpdateInventory(wine.id, wine.inventory - 1);
                       }}
                       disabled={wine.inventory <= 0}
-                      className="w-12 h-6 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-md flex items-center justify-center text-xs font-bold transition-colors"
+                      className="w-8 h-8 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors"
                     >
-                      ➖ {wine.inventory || 0}
+                      ➖
                     </button>
+                    
+                    <span className="text-cream font-bold text-sm min-w-[24px] text-center">
+                      {wine.inventory || 0}
+                    </span>
                     
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleUpdateInventory(wine.id, wine.inventory + 1);
                       }}
-                      className="w-12 h-6 bg-green-600 hover:bg-green-700 text-white rounded-md flex items-center justify-center text-xs font-bold transition-colors"
+                      className="w-8 h-8 bg-green-600 hover:bg-green-700 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors"
                     >
-                      ➕ {wine.inventory || 0}
+                      ➕
                     </button>
                   </div>
                 </div>
