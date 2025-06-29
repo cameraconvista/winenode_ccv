@@ -237,27 +237,19 @@ export default function HomePage() {
                 className="bg-black/20 backdrop-blur-sm border border-red-900/20 rounded-lg p-4 hover:bg-black/30 transition-all duration-200 touch-manipulation"
                 onClick={() => handleWineClick(wine)}
               >
-                <div className="space-y-2">
-                  {/* Nome del vino */}
-                  <div className="flex items-start justify-between">
-                    <h3 className="text-cream font-semibold text-lg leading-tight cursor-pointer hover:text-amber-300 transition-colors flex-1 pr-2">
-                      {wine.name}
-                    </h3>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className="text-amber-400 font-bold text-lg min-w-[3rem] text-right">
-                        {wine.inventory}
-                      </span>
-                      {wine.inventory <= wine.minStock && (
-                        <div className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0"></div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Produttore */}
-                  <div className="text-gray-300 text-base">
-                    <span className="font-medium">Produttore: </span>
-                    <span>{wine.description || wine.supplier || 'Non specificato'}</span>
-                  </div>
+                <div className="text-lg font-bold text-gray-800 mb-1 line-clamp-2">
+                  {wine.name}
+                </div>
+                <div className="text-sm text-gray-600 mb-2">
+                  Produttore: {wine.description || 'N/A'}
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600">
+                    Anno: {wine.vintage || 'N/A'}
+                  </span>
+                  <span className={`font-semibold ${wine.inventory <= wine.minStock ? 'text-red-600' : 'text-green-600'}`}>
+                    Giacenza: {wine.inventory}
+                  </span>
                 </div>
               </div>
             ))}
