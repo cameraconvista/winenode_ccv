@@ -95,7 +95,7 @@ export function useWines() {
         throw wineError
       }
 
-      const transformedWines = (wineData || []).map((wine: any) => ({
+      const transformedWines = (wineData || []).map((wine: SupabaseWine) => ({
         id: wine.id,
         name: wine.nome_vino,
         type: wine.tipologia,
