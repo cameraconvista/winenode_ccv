@@ -139,15 +139,11 @@ export default function HomePage() {
   }
 
   const filteredWines = wines.filter(wine => {
-    const matchesSearch =
-      wine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      wine.supplier.toLowerCase().includes(searchTerm.toLowerCase())
-
     const matchesType = !filters.wineType || wine.type === filters.wineType
     const matchesSupplier = !filters.supplier || wine.supplier === filters.supplier
     const matchesAlerts = !filters.showAlertsOnly || wine.inventory <= wine.minStock
 
-    return matchesSearch && matchesType && matchesSupplier && matchesAlerts
+    return matchesType && matchesSupplier && matchesAlerts
   })
 
   if (!isAuthenticated) {
@@ -207,13 +203,6 @@ export default function HomePage() {
                   <Database className="h-5 w-5" />
                 </button>
                 <button
-                  onClick={() => setShowSearchModal(true)}
-                  className="p-2 sm:p-2.5 text-cream hover:bg-gray-700 rounded-lg transition-colors"
-                  aria-label="Cerca"
-                >
-                  <Search className="h-5 w-5" />
-                </button>
-                <button
                   onClick={() => setShowFilterModal(true)}
                   className="p-2 sm:p-2.5 text-cream hover:bg-gray-700 rounded-lg transition-colors"
                   aria-label="Filtri"
@@ -261,12 +250,6 @@ export default function HomePage() {
           </div>
         )}
       </main>
-      <SearchModal
-        open={showSearchModal}
-        onOpenChange={setShowSearchModal}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-      />
       <FilterModal
         open={showFilterModal}
         onOpenChange={setShowFilterModal}
