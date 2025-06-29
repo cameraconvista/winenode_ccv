@@ -3,15 +3,15 @@ import { supabase, authManager, isSupabaseAvailable } from '../lib/supabase'
 
 type SupabaseWine = {
   id: number;
-  nome_vino: string;
-  tipologia: string;
+  nome: string;
+  tipo: string;
   fornitore: string;
   giacenza: number;
   min_stock: number;
-  prezzo_vendita: number;
-  anno: string | null;
-  provenienza: string | null;
-  produttore: string | null;
+  prezzo: number;
+  annata: string | null;
+  regione: string | null;
+  descrizione: string | null;
   user_id: string;
   created_at: string;
   updated_at: string;
@@ -80,7 +80,7 @@ export function useWines() {
     try {
       const { data: wineData, error: wineError } = await supabase!
         .from('vini')
-        .select('id, nome_vino, tipologia, fornitore, giacenza, min_stock, prezzo_vendita, anno, provenienza, produttore, user_id, created_at, updated_at')
+        .select('*')
         .eq('user_id', userId)
         .order('nome_vino')
 
@@ -95,7 +95,7 @@ export function useWines() {
         throw wineError
       }
 
-      const transformedWines = (wineData || []).map((wine: SupabaseWine) => ({
+      const transformedWines = (wineData || []).map((wine: any) => ({
         id: wine.id,
         name: wine.nome_vino,
         type: wine.tipologia,
@@ -176,19 +176,19 @@ export function useWines() {
       return false
     }
     const supabaseUpdates: any = { updated_at: new Date().toISOString() }
-    if (updates.name !== undefined) supabaseUpdates.nome_vino = updates.name
-    if (updates.type !== undefined) supabaseUpdates.tipologia = updates.type
+    if (updates.name !== undefined) supabaseUpdates.nome = updates.name
+    if (updates.type !== undefined) supabaseUpdates.tipo = updates.type
     if (updates.supplier !== undefined) supabaseUpdates.fornitore = updates.supplier
     if (updates.inventory !== undefined) supabaseUpdates.giacenza = updates.inventory
     if (updates.minStock !== undefined) supabaseUpdates.min_stock = updates.minStock
-    if (updates.price !== undefined) supabaseUpdates.prezzo_vendita = parseFloat(updates.price)
-    if (updates.vintage !== undefined) supabaseUpdates.anno = updates.vintage
-    if (updates.region !== undefined) supabaseUpdates.provenienza = updates.region
-    if (updates.description !== undefined) supabaseUpdates.produttore = updates.description
+    if (updates.price !== undefined) supabaseUpdates.prezzo = parseFloat(updates.price)
+    if (updates.vintage !== undefined) supabaseUpdates.annata = updates.vintage
+    if (updates.region !== undefined) supabaseUpdates.regione = updates.region
+    if (updates.description !== undefined) supabaseUpdates.descrizione = updates.description
 
     try {
       const { error } = await supabase!
-        .from('vini')
+        .from('giacenze')
         .update(supabaseUpdates)
         .eq('id', wineId)
         .eq('user_id', userId)
@@ -211,17 +211,17 @@ export function useWines() {
     }
     try {
       const { data, error } = await supabase!
-        .from('vini')
+        .from('giacenze')
         .insert({
-          nome_vino: newWine.name,
-          tipologia: newWine.type,
+          nome: newWine.name,
+          tipo: newWine.type,
           fornitore: newWine.supplier,
           giacenza: newWine.inventory,
           min_stock: newWine.minStock,
-          prezzo_vendita: parseFloat(newWine.price),
-          anno: newWine.vintage,
-          provenienza: newWine.region,
-          produttore: newWine.description,
+          prezzo: parseFloat(newWine.price),
+          annata: newWine.vintage,
+          regione: newWine.region,
+          descrizione: newWine.description,
           user_id: userId,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -231,15 +231,15 @@ export function useWines() {
       if (error) throw error
       const transformedWine: WineData = {
         id: data.id,
-        name: data.nome_vino,
-        type: data.tipologia,
+        name: data.nome,
+        type: data.tipo,
         supplier: data.fornitore,
         inventory: data.giacenza,
         minStock: data.min_stock,
-        price: data.prezzo_vendita.toString(),
-        vintage: data.anno,
-        region: data.provenienza,
-        description: data.produttore
+        price: data.prezzo.toString(),
+        vintage: data.annata,
+        region: data.regione,
+        description: data.descrizione
       }
       setWines(prev => [...prev, transformedWine])
       return transformedWine
@@ -261,7 +261,7 @@ export function useWines() {
     }
     try {
       const { error } = await supabase!
-        .from('vini')
+        .from('giacenze')
         .delete()
         .eq('id', wineId)
         .eq('user_id', userId)
