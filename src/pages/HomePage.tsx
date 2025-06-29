@@ -1,10 +1,8 @@
-import { useState } from 'react'
-import { Filter, Settings, Plus, X, Save, Database } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
-import WineCard from '../components/WineCard'
-import FilterModal from '../components/FilterModal'
-import WineDetailsModal from '../components/WineDetailsModal'
 
+import { useState, useCallback, useMemo } from 'react'
+import { Settings, Plus, X, Save, Database, Minus } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import WineDetailsModal from '../components/WineDetailsModal'
 import { useWines } from '../hooks/useWines'
 import { authManager, isSupabaseAvailable, supabase } from '../lib/supabase'
 
@@ -34,14 +32,9 @@ export default function HomePage() {
     updateWine
   } = useWines()
 
-  const [showFilterModal, setShowFilterModal] = useState(false)
-  const [showWineDetailsModal, setShowWineDetailsModal] = useState(false)
   const [selectedWine, setSelectedWine] = useState<WineType | null>(null)
-  const [filters, setFilters] = useState({
-    wineType: '',
-    supplier: '',
-    showAlertsOnly: false
-  })
+  const [showWineDetailsModal, setShowWineDetailsModal] = useState(false)
+  const [activeTypeFilter, setActiveTypeFilter] = useState<string>('tutti')
   const [showAddWineModal, setShowAddWineModal] = useState(false)
   const [newWine, setNewWine] = useState({
     name: "",
@@ -53,30 +46,32 @@ export default function HomePage() {
   })
   const [isAddingWine, setIsAddingWine] = useState(false)
 
-  const wineTypes = [
-    { value: "rosso", label: "Rosso" },
-    { value: "bianco", label: "Bianco" },
-    { value: "bollicine", label: "Bollicine" }
-  ]
+  const wineTypes = useMemo(() => [
+    { value: "tutti", label: "Tutti Vini", color: "#8B4513" },
+    { value: "rosso", label: "Rosso", color: "#8B0000" },
+    { value: "bianco", label: "Bianco", color: "#F5F5DC" },
+    { value: "bollicine", label: "Bollicine", color: "#FFD700" },
+    { value: "rosato", label: "Rosato", color: "#FFB6C1" }
+  ], [])
 
-  const handleUpdateInventory = async (wineId: number, newInventory: number) => {
-    const success = await updateWineInventory(wineId, newInventory)
+  const handleUpdateInventory = useCallback(async (wineId: number, newInventory: number) => {
+    const success = await updateWineInventory(wineId, Math.max(0, newInventory))
     if (!success) {
       console.error('Errore nell\'aggiornamento della giacenza')
     }
-  }
+  }, [updateWineInventory])
 
-  const handleUpdateWine = async (wineId: number, updates: Partial<WineType>) => {
+  const handleUpdateWine = useCallback(async (wineId: number, updates: Partial<WineType>) => {
     const success = await updateWine(wineId, updates)
     if (!success) {
       console.error('Errore nell\'aggiornamento del vino')
     }
-  }
+  }, [updateWine])
 
-  const handleWineClick = (wine: WineType) => {
+  const handleWineClick = useCallback((wine: WineType) => {
     setSelectedWine(wine)
     setShowWineDetailsModal(true)
-  }
+  }, [])
 
   const handleAddWine = async () => {
     if (!newWine.name.trim()) return
@@ -135,13 +130,31 @@ export default function HomePage() {
     }
   }
 
-  const filteredWines = wines.filter(wine => {
-    const matchesType = !filters.wineType || wine.type === filters.wineType
-    const matchesSupplier = !filters.supplier || wine.supplier === filters.supplier
-    const matchesAlerts = !filters.showAlertsOnly || wine.inventory <= wine.minStock
+  const filteredWines = useMemo(() => {
+    return wines.filter(wine => {
+      if (activeTypeFilter === 'tutti') return true
+      return wine.type === activeTypeFilter
+    })
+  }, [wines, activeTypeFilter])
 
-    return matchesType && matchesSupplier && matchesAlerts
-  })
+  const getWineIcon = useCallback((type: string) => {
+    const colors = {
+      'rosso': '#8B0000',
+      'bianco': '#F5F5DC',
+      'bollicine': '#FFD700',
+      'rosato': '#FFB6C1'
+    };
+
+    const color = colors[type as keyof typeof colors] || '#888888';
+
+    return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7 2v6c0 3.5 2.24 6 5 6s5-2.5 5-6V2z" fill={color}/>
+        <rect x="11.2" y="14" width="1.6" height="6" fill={color}/>
+        <rect x="8" y="20" width="8" height="2" fill={color}/>
+      </svg>
+    );
+  }, [])
 
   if (!isAuthenticated) {
     return (
@@ -185,74 +198,127 @@ export default function HomePage() {
       className="h-screen max-h-screen overflow-hidden flex flex-col"
       style={{ background: 'linear-gradient(to bottom right, #1f0202, #2d0505, #1f0202)' }}
     >
+      {/* Header con logo e pulsanti */}
       <header className="border-b border-red-900/30 bg-black/30 backdrop-blur-sm flex-shrink-0">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
-          <div className="flex items-center justify-between h-20 sm:h-24">
-            <div className="flex items-center justify-between w-full">
-              <img src="/logo 2 CCV.png" alt="WINENODE" className="h-32 w-auto object-contain" />
-              <div className="flex items-center gap-1 sm:gap-2">
-                <button
-                  onClick={() => navigate('/settings/archivi')}
-                  className="p-2 sm:p-2.5 text-white hover:text-gray-300 transition-colors"
-                  aria-label="Archivi"
-                  title="Archivi"
-                >
-                  <Database className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={() => setShowFilterModal(true)}
-                  className="p-2 sm:p-2.5 text-cream hover:bg-gray-700 rounded-lg transition-colors"
-                  aria-label="Filtri"
-                >
-                  <Filter className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={() => navigate('/settings')}
-                  className="p-2 sm:p-2.5 text-cream hover:bg-gray-700 rounded-lg transition-colors"
-                  aria-label="Impostazioni"
-                >
-                  <Settings className="h-5 w-5" />
-                </button>
-              </div>
+          <div className="flex items-center justify-between h-16 sm:h-20">
+            <img src="/logo 2 CCV.png" alt="WINENODE" className="h-24 sm:h-28 w-auto object-contain" />
+            <div className="flex items-center gap-1 sm:gap-2">
+              <button
+                onClick={() => navigate('/settings/archivi')}
+                className="p-2 sm:p-2.5 text-white hover:text-gray-300 transition-colors"
+                aria-label="Archivi"
+                title="Archivi"
+              >
+                <Database className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => navigate('/settings')}
+                className="p-2 sm:p-2.5 text-cream hover:bg-gray-700 rounded-lg transition-colors"
+                aria-label="Impostazioni"
+              >
+                <Settings className="h-5 w-5" />
+              </button>
             </div>
           </div>
         </div>
       </header>
-      <main className="flex-1 flex flex-col max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-8 w-full overflow-y-auto">
-        {filteredWines.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-400 text-lg">
-              {wines.length === 0 ? 'Nessun vino nel tuo inventario' : 'Nessun vino trovato con i filtri selezionati'}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {filteredWines.map(wine => (
-              <div
-                key={wine.id}
-                className="text-cream text-base p-2 hover:bg-white/5 rounded transition-colors"
+
+      {/* Tab filtri tipologie integrate nell'header */}
+      <div className="bg-black/30 border-b border-red-900/30 px-2 py-3 flex-shrink-0">
+        <div className="max-w-full mx-auto overflow-x-auto">
+          <div className="flex items-center gap-1 min-w-max px-2">
+            {wineTypes.map(type => (
+              <button
+                key={type.value}
+                onClick={() => setActiveTypeFilter(type.value)}
+                className={`px-3 py-2 font-semibold text-xs rounded-lg transition-all duration-200 border-2 whitespace-nowrap ${
+                  activeTypeFilter === type.value
+                    ? "bg-amber-700 text-cream border-amber-500 shadow-lg"
+                    : "bg-brown-800/60 text-cream/80 border-brown-600/40 hover:bg-brown-700/70 hover:border-brown-500/60"
+                }`}
               >
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => handleWineClick(wine)}
-                    className="text-cream hover:text-amber-300 hover:underline text-base"
-                  >
-                    {wine.name}
-                  </button>
-                  <span className="text-cream text-base">{wine.description || wine.supplier || '-'}</span>
-                  <span className="text-cream text-base">{wine.inventory}</span>
-                </div>
-              </div>
+                {type.label}
+              </button>
             ))}
           </div>
-        )}
+        </div>
+      </div>
+
+      {/* Lista vini con controlli giacenza */}
+      <main className="flex-1 overflow-y-auto px-2 sm:px-4 py-2">
+        <div className="max-w-4xl mx-auto">
+          {filteredWines.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-400 text-base">
+                {wines.length === 0 ? 'Nessun vino nel tuo inventario' : 'Nessun vino trovato per questa tipologia'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filteredWines.map(wine => (
+                <div
+                  key={wine.id}
+                  className="bg-black/20 border border-red-900/30 rounded-lg p-3 hover:bg-black/30 transition-all duration-200"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    {/* Icona e nome vino */}
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="flex-shrink-0">
+                        {getWineIcon(wine.type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <button
+                          onClick={() => handleWineClick(wine)}
+                          className="text-cream hover:text-amber-300 text-sm font-medium text-left truncate block w-full"
+                        >
+                          {wine.name}
+                        </button>
+                        {wine.description && (
+                          <p className="text-gray-400 text-xs truncate">
+                            {wine.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Controlli giacenza */}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => handleUpdateInventory(wine.id, wine.inventory - 1)}
+                        className="w-8 h-8 bg-red-600/80 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors"
+                        disabled={wine.inventory <= 0}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </button>
+                      
+                      <div className="flex flex-col items-center min-w-[60px]">
+                        <span className="text-cream font-bold text-lg">
+                          {wine.inventory}
+                        </span>
+                        {wine.inventory <= wine.minStock && (
+                          <span className="text-amber-400 text-xs font-medium">
+                            BASSO
+                          </span>
+                        )}
+                      </div>
+                      
+                      <button
+                        onClick={() => handleUpdateInventory(wine.id, wine.inventory + 1)}
+                        className="w-8 h-8 bg-green-600/80 hover:bg-green-600 text-white rounded-full flex items-center justify-center transition-colors"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </main>
-      <FilterModal
-        open={showFilterModal}
-        onOpenChange={setShowFilterModal}
-        filters={filters}
-        onFiltersChange={setFilters}
-      />
+
+      {/* Modal dettagli vino */}
       <WineDetailsModal
         wine={selectedWine}
         open={showWineDetailsModal}
@@ -260,6 +326,8 @@ export default function HomePage() {
         onUpdateWine={handleUpdateWine}
         suppliers={suppliers}
       />
+
+      {/* Pulsante aggiungi vino */}
       {!showWineDetailsModal && (
         <button
           onClick={() => setShowAddWineModal(true)}
@@ -269,9 +337,11 @@ export default function HomePage() {
           <Plus className="h-6 w-6" />
         </button>
       )}
+
+      {/* Modal aggiungi vino */}
       {showAddWineModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 border border-gray-700 rounded-lg w-full max-w-md">
+          <div className="bg-gray-900 border border-gray-700 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-gray-700">
               <h3 className="text-xl font-bold text-cream">AGGIUNGI NUOVO VINO</h3>
               <button
