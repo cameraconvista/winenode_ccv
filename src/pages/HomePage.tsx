@@ -258,14 +258,18 @@ export default function HomePage() {
                           <span className="text-gray-300">{wine.vintage}</span>
                         </>
                       )}
-                      <span className="text-gray-400 mx-1">·</span>
-                      <span className={`font-medium ${wine.inventory <= wine.minStock ? 'text-red-400' : 'text-green-400'}`}>
-                        {wine.inventory}
-                      </span>
                     </div>
                   </div>
                   
-                  {/* Controlli giacenza - pulsanti compatti */}
+                  {/* Indicatore di stock basso */}
+                  {wine.inventory <= wine.minStock && (
+                    <div className="flex items-center justify-center w-3 h-3 flex-shrink-0">
+                      <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
+                    </div>
+                  )}
+                  </div>
+                  
+                  {/* Controlli giacenza - pulsanti con valore interno */}
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <button
                       onClick={(e) => {
@@ -273,9 +277,9 @@ export default function HomePage() {
                         handleUpdateInventory(wine.id, wine.inventory - 1);
                       }}
                       disabled={wine.inventory <= 0}
-                      className="w-7 h-7 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-full flex items-center justify-center text-sm font-bold transition-colors"
+                      className="w-12 h-6 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-md flex items-center justify-center text-xs font-bold transition-colors"
                     >
-                      ➖
+                      ➖ {wine.inventory}
                     </button>
                     
                     <button
@@ -283,9 +287,9 @@ export default function HomePage() {
                         e.stopPropagation();
                         handleUpdateInventory(wine.id, wine.inventory + 1);
                       }}
-                      className="w-7 h-7 bg-green-600 hover:bg-green-700 text-white rounded-full flex items-center justify-center text-sm font-bold transition-colors"
+                      className="w-12 h-6 bg-green-600 hover:bg-green-700 text-white rounded-md flex items-center justify-center text-xs font-bold transition-colors"
                     >
-                      ➕
+                      ➕ {wine.inventory}
                     </button>
                   </div>
                 </div>
