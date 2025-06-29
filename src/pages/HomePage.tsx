@@ -8,15 +8,16 @@ import InventoryModal from '../components/InventoryModal';
 import { useWines } from '../hooks/useWines';
 
 export interface Wine {
-  id: string;
-  nome: string;
-  tipo: string;
-  fornitore: string;
-  annata: string;
-  note?: string;
-  quantita?: number;
-  prezzo_acquisto?: number;
-  posizione?: string;
+  id: number;
+  name: string;
+  type: string;
+  supplier: string;
+  vintage: string;
+  description?: string;
+  inventory?: number;
+  price?: string;
+  region?: string;  
+  minStock?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -45,24 +46,23 @@ const HomePage: React.FC = () => {
     loading, 
     error, 
     suppliers, 
-    years, 
     types,
-    fetchWines, 
+    refreshWines, 
     updateWine, 
     deleteWine 
   } = useWines();
 
   useEffect(() => {
-    fetchWines();
-  }, []);
+    refreshWines();
+  }, [refreshWines]);
 
   const filteredWines = wines.filter(wine => {
-    const matchesSearch = wine.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         wine.fornitore.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = !filters.tipo || wine.tipo === filters.tipo;
-    const matchesSupplier = !filters.fornitore || wine.fornitore === filters.fornitore;
-    const matchesYear = !filters.annata || wine.annata === filters.annata;
-    const matchesStock = !filters.showOnlyWithStock || (wine.quantita && wine.quantita > 0);
+    const matchesSearch = wine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         wine.supplier.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = !filters.tipo || wine.type === filters.tipo;
+    const matchesSupplier = !filters.fornitore || wine.supplier === filters.fornitore;
+    const matchesYear = !filters.annata || wine.vintage === filters.annata;
+    const matchesStock = !filters.showOnlyWithStock || (wine.inventory && wine.inventory > 0);
 
     return matchesSearch && matchesType && matchesSupplier && matchesYear && matchesStock;
   });
@@ -83,17 +83,17 @@ const HomePage: React.FC = () => {
     try {
       await updateWine(updatedWine.id, updatedWine);
       setSelectedWine(null);
-      fetchWines();
+      refreshWines();
     } catch (error) {
       console.error('Errore durante l\'aggiornamento del vino:', error);
     }
   };
 
-  const handleDeleteWine = async (wineId: string) => {
+  const handleDeleteWine = async (wineId: number) => {
     try {
       await deleteWine(wineId);
       setSelectedWine(null);
-      fetchWines();
+      refreshWines();
     } catch (error) {
       console.error('Errore durante l\'eliminazione del vino:', error);
     }
@@ -130,7 +130,7 @@ const HomePage: React.FC = () => {
         <div className="text-center">
           <p className="text-red-400 mb-4">Errore nel caricamento dei vini</p>
           <button 
-            onClick={fetchWines}
+            onClick={refreshWines}
             className="px-4 py-2 bg-amber-600 text-cream rounded-lg hover:bg-amber-700 transition-colors"
           >
             Riprova

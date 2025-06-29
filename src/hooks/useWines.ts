@@ -311,10 +311,13 @@ export function useWines() {
     }
   }
 
+  const years = Array.from(new Set(wines.map(w => w.vintage).filter(v => v && v.trim())))
+
   return {
     wines,
     suppliers,
     types,
+    years,
     loading,
     error,
     isAuthenticated,
