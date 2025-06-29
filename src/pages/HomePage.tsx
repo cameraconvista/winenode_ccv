@@ -245,7 +245,7 @@ export default function HomePage() {
                     onClick={() => handleWineClick(wine)}
                   >
                     <div className="text-sm text-cream leading-tight truncate">
-                      <span className="font-semibold">{wine.name}</span>
+                      <span className="font-semibold">{wine.name || 'Nome non disponibile'}</span>
                       {wine.description && (
                         <>
                           <span className="text-gray-400 mx-1">·</span>
@@ -267,7 +267,6 @@ export default function HomePage() {
                       <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
                     </div>
                   )}
-                </div>
                   
                   {/* Controlli giacenza - pulsanti con valore interno */}
                   <div className="flex items-center gap-1 flex-shrink-0">
@@ -279,7 +278,7 @@ export default function HomePage() {
                       disabled={wine.inventory <= 0}
                       className="w-12 h-6 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-md flex items-center justify-center text-xs font-bold transition-colors"
                     >
-                      ➖ {wine.inventory}
+                      ➖ {wine.inventory || 0}
                     </button>
                     
                     <button
@@ -289,7 +288,7 @@ export default function HomePage() {
                       }}
                       className="w-12 h-6 bg-green-600 hover:bg-green-700 text-white rounded-md flex items-center justify-center text-xs font-bold transition-colors"
                     >
-                      ➕ {wine.inventory}
+                      ➕ {wine.inventory || 0}
                     </button>
                   </div>
                 </div>
