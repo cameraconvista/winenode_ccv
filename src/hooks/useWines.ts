@@ -84,6 +84,8 @@ export function useWines() {
         .eq('user_id', userId)
         .order('nome_vino')
 
+      console.log("Query Supabase risultato:", { wineData, wineError })
+
       if (wineError) {
         if (wineError.code === '42P01') {
           setWines(fallbackWines)
