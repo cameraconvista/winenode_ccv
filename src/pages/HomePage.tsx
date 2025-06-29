@@ -1,2 +1,11 @@
-The code is modified to correct the table name used for saving data from "vini" to "giacenze".
-```
+features: [
+          'out-of-viewport',
+          'layout-animations',
+          'navigation-override',
+          'navigation-formats',
+          'oversized-images',
+          'publickey-credentials',
+          'speaker-selection',
+          'unoptimized-images',
+          'unsized-media'
+        ]
