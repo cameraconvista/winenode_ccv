@@ -56,6 +56,8 @@ export default function HomePage() {
     description: ""
   })
   const [isAddingWine, setIsAddingWine] = useState(false)
+  const [editingInventoryId, setEditingInventoryId] = useState<number | null>(null)
+  const [editingValue, setEditingValue] = useState<string>('')
 
   const wineTypes = [
     { value: "rosso", label: "Rosso" },
@@ -82,6 +84,42 @@ export default function HomePage() {
   const handleWineClick = (wine: WineType) => {
     setSelectedWine(wine)
     setShowWineDetailsModal(true)
+  }
+
+  const handleInventoryClick = (e: React.MouseEvent, wine: WineType) => {
+    e.stopPropagation()
+    setEditingInventoryId(wine.id)
+    setEditingValue(wine.inventory.toString())
+  }
+
+  const handleInventoryKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleInventorySave()
+    }
+    if (e.key === 'Escape') {
+      handleInventoryCancel()
+    }
+  }
+
+  const handleInventorySave = async () => {
+    if (editingInventoryId === null) return
+    
+    const newValue = parseInt(editingValue)
+    if (isNaN(newValue) || newValue < 0) {
+      handleInventoryCancel()
+      return
+    }
+
+    const success = await handleUpdateInventory(editingInventoryId, newValue)
+    if (success) {
+      setEditingInventoryId(null)
+      setEditingValue('')
+    }
+  }
+
+  const handleInventoryCancel = () => {
+    setEditingInventoryId(null)
+    setEditingValue('')
   }
 
   const handleAddWine = async () => {
@@ -282,9 +320,26 @@ export default function HomePage() {
                       ➖
                     </button>
                     
-                    <span className="text-cream font-bold text-sm min-w-[24px] text-center">
-                      {wine.inventory || 0}
-                    </span>
+                    {editingInventoryId === wine.id ? (
+                      <input
+                        type="number"
+                        value={editingValue}
+                        onChange={(e) => setEditingValue(e.target.value)}
+                        onBlur={handleInventorySave}
+                        onKeyDown={handleInventoryKeyDown}
+                        className="w-8 h-6 bg-gray-800 border border-gray-600 rounded text-cream text-center text-sm font-bold focus:border-blue-500 focus:outline-none"
+                        autoFocus
+                        min="0"
+                      />
+                    ) : (
+                      <span 
+                        className="text-cream font-bold text-sm min-w-[24px] text-center cursor-pointer hover:bg-gray-700 rounded px-1 transition-colors"
+                        onClick={(e) => handleInventoryClick(e, wine)}
+                        title="Clicca per modificare"
+                      >
+                        {wine.inventory || 0}
+                      </span>
+                    )}
                     
                     <button
                       onClick={(e) => {
