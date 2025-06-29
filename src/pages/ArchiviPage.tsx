@@ -107,113 +107,6 @@ export default function ArchiviPage() {
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=498630601&single=true&output=csv",
     "VINI DOLCI":
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=1582691495&single=true&output=csv",
-    "DOLCI E PASSITI":
-      "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=1582691495&single=true&output=csv",
-    MAGNUM:
-      "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_DIwWlGmqp3ciC47s5RBnFBPtDR-NodJOJ-BaO4zGnwpsF54l73hi7174Pc9p9ZAn8T2z_z5i7ssy/pub?gid=0&single=true&output=csv",
-  };
-
-  // Funzione per caricare tutti i vini da tutte le tipologie
-  const caricaTuttiIVini = async () => {
-    const tipologie = [
-      "BOLLICINE ITALIANE",
-      "BOLLICINE FRANCESI", 
-      "BIANCHI",
-      "ROSSI",
-      "ROSATI",
-      "DOLCI E PASSITI",
-      "MAGNUM"
-    ];
-
-    console.log("🔄 Caricamento di tutti i vini da Google Sheets...");
-
-    for (const tipologia of tipologie) {
-      try {
-        // Costruisci l'URL per la tipologia corrente
-        const url = csvUrls[tipologia as keyof typeof csvUrls];
-        if (!url) {
-          console.warn(`⚠️ URL non trovato per tipologia: ${tipologia}`);
-          continue;
-        }
-
-        console.log(`📥 Caricamento ${tipologia}...`);
-        
-        const response = await fetch(url);
-        if (!response.ok) {
-          console.error(`❌ Errore HTTP ${response.status} per ${tipologia}`);
-          continue;
-        }
-        
-        const csvText = await response.text();
-        const parsed = Papa.parse<string[]>(csvText, { skipEmptyLines: false });
-
-        // Trova il punto di inizio dei dati (come nella funzione esistente)
-        let startRow = 0;
-        for (let i = 0; i < parsed.data.length; i++) {
-          const row = parsed.data[i];
-          if (row && row.length > 0) {
-            const firstCell = row[0]?.trim().toUpperCase() || "";
-            const rowText = row.join("").toLowerCase();
-
-            if (
-              rowText.includes("nome vino") ||
-              rowText.includes("produttore") ||
-              rowText.includes("provenienza") ||
-              rowText.includes("fornitore") ||
-              firstCell === "NOME VINO" ||
-              firstCell === "ANNO" ||
-              firstCell === "PRODUTTORE"
-            ) {
-              startRow = i + 1;
-              continue;
-            }
-
-            if (
-              row[0] &&
-              row[0].trim() &&
-              row[0].length > 3 &&
-              !firstCell.includes("VINI") &&
-              !firstCell.includes("BOLLICINE") &&
-              !firstCell.includes("BIANCHI") &&
-              !firstCell.includes("ROSSI") &&
-              !firstCell.includes("ROSATI")
-            ) {
-              startRow = i;
-              break;
-            }
-          }
-        }
-
-        const dataRows = parsed.data.slice(startRow);
-        
-        // Processa ogni riga e chiama upsertToSupabase
-        for (const row of dataRows) {
-          if (row && row[0] && row[0].trim()) {
-            const wine: WineRow = {
-              id: `csv-${tipologia}-${Date.now()}-${Math.random()}`,
-              nomeVino: row[0]?.trim() || "",
-              anno: row[1]?.trim() || "",
-              produttore: row[2]?.trim() || "",
-              provenienza: row[3]?.trim() || "",
-              fornitore: row[4]?.trim() || "",
-              giacenza: 0,
-              tipologia: tipologia
-            };
-
-            if (wine.nomeVino?.trim()) {
-              await upsertToSupabase(wine, tipologia);
-            }
-          }
-        }
-
-        console.log(`✅ ${tipologia} completato`);
-        
-      } catch (error) {
-        console.error(`❌ Errore nel caricamento ${tipologia}:`, error);
-      }
-    }
-
-    console.log("✅ Caricamento completo di tutti i vini");
   };
 
   // Colonne e larghezze per la tabella
@@ -553,11 +446,6 @@ export default function ArchiviPage() {
     if (!existingWines || existingWines.length === 0) {
       loadAllCSVData();
     }
-  }, []);
-
-  // Carica tutti i vini da tutte le tipologie al primo rendering
-  useEffect(() => {
-    caricaTuttiIVini();
   }, []);
 
   // Sync wines from DB or CSV on mount or activeTab change
