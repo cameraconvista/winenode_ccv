@@ -427,7 +427,7 @@ export default function ArchiviPage() {
           .map(wine => wine.fornitore?.trim())
           .filter(fornitore => fornitore && fornitore.length > 0)
       )).sort();
-      
+
       setFornitori(fornitoriUnici);
     };
 
@@ -768,11 +768,11 @@ export default function ArchiviPage() {
       return allWineRows.filter(row => {
         const matchesModalFornitore = !modalFilters.fornitore || 
           row.fornitore?.toLowerCase().includes(modalFilters.fornitore.toLowerCase())
-        
+
         const matchesModalTipologie = modalFilters.tipologie.length === 0 || 
           modalFilters.tipologie.includes('TUTTE') ||
           modalFilters.tipologie.includes(row.tipologia || activeTab)
-        
+
         const matchesSearch = !filters.search || 
           row.nomeVino?.toLowerCase().includes(filters.search.toLowerCase()) ||
           row.produttore?.toLowerCase().includes(filters.search.toLowerCase()) ||
@@ -853,14 +853,7 @@ export default function ArchiviPage() {
         <div className="mb-4 flex items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center space-x-2">
-              <input
-                type="text"
-                placeholder="Cerca vini..."
-                value={filters.search}
-                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                className="flex-1 px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-cream placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
-
+              
               <button
                 onClick={() => setShowFornitoreModal(true)}
                 className="px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-cream hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500 min-w-[200px] text-left flex items-center justify-between"
