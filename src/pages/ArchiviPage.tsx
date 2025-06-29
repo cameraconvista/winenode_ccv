@@ -400,7 +400,7 @@ export default function ArchiviPage() {
         // Salva automaticamente ogni vino su Supabase
         for (const wine of winesFromCsv) {
           if (wine.nomeVino?.trim()) {
-            await upsertToSupabase(wine, activeTab);
+            await upsertToSupabase(wine, categoria);
           }
         }
 
@@ -625,25 +625,65 @@ export default function ArchiviPage() {
     alert(removedCount > 0 ? `${removedCount} righe vuote eliminate` : "Nessuna riga vuota trovata");
   };
 
-  const upsertToSupabase = async (wine: WineRow, tipologiaCorrente: string) => {
+  const upsertToSupabase = async (wine: WineRow, tipologiaCorrente?: string) => {
     try {
-      if (!wine.nomeVino || wine.nomeVino.trim() === "") return;
+      if (!supabase) {
+        console.error("Supabase non disponibile");
+        return;
+      }
+
+      if (!wine.nomeVino || wine.nomeVino.trim() === "") {
+        console.log("Vino ignorato - nome vuoto");
+        return;
+      }
 
       const wineData = {
-        nome_vino: wine.nomeVino,
-        anno: wine.anno || null,
-        produttore: wine.produttore || null,
-        provenienza: wine.provenienza || null,
-        fornitore: wine.fornitore || null,
-        tipologia: wine.tipologia || tipologiaCorrente,
-        giacenza: wine.giacenza ?? 0,
-        user_id: "f52daf3e-c605-4b83-991a-33a2e91ad7ff"
+        name: wine.nomeVino.trim(),
+        vintage: wine.anno || null,
+        description: wine.produttore || null,
+        region: wine.provenienza || null,
+        supplier: wine.fornitore || null,
+        type: wine.tipologia || tipologiaCorrente || activeTab,
+        inventory: wine.giacenza ?? 0,
+        user_id: "f52daf3e-c605-4b83-991a-33a2e91ad7ff",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
-      const { error } = await supabase.from("vini").upsert(wineData);
-      
-      if (error) {
-        console.error("Errore upsert Supabase:", error.message);
+      // Prima prova a inserire, se fallisce per duplicato allora aggiorna
+      const { data: insertData, error: insertError } = await supabase
+        .from("vini")
+        .insert(wineData)
+        .select()
+        .single();
+
+      if (insertError) {
+        if (insertError.code === "23505") {
+          // Duplicato - proviamo ad aggiornare
+          const { error: updateError } = await supabase
+            .from("vini")
+            .update({
+              vintage: wineData.vintage,
+              description: wineData.description,
+              region: wineData.region,
+              supplier: wineData.supplier,
+              type: wineData.type,
+              inventory: wineData.inventory,
+              updated_at: wineData.updated_at
+            })
+            .eq("name", wineData.name)
+            .eq("user_id", wineData.user_id);
+
+          if (updateError) {
+            console.error(`Errore nell'aggiornare il vino "${wine.nomeVino}" su Supabase:`, updateError);
+          } else {
+            console.log(`Vino "${wine.nomeVino}" aggiornato con successo`);
+          }
+        } else {
+          console.error(`Errore nel salvare il vino "${wine.nomeVino}" su Supabase:`, insertError);
+        }
+      } else {
+        console.log(`Vino "${wine.nomeVino}" inserito con successo`);
       }
     } catch (err) {
       console.error("Errore interno upsert:", err);
