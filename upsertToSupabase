@@ -1,0 +1,31 @@
+import { supabase } from "../lib/supabase";
+
+interface Vino {
+  nomeVino: string;
+  anno?: string;
+  produttore?: string;
+  provenienza?: string;
+  fornitore?: string;
+  tipologia?: string;
+  user_id: string;
+}
+
+export async function upsertToSupabase(vino: Vino) {
+  if (!vino.nomeVino || !vino.user_id) {
+    console.warn("⚠️ Vino senza nome o user_id:", vino);
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("vini")
+    .upsert(vino, {
+      onConflict: "nome_vino,user_id",
+    })
+    .select();
+
+  if (error) {
+    console.error(`❌ Errore nel salvare il vino "${vino.nomeVino}":`, error);
+  } else {
+    console.log(`✅ Vino salvato/aggiornato: ${vino.nomeVino}`, data);
+  }
+}
