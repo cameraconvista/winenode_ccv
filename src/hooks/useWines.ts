@@ -105,7 +105,7 @@ export function useWines() {
         inventory: wine.giacenza,
         minStock: wine.min_stock ?? 0,
         price: wine.prezzo?.toString() ?? '0',
-        vintage: wine.annata,
+        vintage: wine.anno || wine.annata,
         region: wine.regione,
         description: wine.produttore
       }))

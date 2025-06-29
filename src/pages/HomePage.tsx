@@ -236,45 +236,54 @@ export default function HomePage() {
             {filteredWines.map(wine => (
               <div
                 key={wine.id}
-                className="bg-black/20 backdrop-blur-sm border border-red-900/20 rounded-lg p-4 hover:bg-black/30 transition-all duration-200"
+                className="bg-black/20 backdrop-blur-sm border border-red-900/20 rounded-lg p-3 hover:bg-black/30 transition-all duration-200"
               >
-                <div className="flex items-center justify-between">
-                  {/* Informazioni vino - colonna sinistra */}
+                <div className="flex items-center justify-between gap-2">
+                  {/* Informazioni vino - una riga compatta */}
                   <div 
-                    className="flex-1 cursor-pointer"
+                    className="flex-1 cursor-pointer min-w-0"
                     onClick={() => handleWineClick(wine)}
                   >
-                    <div className="text-lg font-bold text-cream mb-1 line-clamp-1">
-                      {wine.name}
-                    </div>
-                    <div className="text-sm text-gray-300 mb-1">
-                      {wine.description || 'N/A'} • {wine.vintage || 'N/A'}
+                    <div className="text-sm text-cream leading-tight truncate">
+                      <span className="font-semibold">{wine.name}</span>
+                      {wine.description && (
+                        <>
+                          <span className="text-gray-400 mx-1">·</span>
+                          <span className="text-gray-300">{wine.description}</span>
+                        </>
+                      )}
+                      {wine.vintage && (
+                        <>
+                          <span className="text-gray-400 mx-1">·</span>
+                          <span className="text-gray-300">{wine.vintage}</span>
+                        </>
+                      )}
+                      <span className="text-gray-400 mx-1">·</span>
+                      <span className={`font-medium ${wine.inventory <= wine.minStock ? 'text-red-400' : 'text-green-400'}`}>
+                        {wine.inventory}
+                      </span>
                     </div>
                   </div>
                   
-                  {/* Controlli giacenza - colonna destra */}
-                  <div className="flex items-center gap-2 ml-4">
+                  {/* Controlli giacenza - pulsanti compatti */}
+                  <div className="flex items-center gap-1 flex-shrink-0">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleUpdateInventory(wine.id, wine.inventory - 1);
                       }}
                       disabled={wine.inventory <= 0}
-                      className="w-8 h-8 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-full flex items-center justify-center text-lg font-bold transition-colors"
+                      className="w-7 h-7 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-full flex items-center justify-center text-sm font-bold transition-colors"
                     >
                       ➖
                     </button>
-                    
-                    <span className={`min-w-[3rem] text-center font-bold text-lg ${wine.inventory <= wine.minStock ? 'text-red-400' : 'text-green-400'}`}>
-                      {wine.inventory}
-                    </span>
                     
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleUpdateInventory(wine.id, wine.inventory + 1);
                       }}
-                      className="w-8 h-8 bg-green-600 hover:bg-green-700 text-white rounded-full flex items-center justify-center text-lg font-bold transition-colors"
+                      className="w-7 h-7 bg-green-600 hover:bg-green-700 text-white rounded-full flex items-center justify-center text-sm font-bold transition-colors"
                     >
                       ➕
                     </button>
