@@ -276,7 +276,7 @@ export default function HomePage() {
                         handleUpdateInventory(wine.id, wine.inventory - 1);
                       }}
                       disabled={wine.inventory <= 0}
-                      className="w-8 h-8 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-full flex items-center justify-center text-xs font-bold transition-colors"
+                      className="w-6 h-6 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-full flex items-center justify-center text-xs font-bold transition-colors"
                       style={{ color: 'white !important' }}
                     >
                       ➖
@@ -291,7 +291,7 @@ export default function HomePage() {
                         e.stopPropagation();
                         handleUpdateInventory(wine.id, wine.inventory + 1);
                       }}
-                      className="w-8 h-8 bg-green-600 hover:bg-green-700 rounded-full flex items-center justify-center text-xs font-bold transition-colors"
+                      className="w-6 h-6 bg-green-600 hover:bg-green-700 rounded-full flex items-center justify-center text-xs font-bold transition-colors"
                       style={{ color: 'white !important' }}
                     >
                       ➕
