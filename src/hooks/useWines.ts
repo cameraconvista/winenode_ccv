@@ -156,7 +156,7 @@ export function useWines() {
       const wineSuppliers = Array.from(new Set(finalWines.map(w => w.supplier).filter(s => s && s.trim())))
       const dbSuppliers = supplierError ? [] : (supplierData || []).map((s: any) => s.nome).filter(s => s && s.trim())
       const allSuppliers = Array.from(new Set([...wineSuppliers, ...dbSuppliers]))
-      
+
       setSuppliers(allSuppliers.length > 0 ? allSuppliers : ['Fornitori Test'])
 
       if (typeError) {

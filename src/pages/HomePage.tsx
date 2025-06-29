@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Settings, FileText, Upload, Users, RotateCcw, Filter, Search, ChevronDown, Package, Archive } from 'lucide-react';
@@ -153,7 +152,7 @@ const HomePage: React.FC = () => {
               <p className="text-gray-400 text-sm">Gestione Inventario Vini</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowInventoryModal(true)}
@@ -162,7 +161,7 @@ const HomePage: React.FC = () => {
               <Package className="w-4 h-4" />
               Giacenze
             </button>
-            
+
             <Link
               to="/settings/archivi"
               className="flex items-center gap-2 px-4 py-2 bg-blue-700 hover:bg-blue-600 text-cream rounded-lg transition-colors"
@@ -170,7 +169,7 @@ const HomePage: React.FC = () => {
               <Archive className="w-4 h-4" />
               Archivi
             </Link>
-            
+
             <Link
               to="/settings"
               className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-cream rounded-lg transition-colors"
@@ -194,7 +193,7 @@ const HomePage: React.FC = () => {
                 className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-cream placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
             </div>
-            
+
             <button
               onClick={() => setShowFilterModal(true)}
               className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-cream rounded-lg transition-colors relative"
