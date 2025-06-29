@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import { Search, Filter, Settings, Plus, X, Save, Database } from 'lucide-react'
+import { Filter, Settings, Plus, X, Save, Database } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import WineCard from '../components/WineCard'
-import SearchModal from '../components/SearchModal'
 import FilterModal from '../components/FilterModal'
 import WineDetailsModal from '../components/WineDetailsModal'
 
