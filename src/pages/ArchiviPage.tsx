@@ -626,6 +626,8 @@ export default function ArchiviPage() {
   };
 
   const upsertToSupabase = async (wine: WineRow, tipologiaCorrente?: string) => {
+    console.log("🔄 Sincronizzazione Supabase:", wine.nomeVino);
+    
     try {
       if (!supabase) {
         console.error("Supabase non disponibile");
@@ -645,45 +647,23 @@ export default function ArchiviPage() {
         supplier: wine.fornitore || null,
         type: wine.tipologia || tipologiaCorrente || activeTab,
         inventory: wine.giacenza ?? 0,
-        user_id: "f52daf3e-c605-4b83-991a-33a2e91ad7ff",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        user_id: "f52daf3e-c605-4b83-991a-33a2e91ad7ff"
       };
 
-      // Prima prova a inserire, se fallisce per duplicato allora aggiorna
-      const { data: insertData, error: insertError } = await supabase
+      // Usa upsert con ON CONFLICT basato su name e user_id
+      const { data, error } = await supabase
         .from("vini")
-        .insert(wineData)
+        .upsert(wineData, { 
+          onConflict: 'name,user_id',
+          ignoreDuplicates: false 
+        })
         .select()
         .single();
 
-      if (insertError) {
-        if (insertError.code === "23505") {
-          // Duplicato - proviamo ad aggiornare
-          const { error: updateError } = await supabase
-            .from("vini")
-            .update({
-              vintage: wineData.vintage,
-              description: wineData.description,
-              region: wineData.region,
-              supplier: wineData.supplier,
-              type: wineData.type,
-              inventory: wineData.inventory,
-              updated_at: wineData.updated_at
-            })
-            .eq("name", wineData.name)
-            .eq("user_id", wineData.user_id);
-
-          if (updateError) {
-            console.error(`Errore nell'aggiornare il vino "${wine.nomeVino}" su Supabase:`, updateError);
-          } else {
-            console.log(`Vino "${wine.nomeVino}" aggiornato con successo`);
-          }
-        } else {
-          console.error(`Errore nel salvare il vino "${wine.nomeVino}" su Supabase:`, insertError);
-        }
+      if (error) {
+        console.error(`❌ Errore nell'upsert a Supabase:`, error);
       } else {
-        console.log(`Vino "${wine.nomeVino}" inserito con successo`);
+        console.log(`✅ Sincronizzazione Supabase: "${wine.nomeVino}" completata`);
       }
     } catch (err) {
       console.error("Errore interno upsert:", err);
