@@ -228,21 +228,34 @@ export default function HomePage() {
             </p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {filteredWines.map(wine => (
               <div
                 key={wine.id}
-                className="text-cream text-base p-2 hover:bg-white/5 rounded transition-colors"
+                className="bg-black/20 backdrop-blur-sm border border-red-900/20 rounded-lg p-4 hover:bg-black/30 transition-all duration-200 touch-manipulation"
+                onClick={() => handleWineClick(wine)}
               >
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => handleWineClick(wine)}
-                    className="text-cream hover:text-amber-300 hover:underline text-base"
-                  >
-                    {wine.name}
-                  </button>
-                  <span className="text-cream text-base">{wine.description || wine.supplier || '-'}</span>
-                  <span className="text-cream text-base">{wine.inventory}</span>
+                <div className="space-y-2">
+                  {/* Nome del vino */}
+                  <div className="flex items-start justify-between">
+                    <h3 className="text-cream font-semibold text-lg leading-tight cursor-pointer hover:text-amber-300 transition-colors flex-1 pr-2">
+                      {wine.name}
+                    </h3>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="text-amber-400 font-bold text-lg min-w-[3rem] text-right">
+                        {wine.inventory}
+                      </span>
+                      {wine.inventory <= wine.minStock && (
+                        <div className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0"></div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Produttore */}
+                  <div className="text-gray-300 text-base">
+                    <span className="font-medium">Produttore: </span>
+                    <span>{wine.description || wine.supplier || 'Non specificato'}</span>
+                  </div>
                 </div>
               </div>
             ))}
