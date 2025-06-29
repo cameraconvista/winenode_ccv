@@ -400,11 +400,7 @@ export default function ArchiviPage() {
         // Salva automaticamente ogni vino su Supabase
         for (const wine of winesFromCsv) {
           if (wine.nomeVino?.trim()) {
-            try {
-              await upsertToSupabase(wine);
-            } catch (error) {
-              console.error(`Errore nel salvare il vino "${wine.nomeVino}" su Supabase:`, error);
-            }
+            await upsertToSupabase(wine, activeTab);
           }
         }
 
@@ -629,35 +625,28 @@ export default function ArchiviPage() {
     alert(removedCount > 0 ? `${removedCount} righe vuote eliminate` : "Nessuna riga vuota trovata");
   };
 
-  const upsertToSupabase = async (wine: WineRow) => {
+  const upsertToSupabase = async (wine: WineRow, tipologiaCorrente: string) => {
     try {
-      if (!supabase) throw new Error("Supabase non disponibile");
+      if (!wine.nomeVino || wine.nomeVino.trim() === "") return;
 
       const wineData = {
-        nome_vino: wine.nomeVino || "",
-        anno: wine.anno || "",
-        produttore: wine.produttore || "",
-        provenienza: wine.provenienza || "",
-        fornitore: wine.fornitore || "",
-        tipologia: wine.tipologia || activeTab,
-        giacenza: wine.giacenza || 0,
+        nome_vino: wine.nomeVino,
+        anno: wine.anno || null,
+        produttore: wine.produttore || null,
+        provenienza: wine.provenienza || null,
+        fornitore: wine.fornitore || null,
+        tipologia: wine.tipologia || tipologiaCorrente,
+        giacenza: wine.giacenza ?? 0,
         user_id: "f52daf3e-c605-4b83-991a-33a2e91ad7ff"
       };
 
-      const { data, error } = await supabase
-        .from("vini")
-        .upsert(wineData, { 
-          onConflict: "nome_vino,user_id",
-          ignoreDuplicates: false 
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error("Errore nell'upsert a Supabase:", error);
-      throw error;
+      const { error } = await supabase.from("vini").upsert(wineData);
+      
+      if (error) {
+        console.error("Errore upsert Supabase:", error.message);
+      }
+    } catch (err) {
+      console.error("Errore interno upsert:", err);
     }
   };
 
