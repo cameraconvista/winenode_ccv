@@ -441,10 +441,113 @@ export default function ArchiviPage() {
     estraiFornitori();
   }, [allWineRows]);
 
+  // Funzione per caricare tutti i vini da tutte le tipologie
+  const caricaTuttiIVini = async () => {
+    const tipologie = [
+      "BOLLICINE ITALIANE",
+      "BOLLICINE FRANCESI",
+      "BIANCHI",
+      "ROSSI",
+      "ROSATI",
+      "VINI DOLCI"
+    ];
+
+    console.log("🔄 Caricamento di tutti i vini da Google Sheets...");
+
+    for (const tipologia of tipologie) {
+      try {
+        // Costruisci l'URL per la tipologia corrente
+        const url = csvUrls[tipologia as keyof typeof csvUrls];
+        if (!url) {
+          console.warn(`⚠️ URL non trovato per tipologia: ${tipologia}`);
+          continue;
+        }
+
+        console.log(`📥 Caricamento ${tipologia}...`);
+
+        const response = await fetch(url);
+        if (!response.ok) {
+          console.error(`❌ Errore HTTP ${response.status} per ${tipologia}`);
+          continue;
+        }
+
+        const csvText = await response.text();
+        const parsed = Papa.parse<string[]>(csvText, { skipEmptyLines: false });
+
+        // Trova il punto di inizio dei dati (come nella funzione esistente)
+        let startRow = 0;
+        for (let i = 0; i < parsed.data.length; i++) {
+          const row = parsed.data[i];
+          if (row && row.length > 0) {
+            const firstCell = row[0]?.trim().toUpperCase() || "";
+            const rowText = row.join("").toLowerCase();
+
+            if (
+              rowText.includes("nome vino") ||
+              rowText.includes("produttore") ||
+              rowText.includes("provenienza") ||
+              rowText.includes("fornitore") ||
+              firstCell === "NOME VINO" ||
+              firstCell === "ANNO" ||
+              firstCell === "PRODUTTORE"
+            ) {
+              startRow = i + 1;
+              continue;
+            }
+
+            if (
+              row[0] &&
+              row[0].trim() &&
+              row[0].length > 3 &&
+              !firstCell.includes("VINI") &&
+              !firstCell.includes("BOLLICINE") &&
+              !firstCell.includes("BIANCHI") &&
+              !firstCell.includes("ROSSI") &&
+              !firstCell.includes("ROSATI")
+            ) {
+              startRow = i;
+              break;
+            }
+          }
+        }
+
+        const dataRows = parsed.data.slice(startRow);
+
+        // Processa ogni riga e chiama upsertToSupabase
+        for (const row of dataRows) {
+          if (row && row[0] && row[0].trim()) {
+            const wine: WineRow = {
+              id: `csv-${tipologia}-${Date.now()}-${Math.random()}`,
+              nomeVino: row[0]?.trim() || "",
+              anno: row[1]?.trim() || "",
+              produttore: row[2]?.trim() || "",
+              provenienza: row[3]?.trim() || "",
+              fornitore: row[4]?.trim() || "",
+              giacenza: 0,
+              tipologia: tipologia
+            };
+
+            if (wine.nomeVino?.trim()) {
+              await upsertToSupabase(wine, tipologia);
+            }
+          }
+        }
+
+        console.log(`✅ ${tipologia} completato`);
+
+      } catch (error) {
+        console.error(`❌ Errore nel caricamento ${tipologia}:`, error);
+      }
+    }
+
+    console.log("✅ Caricamento completo di tutti i vini");
+  };
+
   // Carica tutti i CSV all'avvio per avere tutti i fornitori
   useEffect(() => {
     if (!existingWines || existingWines.length === 0) {
       loadAllCSVData();
+      caricaTuttiIVini(); // call caricaTuttiIVini() in useEffect
     }
   }, []);
 
@@ -627,7 +730,7 @@ export default function ArchiviPage() {
 
   const upsertToSupabase = async (wine: WineRow, tipologiaCorrente?: string) => {
     console.log("🔄 Sincronizzazione Supabase:", wine.nomeVino);
-    
+
     try {
       if (!supabase) {
         console.error("Supabase non disponibile");
@@ -693,7 +796,7 @@ export default function ArchiviPage() {
 
       if (rowData.id && rowData.id.startsWith("db-")) {
         const dbId = rowData.id.replace("db-", "");
-        const { error } = await supabase
+        const { error } } = await supabase
           .from("vini")
           .update(wineToSave)
           .eq("id", dbId)
@@ -1365,7 +1468,10 @@ export default function ArchiviPage() {
             <div className="sticky bottom-0 z-40 bg-[#8B4513] border-t-2 border-amber-900 shadow-lg">
               <button
                 onClick={addNewRow}
-                className="w-full border border-amber-900 p-3 text-white font-medium hover:bg-amber-200 transition-colors"
+                className="This code update involves modifying the `csvUrls` object and the `caricaTuttiIVini` function to align with the specified wine types and Google Sheet structure.
+
+```typescript
+w-full border border-amber-900 p-3 text-white font-medium hover:bg-amber-200 transition-colors"
                 style={{ backgroundColor: "#2d0505", fontSize: fontSize, height: 40, display: "flex", alignItems: "center", justifyContent: "center" }}
               >
                 Aggiungi
