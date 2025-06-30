@@ -772,33 +772,70 @@ export default function ArchiviPage() {
         user_id: userId
       };
 
-      // Usa upsert con ON CONFLICT basato su nome_vino e user_id
-      const { data, error } = await supabase
-        .from("vini")
-        .upsert(wineData, { 
-          onConflict: 'nome_vino,user_id',
-          ignoreDuplicates: false 
-        })
-        .select()
-        .single();
+      // Log prima dell'invio come suggerito nell'errore
+      console.log("Sto inviando upsert con:", wineData);
+
+      // Controlla se il campo id esiste. Se non c'è, Supabase prova a inserire una nuova riga
+      if (wine.id && wine.id.startsWith('db-')) {
+        // Il vino esiste già nel database, fai un UPDATE
+        const dbId = parseInt(wine.id.replace('db-', ''));
+        const { data, error } = await supabase
+          .from("vini")
+          .update(wineData)
+          .eq('id', dbId)
+          .eq('user_id', userId)
+          .select()
+          .single();
+
+        if (error) {
+          console.error(`❌ Errore nell'update a Supabase:`, error);
+        } else {
+          console.log(`✅ Update Supabase: "${wine.nomeVino}" completato`);
+          
+          // Aggiorna lo stato locale con i nuovi valori da Supabase
+          if (data) {
+            const rowIndex = wineRows.findIndex(row => 
+              row.nomeVino.trim().toLowerCase() === wine.nomeVino.trim().toLowerCase()
+            );
+            
+            if (rowIndex !== -1) {
+              setWineRows(prev => prev.map((row, idx) => 
+                idx === rowIndex 
+                  ? { ...row, giacenza: data.giacenza || row.giacenza, id: `db-${data.id}` }
+                  : row
+              ));
+            }
+          }
+        }
+      } else {
+        // Il vino non esiste ancora, usa upsert con ON CONFLICT basato su nome_vino e user_id
+        const { data, error } = await supabase
+          .from("vini")
+          .upsert(wineData, { 
+            onConflict: 'nome_vino,user_id',
+            ignoreDuplicates: false 
+          })
+          .select()
+          .single();
 
       if (error) {
-        console.error(`❌ Errore nell'upsert a Supabase:`, error);
-      } else {
-        console.log(`✅ Sincronizzazione Supabase: "${wine.nomeVino}" completata`);
-        
-        // Aggiorna lo stato locale con i nuovi valori da Supabase
-        if (data) {
-          const rowIndex = wineRows.findIndex(row => 
-            row.nomeVino.trim().toLowerCase() === wine.nomeVino.trim().toLowerCase()
-          );
+          console.error(`❌ Errore nell'upsert a Supabase:`, error);
+        } else {
+          console.log(`✅ Upsert Supabase: "${wine.nomeVino}" completato`);
           
-          if (rowIndex !== -1) {
-            setWineRows(prev => prev.map((row, idx) => 
-              idx === rowIndex 
-                ? { ...row, giacenza: data.giacenza || row.giacenza, id: `db-${data.id}` }
-                : row
-            ));
+          // Aggiorna lo stato locale con i nuovi valori da Supabase
+          if (data) {
+            const rowIndex = wineRows.findIndex(row => 
+              row.nomeVino.trim().toLowerCase() === wine.nomeVino.trim().toLowerCase()
+            );
+            
+            if (rowIndex !== -1) {
+              setWineRows(prev => prev.map((row, idx) => 
+                idx === rowIndex 
+                  ? { ...row, giacenza: data.giacenza || row.giacenza, id: `db-${data.id}` }
+                  : row
+              ));
+            }
           }
         }
       }
