@@ -13,6 +13,7 @@ import ArchiviPage from './pages/ArchiviPage'
 import ImportaPage from './pages/ImportaPage'
 import AccountPage from './pages/AccountPage'
 import PreferenzePage from './pages/PreferenzePage'
+import FoglioExcelPage from './pages/FoglioExcelPage'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -93,7 +94,7 @@ function App() {
         <Route path="/settings/archivi" element={<ArchiviPage />} />
         <Route path="/settings/archivi/importa" element={<ImportaPage />} />
         <Route path="/settings/archivi/manuale" element={<ManualWineInsertPage />} />
-        
+
         <Route path="/settings/google-sheets" element={<GoogleSheetsPage />} />
         <Route path="/settings/preferenze" element={<PreferenzePage />} />
         <Route path="/settings/account" element={<AccountPage />} />
@@ -102,6 +103,7 @@ function App() {
         } />
           <Route path="/manual-wine-insert" element={<ManualWineInsertPage />} />
         <Route path="/saldo" element={<SaldoCommand />} />
+        <Route path="/foglio-excel" element={<FoglioExcelPage />} />
       </Routes>
 
       {/* Global Saldo Overlay */}
