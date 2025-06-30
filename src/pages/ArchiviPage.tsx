@@ -662,8 +662,11 @@ export default function ArchiviPage() {
   const [saveTimeouts, setSaveTimeouts] = useState(new Map<number, NodeJS.Timeout>());
 
   const handleCellChange = (rowIndex: number, field: string, value: string) => {
+    // Per la giacenza, converti subito a numero
+    const processedValue = field === 'giacenza' ? Math.max(0, parseInt(value) || 0) : value;
+    
     const updatedRows = [...wineRows];
-    updatedRows[rowIndex] = { ...updatedRows[rowIndex], [field]: value };
+    updatedRows[rowIndex] = { ...updatedRows[rowIndex], [field]: processedValue };
     setWineRows(updatedRows);
 
     const currentTimeout = saveTimeouts.get(rowIndex);
@@ -673,7 +676,12 @@ export default function ArchiviPage() {
       const rowData = updatedRows[rowIndex];
       if (rowData.nomeVino?.trim()) {
         try {
-          await saveRowToDatabase(rowData, rowIndex);
+          // Se è una modifica della giacenza e il vino esiste già, usa upsertToSupabase
+          if (field === 'giacenza' && rowData.id.startsWith('db-')) {
+            await upsertToSupabase(rowData);
+          } else {
+            await saveRowToDatabase(rowData, rowIndex);
+          }
         } catch (e) {
           console.error(`Errore salvataggio riga ${rowIndex + 1}:`, e);
         }
@@ -737,6 +745,17 @@ export default function ArchiviPage() {
         return;
       }
 
+      if (!authManager.isAuthenticated()) {
+        console.error("Utente non autenticato");
+        return;
+      }
+
+      const userId = authManager.getUserId();
+      if (!userId) {
+        console.error("ID utente non disponibile");
+        return;
+      }
+
       if (!wine.nomeVino || wine.nomeVino.trim() === "") {
         console.log("Vino ignorato - nome vuoto");
         return;
@@ -750,7 +769,7 @@ export default function ArchiviPage() {
         fornitore: wine.fornitore || null,
         tipologia: wine.tipologia || tipologiaCorrente || activeTab,
         giacenza: wine.giacenza ?? 0,
-        user_id: "f52daf3e-c605-4b83-991a-33a2e91ad7ff"
+        user_id: userId
       };
 
       // Usa upsert con ON CONFLICT basato su nome_vino e user_id
@@ -777,7 +796,7 @@ export default function ArchiviPage() {
           if (rowIndex !== -1) {
             setWineRows(prev => prev.map((row, idx) => 
               idx === rowIndex 
-                ? { ...row, giacenza: data.giacenza || row.giacenza }
+                ? { ...row, giacenza: data.giacenza || row.giacenza, id: `db-${data.id}` }
                 : row
             ));
           }
