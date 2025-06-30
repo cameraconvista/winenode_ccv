@@ -3,7 +3,7 @@ import { supabase, authManager, isSupabaseAvailable } from '../lib/supabase'
 
 type SupabaseWine = {
   id: number;
-  nome: string;
+  nome_vino: string;
   tipo: string;
   fornitore: string;
   giacenza: number;
@@ -11,7 +11,7 @@ type SupabaseWine = {
   prezzo: number;
   annata: string | null;
   regione: string | null;
-  descrizione: string | null;
+  produttore: string | null;
   user_id: string;
   created_at: string;
   updated_at: string;
@@ -79,25 +79,16 @@ export function useWines() {
 
     try {
       const { data: wineData, error: wineError } = await supabase!
-        .from('giacenze')
+        .from('vini')
         .select('*')
         .eq('user_id', userId)
         .order('nome_vino')
 
       console.log("Query Supabase risultato:", { wineData, wineError })
 
-      if (wineError) {
-        if (wineError.code === '42P01') {
-          setWines(fallbackWines)
-          setSuppliers(Array.from(new Set(fallbackWines.map(w => w.supplier))))
-          setTypes([])
-          setLoading(false)
-          return
-        }
-        throw wineError
-      }
+      if (wineError) throw wineError
 
-      const transformedWines = (wineData || []).map((wine: any) => ({
+      const transformedWines = (wineData || []).map((wine: SupabaseWine) => ({
         id: wine.id,
         name: wine.nome_vino,
         type: wine.tipo,
@@ -105,7 +96,7 @@ export function useWines() {
         inventory: wine.giacenza,
         minStock: wine.min_stock ?? 0,
         price: wine.prezzo?.toString() ?? '0',
-        vintage: wine.anno || wine.annata,
+        vintage: wine.annata,
         region: wine.regione,
         description: wine.produttore
       }))
@@ -154,7 +145,7 @@ export function useWines() {
     }
     try {
       const { error } = await supabase!
-        .from('giacenze')
+        .from('vini')
         .update({ giacenza: newInventory, updated_at: new Date().toISOString() })
         .eq('id', wineId)
         .eq('user_id', userId)
@@ -190,7 +181,7 @@ export function useWines() {
 
     try {
       const { error } = await supabase!
-        .from('giacenze')
+        .from('vini')
         .update(supabaseUpdates)
         .eq('id', wineId)
         .eq('user_id', userId)
@@ -213,7 +204,7 @@ export function useWines() {
     }
     try {
       const { data, error } = await supabase!
-        .from('giacenze')
+        .from('vini')
         .insert({
           nome_vino: newWine.name,
           tipo: newWine.type,
@@ -263,7 +254,7 @@ export function useWines() {
     }
     try {
       const { error } = await supabase!
-        .from('giacenze')
+        .from('vini')
         .delete()
         .eq('id', wineId)
         .eq('user_id', userId)
