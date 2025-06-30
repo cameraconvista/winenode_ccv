@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, Filter, Users, FileText, Zap } from 'lucide-react';
+import { Search, Filter, FileText, Zap } from 'lucide-react';
 
 interface SearchAndFiltersProps {
   filters: {
@@ -8,25 +8,15 @@ interface SearchAndFiltersProps {
     search: string;
     fornitore: string;
   };
-  modalFilters: {
-    fornitore: string;
-    tipologie: string[];
-    isActive: boolean;
-  };
   fontSize: number;
   onFiltersChange: (filters: any) => void;
-  onModalFiltersChange: (filters: any) => void;
-  onShowFornitoreModal: () => void;
   onFontSizeChange: (size: number) => void;
 }
 
 export default function SearchAndFilters({
   filters,
-  modalFilters,
   fontSize,
   onFiltersChange,
-  onModalFiltersChange,
-  onShowFornitoreModal,
   onFontSizeChange
 }: SearchAndFiltersProps) {
   const handleSearchChange = (value: string) => {
@@ -41,13 +31,7 @@ export default function SearchAndFilters({
     onFiltersChange({ ...filters, tipologia: value });
   };
 
-  const clearModalFilters = () => {
-    onModalFiltersChange({
-      fornitore: '',
-      tipologie: [],
-      isActive: false
-    });
-  };
+  
 
   return (
     <div className="bg-black/20 border border-red-900/30 rounded-lg p-3 mb-3 backdrop-blur-sm">
@@ -118,16 +102,6 @@ export default function SearchAndFilters({
           </button>
         </div>
 
-        {/* Fornitore Modal Button */}
-        <button
-          onClick={onShowFornitoreModal}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          title="Filtri avanzati fornitori"
-        >
-          <Users className="h-4 w-4" />
-          Fornitori
-        </button>
-
         {/* Excel Button */}
         <button
           className="flex items-center gap-2 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg transition-colors"
@@ -137,22 +111,10 @@ export default function SearchAndFilters({
           <FileText className="h-4 w-4" />
           EXCEL
         </button>
-
-        {/* Clear Modal Filters */}
-        {modalFilters.isActive && (
-          <button
-            onClick={clearModalFilters}
-            className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-            title="Rimuovi filtri modali"
-          >
-            <Filter className="h-4 w-4" />
-            Pulisci
-          </button>
-        )}
       </div>
 
       {/* Active Filters Display */}
-      {(filters.search || filters.fornitore || filters.tipologia || modalFilters.isActive) && (
+      {(filters.search || filters.fornitore || filters.tipologia) && (
         <div className="mt-3 pt-3 border-t border-gray-600">
           <div className="flex flex-wrap gap-2 text-sm">
             <span className="text-gray-300">Filtri attivi:</span>
@@ -169,11 +131,6 @@ export default function SearchAndFilters({
             {filters.tipologia && (
               <span className="bg-green-600/20 text-green-400 px-2 py-1 rounded">
                 Tipologia: {filters.tipologia}
-              </span>
-            )}
-            {modalFilters.isActive && (
-              <span className="bg-purple-600/20 text-purple-400 px-2 py-1 rounded">
-                Filtri modali attivi
               </span>
             )}
           </div>

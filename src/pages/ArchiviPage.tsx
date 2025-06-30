@@ -10,7 +10,6 @@ import CategoryTabs from "../components/CategoryTabs";
 import SearchAndFilters from "../components/SearchAndFilters";
 import WineTableHeader from "../components/WineTableHeader";
 import WineTableRow from "../components/WineTableRow";
-import { FornitoreModal } from "../components/FornitoreModal";
 
 interface Tipologia {
   id: string;
@@ -59,13 +58,7 @@ export default function ArchiviPage() {
     search: '',
     fornitore: ''
   });
-  const [showFornitoreModal, setShowFornitoreModal] = useState(false);
   const [fornitori, setFornitori] = useState<string[]>([]);
-  const [modalFilters, setModalFilters] = useState({
-    fornitore: '',
-    tipologie: [] as string[],
-    isActive: false
-  });
 
   const defaultColors = {
     BIANCO: "#cccccc",
@@ -345,22 +338,13 @@ export default function ArchiviPage() {
   const rowHeight = fontSize * 2.5;
 
   const filteredRows = useMemo(() => {
-    if (modalFilters.isActive) {
-      return allWineRows.filter(row => {
-        const matchesModalFornitore = !modalFilters.fornitore || row.fornitore?.toLowerCase().includes(modalFilters.fornitore.toLowerCase())
-        const matchesModalTipologie = modalFilters.tipologie.length === 0 || modalFilters.tipologie.includes('TUTTE') || modalFilters.tipologie.includes(row.tipologia || activeTab)
-        const matchesSearch = !filters.search || row.nomeVino?.toLowerCase().includes(filters.search.toLowerCase()) || row.produttore?.toLowerCase().includes(filters.search.toLowerCase()) || row.provenienza?.toLowerCase().includes(filters.search.toLowerCase())
-        return matchesModalFornitore && matchesModalTipologie && matchesSearch
-      })
-    }
-
     return wineRows.filter(row => {
       const matchesTipologia = !filters.tipologia || row.tipologia === filters.tipologia
       const matchesSearch = !filters.search || row.nomeVino?.toLowerCase().includes(filters.search.toLowerCase()) || row.produttore?.toLowerCase().includes(filters.search.toLowerCase()) || row.provenienza?.toLowerCase().includes(filters.search.toLowerCase())
       const matchesFornitore = !filters.fornitore || row.fornitore?.toLowerCase().includes(filters.fornitore.toLowerCase())
       return matchesTipologia && matchesSearch && matchesFornitore
     })
-  }, [wineRows, allWineRows, filters, modalFilters, activeTab])
+  }, [wineRows, filters])
 
   const handleTabChange = (category: string) => {
     setIsLoadingCSV(true);
@@ -409,7 +393,7 @@ export default function ArchiviPage() {
             <div className="flex items-center gap-4">
               <button onClick={() => navigate("/")} className="p-2 text-white hover:text-cream hover:bg-gray-800 rounded-lg transition-colors" title="Vai alla home">
                 <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001 1m-6 0h6" />
                 </svg>
               </button>
             </div>
@@ -424,17 +408,13 @@ export default function ArchiviPage() {
 
         <SearchAndFilters
           filters={filters}
-          modalFilters={modalFilters}
           fontSize={fontSize}
           onFiltersChange={setFilters}
-          onModalFiltersChange={setModalFilters}
-          onShowFornitoreModal={() => setShowFornitoreModal(true)}
           onFontSizeChange={setFontSize}
         />
 
         <CategoryTabs
           activeTab={activeTab}
-          modalFiltersActive={modalFilters.isActive}
           onTabChange={handleTabChange}
         />
 
@@ -502,15 +482,6 @@ export default function ArchiviPage() {
           <div className="flex items-center justify-center h-16" />
         </div>
       </footer>
-
-	  <FornitoreModal 
-		showFornitoreModal={showFornitoreModal}
-		setModalFilters={setModalFilters}
-		setShowFornitoreModal={setShowFornitoreModal}
-		fornitori={fornitori}
-		allWineRows={allWineRows}
-		modalFilters={modalFilters}
-	  />
     </div>
   );
 }
