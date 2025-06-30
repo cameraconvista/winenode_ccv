@@ -82,7 +82,6 @@ export function useWines() {
         .from('vini')
         .select('*')
         .eq('user_id', userId)
-        .order('nome_vino')
 
       console.log("Query Supabase risultato:", { wineData, wineError })
 

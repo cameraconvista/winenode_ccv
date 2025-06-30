@@ -298,7 +298,7 @@ export default function ArchiviPage() {
         const winesFromCsv: WineRow[] = dataRows
           .filter((row) => row && row[0] && row[0].trim())
           .map((row, index) => ({
-            id: `csv-${categoria}-${index}`,
+            id: `csv-${categoria}-${startRow + index}`, // Usa l'indice reale per preservare l'ordine
             nomeVino: row[0]?.trim() || "",
             anno: row[1]?.trim() || "",
             produttore: row[2]?.trim() || "",
@@ -388,7 +388,7 @@ export default function ArchiviPage() {
       const winesFromCsv: WineRow[] = dataRows
         .filter((row) => row && row[0] && row[0].trim())
         .map((row, index) => ({
-          id: `csv-${categoria}-${index}`,
+          id: `csv-${categoria}-${startRow + index}`, // Usa l'indice reale per preservare l'ordine
           nomeVino: row[0]?.trim() || "",
           anno: row[1]?.trim() || "",
           produttore: row[2]?.trim() || "",
@@ -565,7 +565,7 @@ export default function ArchiviPage() {
         for (const row of dataRows) {
           if (row && row[0] && row[0].trim()) {
             const wine: WineRow = {
-              id: `csv-${tipologia}-${Date.now()}-${Math.random()}`,
+              id: `csv-${tipologia}-${startRow + dataRows.indexOf(row)}`,
               nomeVino: row[0]?.trim() || "",
               anno: row[1]?.trim() || "",
               produttore: row[2]?.trim() || "",
@@ -712,11 +712,11 @@ export default function ArchiviPage() {
   const handleCellChange = (rowIndex: number, field: string, value: string) => {
     // Per la giacenza, converti subito a numero
     const processedValue = field === 'giacenza' ? Math.max(0, parseInt(value) || 0) : value;
-    
+
     const updatedRows = [...wineRows];
     updatedRows[rowIndex] = { ...updatedRows[rowIndex], [field]: processedValue };
     setWineRows(updatedRows);
-    
+
     // Salva immediatamente nel localStorage come backup
     if (field === 'giacenza' && updatedRows[rowIndex].nomeVino?.trim()) {
       const key = `giacenza_${updatedRows[rowIndex].nomeVino.trim().toLowerCase()}`;
@@ -732,7 +732,7 @@ export default function ArchiviPage() {
         try {
           // Salva sempre nel database, non solo per le modifiche della giacenza
           await saveRowToDatabase(rowData, rowIndex);
-          
+
           // Forza il refresh dei dati dopo il salvataggio
           if (field === 'giacenza') {
             console.log(`💾 Giacenza salvata per "${rowData.nomeVino}": ${rowData.giacenza}`);
@@ -816,7 +816,7 @@ export default function ArchiviPage() {
         return;
       }
 
-      // 🔧 PRIMA: Controlla se il vino esiste già e recupera la giacenza attuale
+      // 🔧 PRIMA: Controlla se il vino esiste già erecupera la giacenza attuale
       const { data: existingWine } = await supabase
         .from("vini")
         .select("id, giacenza")
@@ -856,7 +856,7 @@ export default function ArchiviPage() {
           console.error(`❌ Errore nell'update a Supabase:`, error);
         } else {
           console.log(`✅ Update Supabase: "${wine.nomeVino}" completato (giacenza preservata: ${data.giacenza})`);
-          
+
           // Aggiorna lo stato locale con i valori corretti da Supabase
           if (data) {
             setWineRows(prev => prev.map(row => 
@@ -864,7 +864,7 @@ export default function ArchiviPage() {
                 ? { ...row, giacenza: data.giacenza, id: `db-${data.id}` }
                 : row
             ));
-            
+
             setAllWineRows(prev => prev.map(row => 
               row.nomeVino.trim().toLowerCase() === wine.nomeVino.trim().toLowerCase()
                 ? { ...row, giacenza: data.giacenza, id: `db-${data.id}` }
@@ -884,7 +884,7 @@ export default function ArchiviPage() {
           console.error(`❌ Errore nell'insert a Supabase:`, error);
         } else {
           console.log(`✅ Insert Supabase: "${wine.nomeVino}" completato (giacenza iniziale: ${data.giacenza})`);
-          
+
           // Aggiorna lo stato locale con i valori da Supabase
           if (data) {
             setWineRows(prev => prev.map(row => 
@@ -892,7 +892,7 @@ export default function ArchiviPage() {
                 ? { ...row, giacenza: data.giacenza, id: `db-${data.id}` }
                 : row
             ));
-            
+
             setAllWineRows(prev => prev.map(row => 
               row.nomeVino.trim().toLowerCase() === wine.nomeVino.trim().toLowerCase()
                 ? { ...row, giacenza: data.giacenza, id: `db-${data.id}` }
