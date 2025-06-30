@@ -134,27 +134,26 @@ export function useWines() {
   }
 
   const updateWineInventory = async (wineId: number, newInventory: number) => {
-    if (!isSupabaseAvailable || !authManager.isAuthenticated()) {
-      console.error('Non autenticato')
-      return false
-    }
-    const userId = authManager.getUserId()
-    if (!userId) {
-      console.error('ID utente non disponibile')
-      return false
-    }
     try {
+      console.log('🔄 updateWineInventory chiamata', { wineId, newInventory });
+
       const { error } = await supabase!
         .from('vini')
         .update({ giacenza: newInventory, updated_at: new Date().toISOString() })
         .eq('id', wineId)
         .eq('user_id', userId)
-      if (error) throw error
-      updateLocalWine(wineId, { inventory: newInventory })
-      return true
+
+      if (error) {
+        console.error('❌ Errore da Supabase:', error);
+        throw error;
+      }
+
+      console.log('✅ Giacenza aggiornata con successo su Supabase');
+      updateLocalWine(wineId, { inventory: newInventory });
+      return true;
     } catch (err) {
-      console.error('Errore aggiornamento giacenza:', err)
-      return false
+      console.error('❌ Errore aggiornamento giacenza:', err);
+      return false;
     }
   }
 
