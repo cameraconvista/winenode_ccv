@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button } from '@/components/ui/button';
 
 interface SearchAndFiltersProps {
   filters: {
@@ -129,21 +130,15 @@ export default function SearchAndFilters({
           Esporta
         </button>
 
-        <button
-          onClick={() => {
-            // Excel export logic here - placeholder for now
-            alert("Funzione EXCEL in arrivo!");
-          }}
-          className="flex items-center gap-2 bg-green-600 text-white rounded-md px-3 py-2 text-sm shadow-sm hover:bg-green-700 hover:shadow-md transition-all"
-          title="Esporta in Excel"
+        <Button
+          variant="outline"
+          className="ml-2 bg-green-700 text-white hover:bg-green-800"
+          onClick={() =>
+            window.open("https://docs.google.com/spreadsheets/d/1slvYCYuQ78Yf9fsRL1yR5xkW2kshOcQVe8E2HsvGZ8Y/edit?usp=sharing", "_blank")
+          }
         >
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-            <line x1="9" y1="9" x2="15" y2="15" />
-            <line x1="15" y1="9" x2="9" y2="15" />
-          </svg>
           EXCEL
-        </button>
+        </Button>
 
         <button
           onClick={() => {
