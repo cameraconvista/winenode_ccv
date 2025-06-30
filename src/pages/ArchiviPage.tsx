@@ -394,30 +394,78 @@ export default function ArchiviPage() {
           produttore: row[2]?.trim() || "",
           provenienza: row[3]?.trim() || "",
           fornitore: row[4]?.trim() || "",
-          giacenza: 0,
+          giacenza: 0, // Temporaneo, sarà aggiornato da Supabase
         }));
 
-        // Salva automaticamente ogni vino su Supabase
+        // Salva automaticamente ogni vino su Supabase (preservando giacenze esistenti)
         for (const wine of winesFromCsv) {
           if (wine.nomeVino?.trim()) {
             await upsertToSupabase(wine, categoria);
           }
         }
 
-      const emptyRows = Array.from(
-        { length: Math.max(0, 100 - winesFromCsv.length) },
-        (_, idx) => ({
-          id: `empty-${winesFromCsv.length + idx}`,
-          nomeVino: "",
-          anno: "",
-          produttore: "",
-          provenienza: "",
-          giacenza: 0,
-          fornitore: "",
-        }),
-      );
+        // 🔧 DOPO l'upsert, carica i vini con le giacenze corrette da Supabase
+        if (supabase && authManager.isAuthenticated()) {
+          const userId = authManager.getUserId();
+          if (userId) {
+            try {
+              const { data: dbWines } = await supabase
+                .from("vini")
+                .select("*")
+                .eq("user_id", userId)
+                .eq("tipologia", categoria);
 
-      setWineRows([...winesFromCsv, ...emptyRows]);
+              if (dbWines && dbWines.length > 0) {
+                // Mappa i vini da Supabase con le giacenze corrette
+                const winesWithCorrectInventory = dbWines.map((dbWine) => ({
+                  id: `db-${dbWine.id}`,
+                  nomeVino: dbWine.nome_vino || "",
+                  anno: dbWine.anno || "",
+                  produttore: dbWine.produttore || "",
+                  provenienza: dbWine.provenienza || "",
+                  fornitore: dbWine.fornitore || "",
+                  giacenza: dbWine.giacenza || 0, // 🔧 Giacenza corretta da Supabase
+                  tipologia: dbWine.tipologia || categoria
+                }));
+
+                const emptyRows = Array.from(
+                  { length: Math.max(0, 100 - winesWithCorrectInventory.length) },
+                  (_, idx) => ({
+                    id: `empty-${winesWithCorrectInventory.length + idx}`,
+                    nomeVino: "",
+                    anno: "",
+                    produttore: "",
+                    provenienza: "",
+                    giacenza: 0,
+                    fornitore: "",
+                  }),
+                );
+
+                console.log(`✅ ${categoria}: Caricati ${winesWithCorrectInventory.length} vini con giacenze da Supabase`);
+                setWineRows([...winesWithCorrectInventory, ...emptyRows]);
+                return; // Esci dalla funzione se hai caricato da Supabase
+              }
+            } catch (error) {
+              console.error(`Errore nel caricamento giacenze da Supabase per ${categoria}:`, error);
+            }
+          }
+        }
+
+        // Fallback: se non riesci a caricare da Supabase, usa i dati CSV
+        const emptyRows = Array.from(
+          { length: Math.max(0, 100 - winesFromCsv.length) },
+          (_, idx) => ({
+            id: `empty-${winesFromCsv.length + idx}`,
+            nomeVino: "",
+            anno: "",
+            produttore: "",
+            provenienza: "",
+            giacenza: 0,
+            fornitore: "",
+          }),
+        );
+
+        setWineRows([...winesFromCsv, ...emptyRows]);
     } catch (error) {
       alert(`Errore nel caricamento dati per ${categoria}: ${error}`);
     }
@@ -768,6 +816,19 @@ export default function ArchiviPage() {
         return;
       }
 
+      // 🔧 PRIMA: Controlla se il vino esiste già e recupera la giacenza attuale
+      const { data: existingWine } = await supabase
+        .from("vini")
+        .select("id, giacenza")
+        .eq("nome_vino", wine.nomeVino.trim())
+        .eq("user_id", userId)
+        .single();
+
+      // Se il vino esiste, preserva la giacenza esistente, altrimenti usa quella del CSV (che potrebbe essere 0)
+      const giacenzaDaUsare = existingWine ? existingWine.giacenza : (wine.giacenza ?? 0);
+
+      console.log(`🔍 Vino "${wine.nomeVino}": giacenza esistente=${existingWine?.giacenza}, giacenza CSV=${wine.giacenza}, usando=${giacenzaDaUsare}`);
+
       const wineData = {
         nome_vino: wine.nomeVino.trim(),
         anno: wine.anno || null,
@@ -775,21 +836,18 @@ export default function ArchiviPage() {
         provenienza: wine.provenienza || null,
         fornitore: wine.fornitore || null,
         tipologia: wine.tipologia || tipologiaCorrente || activeTab,
-        giacenza: wine.giacenza ?? 0,
+        giacenza: giacenzaDaUsare, // 🔧 Usa la giacenza preservata
         user_id: userId
       };
 
-      // Log prima dell'invio come suggerito nell'errore
       console.log("Sto inviando upsert con:", wineData);
 
-      // Controlla se il campo id esiste. Se non c'è, Supabase prova a inserire una nuova riga
-      if (wine.id && wine.id.startsWith('db-')) {
-        // Il vino esiste già nel database, fai un UPDATE
-        const dbId = parseInt(wine.id.replace('db-', ''));
+      if (existingWine) {
+        // Il vino esiste già, fai un UPDATE preservando la giacenza
         const { data, error } = await supabase
           .from("vini")
           .update(wineData)
-          .eq('id', dbId)
+          .eq('id', existingWine.id)
           .eq('user_id', userId)
           .select()
           .single();
@@ -797,52 +855,47 @@ export default function ArchiviPage() {
         if (error) {
           console.error(`❌ Errore nell'update a Supabase:`, error);
         } else {
-          console.log(`✅ Update Supabase: "${wine.nomeVino}" completato`);
+          console.log(`✅ Update Supabase: "${wine.nomeVino}" completato (giacenza preservata: ${data.giacenza})`);
           
-          // Aggiorna lo stato locale con i nuovi valori da Supabase
+          // Aggiorna lo stato locale con i valori corretti da Supabase
           if (data) {
             setWineRows(prev => prev.map(row => 
               row.nomeVino.trim().toLowerCase() === wine.nomeVino.trim().toLowerCase()
-                ? { ...row, giacenza: data.giacenza || row.giacenza, id: `db-${data.id}` }
+                ? { ...row, giacenza: data.giacenza, id: `db-${data.id}` }
                 : row
             ));
             
-            // Aggiorna anche allWineRows per mantenere coerenza
             setAllWineRows(prev => prev.map(row => 
               row.nomeVino.trim().toLowerCase() === wine.nomeVino.trim().toLowerCase()
-                ? { ...row, giacenza: data.giacenza || row.giacenza, id: `db-${data.id}` }
+                ? { ...row, giacenza: data.giacenza, id: `db-${data.id}` }
                 : row
             ));
           }
         }
       } else {
-        // Il vino non esiste ancora, usa upsert con ON CONFLICT basato su nome_vino e user_id
+        // Il vino non esiste, inseriscilo nuovo
         const { data, error } = await supabase
           .from("vini")
-          .upsert(wineData, { 
-            onConflict: 'nome_vino,user_id',
-            ignoreDuplicates: false 
-          })
+          .insert(wineData)
           .select()
           .single();
 
-      if (error) {
-          console.error(`❌ Errore nell'upsert a Supabase:`, error);
+        if (error) {
+          console.error(`❌ Errore nell'insert a Supabase:`, error);
         } else {
-          console.log(`✅ Upsert Supabase: "${wine.nomeVino}" completato`);
+          console.log(`✅ Insert Supabase: "${wine.nomeVino}" completato (giacenza iniziale: ${data.giacenza})`);
           
-          // Aggiorna lo stato locale con i nuovi valori da Supabase
+          // Aggiorna lo stato locale con i valori da Supabase
           if (data) {
             setWineRows(prev => prev.map(row => 
               row.nomeVino.trim().toLowerCase() === wine.nomeVino.trim().toLowerCase()
-                ? { ...row, giacenza: data.giacenza || row.giacenza, id: `db-${data.id}` }
+                ? { ...row, giacenza: data.giacenza, id: `db-${data.id}` }
                 : row
             ));
             
-            // Aggiorna anche allWineRows per mantenere coerenza
             setAllWineRows(prev => prev.map(row => 
               row.nomeVino.trim().toLowerCase() === wine.nomeVino.trim().toLowerCase()
-                ? { ...row, giacenza: data.giacenza || row.giacenza, id: `db-${data.id}` }
+                ? { ...row, giacenza: data.giacenza, id: `db-${data.id}` }
                 : row
             ));
           }
