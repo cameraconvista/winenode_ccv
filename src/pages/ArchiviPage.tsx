@@ -54,7 +54,6 @@ export default function ArchiviPage() {
   });
 
   const [filters, setFilters] = useState({
-    tipologia: '',
     search: '',
     fornitore: ''
   });
@@ -339,10 +338,9 @@ export default function ArchiviPage() {
 
   const filteredRows = useMemo(() => {
     return wineRows.filter(row => {
-      const matchesTipologia = !filters.tipologia || row.tipologia === filters.tipologia
       const matchesSearch = !filters.search || row.nomeVino?.toLowerCase().includes(filters.search.toLowerCase()) || row.produttore?.toLowerCase().includes(filters.search.toLowerCase()) || row.provenienza?.toLowerCase().includes(filters.search.toLowerCase())
       const matchesFornitore = !filters.fornitore || row.fornitore?.toLowerCase().includes(filters.fornitore.toLowerCase())
-      return matchesTipologia && matchesSearch && matchesFornitore
+      return matchesSearch && matchesFornitore
     })
   }, [wineRows, filters])
 

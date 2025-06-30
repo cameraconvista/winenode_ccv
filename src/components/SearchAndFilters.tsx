@@ -27,9 +27,7 @@ export default function SearchAndFilters({
     onFiltersChange({ ...filters, fornitore: value });
   };
 
-  const handleTipologiaChange = (value: string) => {
-    onFiltersChange({ ...filters, tipologia: value });
-  };
+  
 
   
 
@@ -63,23 +61,7 @@ export default function SearchAndFilters({
           </select>
         </div>
 
-        {/* Tipologia Filter */}
-        <div className="min-w-[150px]">
-          <select
-            value={filters.tipologia}
-            onChange={(e) => handleTipologiaChange(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-            style={{ fontSize: `${fontSize}px` }}
-          >
-            <option value="">Tutte le tipologie</option>
-            <option value="ROSSI">ROSSI</option>
-            <option value="BIANCHI">BIANCHI</option>
-            <option value="BOLLICINE ITALIANE">BOLLICINE ITALIANE</option>
-            <option value="BOLLICINE FRANCESI">BOLLICINE FRANCESI</option>
-            <option value="ROSATI">ROSATI</option>
-            <option value="VINI DOLCI">VINI DOLCI</option>
-          </select>
-        </div>
+        
 
         {/* Font Size Controls */}
         <div className="flex items-center gap-2 bg-gray-800/50 border border-gray-600 rounded-lg px-3 py-2">
@@ -128,11 +110,7 @@ export default function SearchAndFilters({
                 Fornitore: {filters.fornitore}
               </span>
             )}
-            {filters.tipologia && (
-              <span className="bg-green-600/20 text-green-400 px-2 py-1 rounded">
-                Tipologia: {filters.tipologia}
-              </span>
-            )}
+            
           </div>
         </div>
       )}
