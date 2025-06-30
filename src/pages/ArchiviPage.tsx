@@ -668,6 +668,12 @@ export default function ArchiviPage() {
     const updatedRows = [...wineRows];
     updatedRows[rowIndex] = { ...updatedRows[rowIndex], [field]: processedValue };
     setWineRows(updatedRows);
+    
+    // Salva immediatamente nel localStorage come backup
+    if (field === 'giacenza' && updatedRows[rowIndex].nomeVino?.trim()) {
+      const key = `giacenza_${updatedRows[rowIndex].nomeVino.trim().toLowerCase()}`;
+      localStorage.setItem(key, processedValue.toString());
+    }
 
     const currentTimeout = saveTimeouts.get(rowIndex);
     if (currentTimeout) clearTimeout(currentTimeout);
@@ -676,11 +682,12 @@ export default function ArchiviPage() {
       const rowData = updatedRows[rowIndex];
       if (rowData.nomeVino?.trim()) {
         try {
-          // Se è una modifica della giacenza e il vino esiste già, usa upsertToSupabase
-          if (field === 'giacenza' && rowData.id.startsWith('db-')) {
-            await upsertToSupabase(rowData);
-          } else {
-            await saveRowToDatabase(rowData, rowIndex);
+          // Salva sempre nel database, non solo per le modifiche della giacenza
+          await saveRowToDatabase(rowData, rowIndex);
+          
+          // Forza il refresh dei dati dopo il salvataggio
+          if (field === 'giacenza') {
+            console.log(`💾 Giacenza salvata per "${rowData.nomeVino}": ${rowData.giacenza}`);
           }
         } catch (e) {
           console.error(`Errore salvataggio riga ${rowIndex + 1}:`, e);
@@ -794,17 +801,18 @@ export default function ArchiviPage() {
           
           // Aggiorna lo stato locale con i nuovi valori da Supabase
           if (data) {
-            const rowIndex = wineRows.findIndex(row => 
+            setWineRows(prev => prev.map(row => 
               row.nomeVino.trim().toLowerCase() === wine.nomeVino.trim().toLowerCase()
-            );
+                ? { ...row, giacenza: data.giacenza || row.giacenza, id: `db-${data.id}` }
+                : row
+            ));
             
-            if (rowIndex !== -1) {
-              setWineRows(prev => prev.map((row, idx) => 
-                idx === rowIndex 
-                  ? { ...row, giacenza: data.giacenza || row.giacenza, id: `db-${data.id}` }
-                  : row
-              ));
-            }
+            // Aggiorna anche allWineRows per mantenere coerenza
+            setAllWineRows(prev => prev.map(row => 
+              row.nomeVino.trim().toLowerCase() === wine.nomeVino.trim().toLowerCase()
+                ? { ...row, giacenza: data.giacenza || row.giacenza, id: `db-${data.id}` }
+                : row
+            ));
           }
         }
       } else {
@@ -825,17 +833,18 @@ export default function ArchiviPage() {
           
           // Aggiorna lo stato locale con i nuovi valori da Supabase
           if (data) {
-            const rowIndex = wineRows.findIndex(row => 
+            setWineRows(prev => prev.map(row => 
               row.nomeVino.trim().toLowerCase() === wine.nomeVino.trim().toLowerCase()
-            );
+                ? { ...row, giacenza: data.giacenza || row.giacenza, id: `db-${data.id}` }
+                : row
+            ));
             
-            if (rowIndex !== -1) {
-              setWineRows(prev => prev.map((row, idx) => 
-                idx === rowIndex 
-                  ? { ...row, giacenza: data.giacenza || row.giacenza, id: `db-${data.id}` }
-                  : row
-              ));
-            }
+            // Aggiorna anche allWineRows per mantenere coerenza
+            setAllWineRows(prev => prev.map(row => 
+              row.nomeVino.trim().toLowerCase() === wine.nomeVino.trim().toLowerCase()
+                ? { ...row, giacenza: data.giacenza || row.giacenza, id: `db-${data.id}` }
+                : row
+            ));
           }
         }
       }
