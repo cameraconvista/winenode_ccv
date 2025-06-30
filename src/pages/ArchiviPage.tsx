@@ -30,6 +30,7 @@ interface WineRow {
 }
 
 export default function ArchiviPage() {
+  console.log("🔍 ArchiviPage: Rendering started");
   const navigate = useNavigate();
   const { wines: existingWines, types, refreshWines } = useWines();
   const { tipologie, loading, addTipologia: addTipologiaToDb, removeTipologia: removeTipologiaFromDb, updateTipologia: updateTipologiaInDb } = useTipologie();
@@ -373,10 +374,16 @@ export default function ArchiviPage() {
     }
   };
 
+  console.log("🔍 ArchiviPage: About to render JSX");
+
   return (
     <div
       className="h-[95vh] flex flex-col"
-      style={{ background: "linear-gradient(to bottom right, #1f0202, #2d0505, #1f0202)" }}
+      style={{
+        background: "linear-gradient(to bottom right, #1f0202, #2d0505, #1f0202)",
+        minHeight: "100vh",
+        color: "white"
+      }}
     >
       <header className="border-b border-red-900/30 bg-black/30 backdrop-blur-sm flex-shrink-0 sticky top-0 z-10">
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
