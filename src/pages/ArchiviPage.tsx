@@ -767,6 +767,21 @@ export default function ArchiviPage() {
         console.error(`❌ Errore nell'upsert a Supabase:`, error);
       } else {
         console.log(`✅ Sincronizzazione Supabase: "${wine.nomeVino}" completata`);
+        
+        // Aggiorna lo stato locale con i nuovi valori da Supabase
+        if (data) {
+          const rowIndex = wineRows.findIndex(row => 
+            row.nomeVino.trim().toLowerCase() === wine.nomeVino.trim().toLowerCase()
+          );
+          
+          if (rowIndex !== -1) {
+            setWineRows(prev => prev.map((row, idx) => 
+              idx === rowIndex 
+                ? { ...row, giacenza: data.giacenza || row.giacenza }
+                : row
+            ));
+          }
+        }
       }
     } catch (err) {
       console.error("Errore interno upsert:", err);

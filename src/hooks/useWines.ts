@@ -134,6 +134,16 @@ export function useWines() {
   }
 
   const updateWineInventory = async (wineId: number, newInventory: number) => {
+    if (!isSupabaseAvailable || !authManager.isAuthenticated()) {
+      console.error('Non autenticato')
+      return false
+    }
+    const userId = authManager.getUserId()
+    if (!userId) {
+      console.error('ID utente non disponibile')
+      return false
+    }
+    
     try {
       console.log('🔄 updateWineInventory chiamata', { wineId, newInventory });
 
