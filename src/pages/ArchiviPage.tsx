@@ -91,6 +91,7 @@ export default function ArchiviPage() {
   ];
 
   const [saveTimeouts, setSaveTimeouts] = useState(new Map<number, NodeJS.Timeout>());
+  const [isLoadingCSV, setIsLoadingCSV] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -361,9 +362,14 @@ export default function ArchiviPage() {
   }, [wineRows, allWineRows, filters, modalFilters, activeTab])
 
   const handleTabChange = (category: string) => {
+    setIsLoadingCSV(true);
     setActiveTab(category);
     if (csvUrls[category as keyof typeof csvUrls]) {
-      fetchAndParseCSV(csvUrls[category as keyof typeof csvUrls], category);
+      fetchAndParseCSV(csvUrls[category as keyof typeof csvUrls], category).then(() => {
+        setIsLoadingCSV(false);
+      });
+    } else {
+      setIsLoadingCSV(false);
     }
   };
 
@@ -427,30 +433,49 @@ export default function ArchiviPage() {
 
         <div className="rounded-lg shadow-2xl border border-amber-900 overflow-hidden flex-1 min-h-0" style={{ backgroundColor: "#8B4513" }}>
           <div className="h-full overflow-x-hidden overflow-y-auto">
-            <table className="w-full table-fixed" style={{ borderCollapse: "collapse" }}>
-              <WineTableHeader
-                columnWidths={columnWidths}
-                fontSize={fontSize}
-                lineHeight={lineHeight}
-                rowHeight={rowHeight}
-                onMouseDown={handleMouseDown}
-              />
+            {isLoadingCSV ? (
+              <table className="w-full table-fixed" style={{ borderCollapse: "collapse" }}>
+                <WineTableHeader
+                  columnWidths={columnWidths}
+                  fontSize={fontSize}
+                  lineHeight={lineHeight}
+                  rowHeight={rowHeight}
+                  onMouseDown={handleMouseDown}
+                />
+                <tbody>
+                  <tr>
+                    <td colSpan={8} className="text-white text-center py-10 font-semibold">
+                      Caricamento vini in corso...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            ) : (
+              <table className="w-full table-fixed" style={{ borderCollapse: "collapse" }}>
+                <WineTableHeader
+                  columnWidths={columnWidths}
+                  fontSize={fontSize}
+                  lineHeight={lineHeight}
+                  rowHeight={rowHeight}
+                  onMouseDown={handleMouseDown}
+                />
 
-              <tbody>
-                {filteredRows.map((row, index) => (
-                  <WineTableRow
-                    key={row.id}
-                    row={row}
-                    index={index}
-                    isSelected={selectedRows.includes(index)}
-                    columnWidths={columnWidths}
-                    fontSize={fontSize}
-                    onRowClick={handleRowClick}
-                    onCellChange={handleCellChange}
-                  />
-                ))}
-              </tbody>
-            </table>
+                <tbody>
+                  {filteredRows.map((row, index) => (
+                    <WineTableRow
+                      key={row.id}
+                      row={row}
+                      index={index}
+                      isSelected={selectedRows.includes(index)}
+                      columnWidths={columnWidths}
+                      fontSize={fontSize}
+                      onRowClick={handleRowClick}
+                      onCellChange={handleCellChange}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            )}
 
             <div className="sticky bottom-0 z-40 bg-[#8B4513] border-t-2 border-amber-900 shadow-lg">
               <button

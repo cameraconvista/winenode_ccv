@@ -23,17 +23,7 @@ const csvUrls = {
 };
 
 export function useWineData() {
-  const [wineRows, setWineRows] = useState<WineRow[]>(() =>
-    Array.from({ length: 100 }, (_, index) => ({
-      id: `row-${index}`,
-      nomeVino: "",
-      anno: "",
-      produttore: "",
-      provenienza: "",
-      giacenza: 0,
-      fornitore: "",
-    }))
-  );
+  const [wineRows, setWineRows] = useState<WineRow[]>([]);
 
   const [allWineRows, setAllWineRows] = useState<WineRow[]>([]);
 
